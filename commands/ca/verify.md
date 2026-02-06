@@ -86,10 +86,7 @@ After verification (regardless of commit decision):
      f. Save the updated `.dev/todos.md`.
 
 2. Create archive directory: `.dev/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-3. Copy `REQUIREMENT.md`, `RESEARCH.md` (if exists), `PLAN.md`, `SUMMARY.md`, `BRIEF.md` from `.dev/current/` to the archive.
-4. Remove the copied files from `.dev/current/` (keep STATUS.md).
-5. Reset STATUS.md to the init state (all completed flags false except init).
-
-Update STATUS.md: `verify_completed: true`, `current_step: done`.
+3. Move all files from `.dev/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md).
+4. Ensure `.dev/current/` is empty after archiving.
 
 Tell the user the workflow cycle is complete.
