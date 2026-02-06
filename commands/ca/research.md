@@ -17,16 +17,23 @@ Read these files:
 - `.dev/current/REQUIREMENT.md`
 - `.dev/context.md` (if it has content)
 
-### 2. Launch ca-researcher agent
+### 2. Resolve model for ca-researcher
 
-Use the Task tool with `subagent_type: "general-purpose"` to launch the ca-researcher agent. Pass it:
+Read the model configuration from config (global then workspace override):
+1. Check for per-agent override: `ca-researcher_model` in config. If set, use that model.
+2. Otherwise, read `model_profile` from config (default: `balanced`). Read `references/model-profiles.md` and look up the model for `ca-researcher` in the corresponding profile column.
+3. The resolved model will be passed to the Task tool.
+
+### 3. Launch ca-researcher agent
+
+Use the Task tool with `subagent_type: "ca-researcher"` and the resolved `model` parameter to launch the ca-researcher agent. Pass it:
 - The full content of REQUIREMENT.md
 - The project root path
 - Instructions to follow the `ca-researcher` agent prompt
 
 The agent will analyze the codebase and return structured findings.
 
-### 3. Present findings to user
+### 4. Present findings to user
 
 Display the research findings clearly:
 
@@ -47,11 +54,11 @@ Display the research findings clearly:
 - ...
 ```
 
-### 4. Ask about external research
+### 5. Ask about external research
 
 Ask the user if they need any external resources searched (documentation, APIs, etc.). If yes, launch another research task.
 
-### 5. MANDATORY CONFIRMATION
+### 6. MANDATORY CONFIRMATION
 
 Ask the user: **"Are these findings accurate and complete? (yes/no)"**
 

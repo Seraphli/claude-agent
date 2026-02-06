@@ -9,7 +9,7 @@ Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for 
 
 ## Behavior
 
-You are the execution orchestrator. You delegate the actual work to the `ca-executor` agent running in an independent context.
+You are the execution orchestrator. You delegate the actual work to the `ca-executor` agent running in the foreground.
 
 ### 1. Read context
 
@@ -18,22 +18,29 @@ Read these files and collect their full content:
 - `.dev/current/REQUIREMENT.md`
 - `.dev/context.md` (if it has content)
 
-### 2. Launch ca-executor agent
+### 2. Resolve model for ca-executor
 
-Use the Task tool with `subagent_type: "general-purpose"` to launch the ca-executor agent. Pass it:
+Read the model configuration from config (global then workspace override):
+1. Check for per-agent override: `ca-executor_model` in config. If set, use that model.
+2. Otherwise, read `model_profile` from config (default: `balanced`). Read `references/model-profiles.md` and look up the model for `ca-executor` in the corresponding profile column.
+3. The resolved model will be passed to the Task tool.
+
+### 3. Launch ca-executor agent
+
+Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch the ca-executor agent. Pass it:
 - The full content of PLAN.md
 - The full content of REQUIREMENT.md
 - The full content of context.md (if any)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt
 
-The agent executes the implementation steps and returns an execution summary.
+The agent runs in the foreground and executes the implementation steps, returning an execution summary.
 
-### 3. Write SUMMARY.md
+### 4. Write SUMMARY.md
 
 Take the agent's returned summary and write it to `.dev/current/SUMMARY.md`.
 
-### 4. Present execution summary
+### 5. Present execution summary
 
 Display to the user:
 
@@ -52,7 +59,7 @@ Display to the user:
 - ...
 ```
 
-### 5. Update STATUS.md
+### 6. Update STATUS.md
 
 Set `execute_completed: true`, `current_step: execute`.
 

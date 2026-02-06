@@ -18,9 +18,16 @@ Read these files and collect their full content:
 - `.dev/current/PLAN.md`
 - `.dev/current/SUMMARY.md`
 
-### 2. Launch ca-verifier agent
+### 2. Resolve model for ca-verifier
 
-Use the Task tool with `subagent_type: "general-purpose"` to launch the ca-verifier agent. Pass it:
+Read the model configuration from config (global then workspace override):
+1. Check for per-agent override: `ca-verifier_model` in config. If set, use that model.
+2. Otherwise, read `model_profile` from config (default: `balanced`). Read `references/model-profiles.md` and look up the model for `ca-verifier` in the corresponding profile column.
+3. The resolved model will be passed to the Task tool.
+
+### 3. Launch ca-verifier agent
+
+Use the Task tool with `subagent_type: "ca-verifier"` and the resolved `model` parameter to launch the ca-verifier agent. Pass it:
 - The full content of REQUIREMENT.md
 - The full content of PLAN.md
 - The full content of SUMMARY.md
@@ -29,7 +36,7 @@ Use the Task tool with `subagent_type: "general-purpose"` to launch the ca-verif
 
 The agent independently checks every success criterion and returns a verification report.
 
-### 3. Present verification report
+### 4. Present verification report
 
 Display the report to the user:
 
@@ -44,14 +51,14 @@ Display the report to the user:
 ### Overall: PASS/FAIL
 ```
 
-### 4. MANDATORY CONFIRMATION — User Acceptance
+### 5. MANDATORY CONFIRMATION — User Acceptance
 
 Ask the user: **"Do you accept these results? (yes/no)"**
 
 - If **no**: Ask what's wrong. Suggest running `/ca:fix` to go back to an earlier step.
 - If **yes**: Proceed to git commit step.
 
-### 5. Git Commit Confirmation
+### 6. Git Commit Confirmation
 
 Ask the user: **"Would you like to commit these changes? (yes/no)"**
 
@@ -64,7 +71,7 @@ Ask the user: **"Would you like to commit these changes? (yes/no)"**
     - If **yes**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
     - If **no**: Skip committing.
 
-### 6. Archive and cleanup
+### 7. Archive and cleanup
 
 After verification (regardless of commit decision):
 

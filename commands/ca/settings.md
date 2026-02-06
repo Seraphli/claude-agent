@@ -1,4 +1,4 @@
-# /ca:settings — Configure Language Settings
+# /ca:settings — Configure Settings
 
 Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English.
 
@@ -16,7 +16,7 @@ Read the config file for the chosen location (if it exists). Also read the globa
 
 ### 3. Configure each setting
 
-For each of the three settings, ask the user ONE AT A TIME using `AskUserQuestion`:
+For each setting, ask the user ONE AT A TIME using `AskUserQuestion`:
 
 #### `interaction_language` — Language for conversations
 
@@ -33,6 +33,28 @@ Same options as above.
 
 Same options as above.
 
+#### `model_profile` — Model profile for agent execution
+
+Options: `quality`, `balanced`, `budget`.
+
+- `quality`: executor=opus, researcher=opus, verifier=sonnet
+- `balanced`: executor=sonnet, researcher=sonnet, verifier=sonnet
+- `budget`: executor=sonnet, researcher=haiku, verifier=haiku
+
+Default: `balanced`. If the setting already has a value, show the current value and let user keep it.
+
+#### Per-agent model overrides (optional)
+
+Ask the user if they want to override the model for any specific agent. If yes, ask ONE AT A TIME:
+
+- `ca-executor_model` — Override model for executor agent
+- `ca-researcher_model` — Override model for researcher agent
+- `ca-verifier_model` — Override model for verifier agent
+
+Options for each: `opus`, `sonnet`, `haiku`, or leave empty to use profile default.
+
+Per-agent overrides take priority over the profile setting.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -43,9 +65,14 @@ Write the config to the chosen location:
 interaction_language: <value>
 comment_language: <value>
 code_language: <value>
+model_profile: <value>
+ca-executor_model: <value>
+ca-researcher_model: <value>
+ca-verifier_model: <value>
 ```
 
 For workspace config, omit settings that inherit from global (do not write them).
+Omit per-agent model overrides that are empty (not set).
 
 ### 5. Confirm
 
