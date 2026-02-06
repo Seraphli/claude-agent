@@ -34,11 +34,24 @@ Create the following directories and files if they don't exist:
   history/
 ```
 
-### 4. Collect initial requirement description
+### 4. Collect initial requirement description and link to todo
 
-If the user provided a description with this command (as arguments), use it.
+**If the user provided a description** with this command:
+1. Read `.dev/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
+2. Analyze the user's description and see if it matches any existing todo item.
+3. If a match is found, recommend it to the user: **"I found a matching todo: <todo text>. Do you want to link this requirement to it? (yes/no)"**
+   - If **yes**: Save the todo text for linking in step 5.
+   - If **no**: Continue without linking.
+4. If no match is found, ask: **"This requirement doesn't match any existing todo. Should I add it as a new todo item? (yes/no)"**
+   - If **yes**: Append to `.dev/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
+   - If **no**: Continue without linking.
 
-Otherwise, ask: **"What do you want to implement? (A brief description is enough)"**
+**If the user did NOT provide a description**:
+1. Read `.dev/todos.md` and find all uncompleted todo items.
+2. Analyze and present them to the user: **"Here are your current todos. Which one would you like to work on? (Or describe a new requirement)"**
+   - Show each uncompleted todo with a number.
+3. If the user selects a todo, use that as the requirement description and save it for linking in step 5.
+4. If the user provides a new description instead, use it and proceed to match/add logic as above.
 
 ### 5. Write BRIEF.md
 
@@ -48,7 +61,11 @@ Write `.dev/current/BRIEF.md` with:
 # Brief
 
 <user's description>
+
+linked_todo: <todo text if linked, otherwise omit this line>
 ```
+
+Include `linked_todo` only if a todo was linked in step 4.
 
 ### 6. Initialize STATUS.md
 

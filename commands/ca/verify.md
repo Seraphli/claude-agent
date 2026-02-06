@@ -75,10 +75,20 @@ Ask the user: **"Would you like to commit these changes? (yes/no)"**
 
 After verification (regardless of commit decision):
 
-1. Create archive directory: `.dev/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-2. Copy `REQUIREMENT.md`, `RESEARCH.md` (if exists), `PLAN.md`, `SUMMARY.md` from `.dev/current/` to the archive.
-3. Remove the copied files from `.dev/current/` (keep STATUS.md).
-4. Reset STATUS.md to the init state (all completed flags false except init).
+1. **Check for linked todo**:
+   - Read `.dev/current/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
+   - If it does:
+     a. Read `.dev/todos.md`.
+     b. Find the matching uncompleted todo item (under `# Todo List`, matching the exact text).
+     c. Mark it as completed: change `- [ ]` to `- [x]`. (If the workflow was rejected/cancelled, mark as `- [-]` instead.)
+     d. Update the time tag: If the line has `> Added: <date>`, change it to `> Added: <date> | Completed: YYYY-MM-DD` (or `| Cancelled: YYYY-MM-DD` if cancelled). Use today's date.
+     e. Move the completed todo item to the `# Archive` section at the bottom of the file.
+     f. Save the updated `.dev/todos.md`.
+
+2. Create archive directory: `.dev/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
+3. Copy `REQUIREMENT.md`, `RESEARCH.md` (if exists), `PLAN.md`, `SUMMARY.md`, `BRIEF.md` from `.dev/current/` to the archive.
+4. Remove the copied files from `.dev/current/` (keep STATUS.md).
+5. Reset STATUS.md to the init state (all completed flags false except init).
 
 Update STATUS.md: `verify_completed: true`, `current_step: done`.
 

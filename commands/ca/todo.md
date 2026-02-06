@@ -18,13 +18,16 @@ Read `.dev/todos.md`, then append the new item. **Always preserve the user's exa
 
 ```markdown
 - [ ] <user's exact original input>
+  > Added: YYYY-MM-DD
 ```
 
-If you have additional understanding or notes to add, put them on the next line as a blockquote:
+Replace `YYYY-MM-DD` with today's date.
+
+If you have additional understanding or notes to add, put them on the same blockquote line or add another:
 
 ```markdown
 - [ ] <user's exact original input>
-  > Note: <your understanding or clarification>
+  > Added: YYYY-MM-DD | Note: <your understanding or clarification>
 ```
 
 ### 3. Confirm
