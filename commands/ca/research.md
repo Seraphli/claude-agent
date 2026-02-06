@@ -2,6 +2,8 @@
 
 Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
+Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+
 ## Prerequisites
 
 1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.

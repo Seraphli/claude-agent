@@ -2,6 +2,8 @@
 
 Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English.
 
+Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+
 ## Behavior
 
 ### 1. Choose save location
