@@ -1,0 +1,61 @@
+# /ca:research — Analyze Codebase and Resources
+
+Read `.dev/config.md` to determine the user's preferred language. Respond in that language.
+
+## Prerequisites
+
+1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:init` first and stop.
+2. Check `.dev/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+
+## Behavior
+
+You are the research orchestrator. Use the `ca-researcher` agent for deep codebase analysis.
+
+### 1. Read context
+
+Read these files:
+- `.dev/current/REQUIREMENT.md`
+- `.dev/context.md` (if it has content)
+
+### 2. Launch ca-researcher agent
+
+Use the Task tool with `subagent_type: "general-purpose"` to launch the ca-researcher agent. Pass it:
+- The full content of REQUIREMENT.md
+- The project root path
+- Instructions to follow the `ca-researcher` agent prompt
+
+The agent will analyze the codebase and return structured findings.
+
+### 3. Present findings to user
+
+Display the research findings clearly:
+
+```
+## Research Findings
+
+### Relevant Files
+- file1.py — reason
+- file2.py — reason
+
+### Key Patterns
+- ...
+
+### Constraints/Dependencies
+- ...
+
+### External Resources (if any)
+- ...
+```
+
+### 4. Ask about external research
+
+Ask the user if they need any external resources searched (documentation, APIs, etc.). If yes, launch another research task.
+
+### 5. MANDATORY CONFIRMATION
+
+Ask the user: **"Are these findings accurate and complete? (yes/no)"**
+
+- If **yes**: Write the findings to `.dev/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`.
+- If **no**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.
+
+**Do NOT proceed to any next step automatically.**

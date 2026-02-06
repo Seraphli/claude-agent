@@ -1,0 +1,10 @@
+{
+  "name": "claude-agent",
+  "version": "1.0.0",
+  "description": "User-controlled Claude Code development workflow system",
+  "scripts": {
+    "install-ca": "node bin/install.js",
+    "uninstall-ca": "node bin/uninstall.js"
+  },
+  "license": "MIT"
+}
