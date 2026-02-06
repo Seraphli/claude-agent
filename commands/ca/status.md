@@ -1,12 +1,12 @@
 # /ca:status — Show Workflow Status
 
-Read `.dev/config.md` to determine the user's preferred language. Respond in that language.
+Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Steps
 
 ### 1. Check initialization
 
-If `.dev/current/STATUS.md` doesn't exist, tell the user to run `/ca:init` first.
+If `.dev/current/STATUS.md` doesn't exist, tell the user to run `/ca:new` first.
 
 ### 2. Read and display status
 
@@ -21,6 +21,7 @@ Show:
 ### 3. Show available files
 
 Check which of these files exist and show their status:
+- `.dev/current/BRIEF.md` — initial brief collected?
 - `.dev/current/REQUIREMENT.md` — requirement defined?
 - `.dev/current/RESEARCH.md` — research done?
 - `.dev/current/PLAN.md` — plan created?

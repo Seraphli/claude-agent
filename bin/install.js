@@ -5,6 +5,9 @@ const homeDir = require("os").homedir();
 const srcDir = path.resolve(__dirname, "..");
 const targetCommandsDir = path.join(homeDir, ".claude", "commands", "ca");
 const targetAgentsDir = path.join(homeDir, ".claude", "agents");
+const targetHooksDir = path.join(homeDir, ".claude", "hooks");
+const caConfigDir = path.join(homeDir, ".claude", "ca");
+const settingsPath = path.join(homeDir, ".claude", "settings.json");
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -40,10 +43,32 @@ copyAgents(srcAgentsDir, targetAgentsDir);
 const agentFiles = fs.readdirSync(srcAgentsDir).filter((f) => f.startsWith("ca-") && f.endsWith(".md"));
 console.log(`Copied ${agentFiles.length} agents to ${targetAgentsDir}`);
 
+// Copy hooks
+const srcHooksDir = path.join(srcDir, "hooks");
+fs.mkdirSync(targetHooksDir, { recursive: true });
+const hookFile = "ca-statusline.js";
+fs.copyFileSync(path.join(srcHooksDir, hookFile), path.join(targetHooksDir, hookFile));
+console.log(`Copied ${hookFile} to ${targetHooksDir}`);
+
+// Create global config directory
+fs.mkdirSync(caConfigDir, { recursive: true });
+console.log(`Created ${caConfigDir}`);
+
+// Register statusline in settings.json
+let settings = {};
+if (fs.existsSync(settingsPath)) {
+  settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
+}
+const hookPath = path.join(targetHooksDir, hookFile);
+settings.statusLine = { type: "command", command: `node "${hookPath}"` };
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+console.log("Registered statusline in settings.json");
+
 console.log("\nCA installed successfully!");
 console.log("\nAvailable commands:");
 console.log("  /ca:help      - Show command reference");
-console.log("  /ca:init      - Initialize workspace");
+console.log("  /ca:settings  - Configure language settings");
+console.log("  /ca:new       - Start a new requirement");
 console.log("  /ca:discuss   - Discuss requirements");
 console.log("  /ca:research  - Analyze codebase");
 console.log("  /ca:plan      - Propose implementation plan");

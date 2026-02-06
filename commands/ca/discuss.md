@@ -1,10 +1,10 @@
 # /ca:discuss — Discuss Requirements
 
-Read `.dev/config.md` to determine the user's preferred language. Respond in that language.
+Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Prerequisites
 
-Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:init` first and stop.
+Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
@@ -12,7 +12,11 @@ You are conducting a focused requirements discussion. Your goal is to understand
 
 ### 1. Start the discussion
 
-If the user provided a task description with this command, acknowledge it. Otherwise, ask what they want to accomplish.
+Read `.dev/current/BRIEF.md` if it exists. Use the brief as the starting point for the discussion — acknowledge what the user wants to do based on the brief.
+
+If the user also provided a task description with this command, incorporate it as well.
+
+If neither the brief nor a task description exists, ask what they want to accomplish.
 
 ### 2. Ask clarifying questions ONE AT A TIME
 

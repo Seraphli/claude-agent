@@ -57,5 +57,6 @@ When done, return your summary in this exact structure:
 - Do not run tests unless the plan explicitly says to.
 - Do not commit anything. The verify step handles that.
 - All imports must be at the top of files.
-- All comments must be in English.
+- Write code comments in the language specified by `comment_language` in the config (default: English).
+- Write code strings (logs, error messages, etc.) in the language specified by `code_language` in the config (default: English).
 - Keep code compact and concise — no unnecessary abstractions.

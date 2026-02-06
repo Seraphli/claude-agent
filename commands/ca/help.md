@@ -1,14 +1,20 @@
 # /ca:help — Command Reference
 
-Read `.dev/config.md` to determine the user's preferred language. If the file doesn't exist, default to English.
+Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Display all available CA commands in the user's preferred language:
+
+## Setup
+
+| Command | Description |
+|---------|-------------|
+| `/ca:settings` | Configure language settings (global or workspace) |
 
 ## Workflow Commands
 
 | Command | Description |
 |---------|-------------|
-| `/ca:init` | Initialize workspace — creates `.dev/` directory, sets language preference |
+| `/ca:new [description]` | Start a new requirement — creates `.dev/` directory, collects initial brief |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:research` | Analyze codebase + external resources (optional step) |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
@@ -41,7 +47,7 @@ Display all available CA commands in the user's preferred language:
 ## Typical Workflow
 
 ```
-/ca:init → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
 ```
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.

@@ -1,10 +1,10 @@
 # /ca:todos — List All Todos
 
-Read `.dev/config.md` to determine the user's preferred language. Respond in that language.
+Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Prerequisites
 
-Check `.dev/todos.md` exists. If not, tell the user to run `/ca:init` first and stop.
+Check `.dev/todos.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 

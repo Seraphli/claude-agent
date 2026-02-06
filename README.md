@@ -9,7 +9,7 @@ cd claude-agent
 npm run install-ca
 ```
 
-This copies slash commands to `~/.claude/commands/ca/` and agents to `~/.claude/agents/`.
+This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, and registers the statusline hook.
 
 ## Uninstall
 
@@ -17,21 +17,21 @@ This copies slash commands to `~/.claude/commands/ca/` and agents to `~/.claude/
 npm run uninstall-ca
 ```
 
-Removes commands and agents from `~/.claude/`. Project `.dev/` directories are preserved.
+Removes commands, agents, and hooks from `~/.claude/`. Project `.dev/` directories and `~/.claude/ca/` config are preserved.
 
 ## Workflow
 
 ```
-/ca:init → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
 ```
 
-### 1. Initialize — `/ca:init`
+### 1. New Requirement — `/ca:new [description]`
 
-Creates a `.dev/` directory in your project for workflow state, context, and history. Asks your preferred interaction language.
+Creates a `.dev/` directory in your project for workflow state. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists. Warns if there is an unfinished workflow.
 
 ### 2. Discuss — `/ca:discuss`
 
-Clarifies your requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
+Clarifies your requirements through focused Q&A (one question at a time), starting from the brief collected in `/ca:new`. Produces a requirement summary that you must confirm before moving on.
 
 ### 3. Research — `/ca:research` (optional)
 
@@ -59,6 +59,7 @@ An independent verifier agent checks every success criterion in a fresh context.
 
 | Command | Description |
 |---------|-------------|
+| `/ca:settings` | Configure language settings (global or workspace) |
 | `/ca:status` | Show current workflow state |
 | `/ca:fix [step]` | Roll back to a previous step |
 | `/ca:remember <info>` | Save to persistent project context |
@@ -68,15 +69,36 @@ An independent verifier agent checks every success criterion in a fresh context.
 | `/ca:todos` | List all todos |
 | `/ca:help` | Show command reference |
 
+## Configuration
+
+CA uses a dual-layer configuration system:
+
+- **Global** (`~/.claude/ca/config.md`) — applies to all projects
+- **Workspace** (`.dev/config.md`) — applies to current project, overrides global
+
+Three language settings:
+
+| Setting | Purpose |
+|---------|---------|
+| `interaction_language` | Language for conversations |
+| `comment_language` | Language for code comments |
+| `code_language` | Language for code strings (logs, errors, etc.) |
+
+Use `/ca:settings` to configure.
+
 ## Project Structure
 
 ```
-.dev/                          # Created per-project by /ca:init
-  config.md                    # Language preference
+~/.claude/ca/
+  config.md                    # Global language config
+
+.dev/                          # Created per-project by /ca:new
+  config.md                    # Workspace language config (overrides global)
   context.md                   # Persistent context (/ca:remember)
   todos.md                     # Todo list
   current/
     STATUS.md                  # Workflow state
+    BRIEF.md                   # Initial requirement brief from /ca:new
     REQUIREMENT.md             # From /ca:discuss
     RESEARCH.md                # From /ca:research
     PLAN.md                    # From /ca:plan
