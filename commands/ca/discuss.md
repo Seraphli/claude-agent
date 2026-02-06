@@ -4,7 +4,8 @@ Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for 
 
 ## Prerequisites
 
-Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+2. Read `.dev/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
 
 ## Behavior
 

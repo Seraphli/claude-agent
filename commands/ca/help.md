@@ -15,6 +15,7 @@ Display all available CA commands in the user's preferred language:
 | Command | Description |
 |---------|-------------|
 | `/ca:new [description]` | Start a new requirement — creates `.dev/` directory, collects initial brief |
+| `/ca:quick [description]` | Quick workflow — skip discuss & research, go straight to plan |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:research` | Analyze codebase + external resources (optional step) |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
@@ -46,8 +47,14 @@ Display all available CA commands in the user's preferred language:
 
 ## Typical Workflow
 
+**Standard:**
 ```
 /ca:new → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
+```
+
+**Quick:**
+```
+/ca:quick → /ca:plan → /ca:execute → /ca:verify
 ```
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.

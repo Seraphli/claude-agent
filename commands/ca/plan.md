@@ -5,7 +5,7 @@ Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for 
 ## Prerequisites
 
 1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Check `.dev/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+2. Read `.dev/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.dev/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
 ## Behavior
 
@@ -14,7 +14,7 @@ This is the **most critical step** in the workflow. You must get **three separat
 ### 1. Read context
 
 Read these files:
-- `.dev/current/REQUIREMENT.md`
+- `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/current/RESEARCH.md` (if exists)
 - `.dev/context.md` (if it has content)
 
@@ -26,7 +26,7 @@ Prepare a plan covering:
 - **Files to create**: List any new files
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
-- **Success criteria**: How to verify it works (from REQUIREMENT.md)
+- **Success criteria**: How to verify it works (from REQUIREMENT.md, or from BRIEF.md if quick workflow)
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
@@ -62,7 +62,7 @@ Only after ALL THREE confirmations pass, write the complete plan to `.dev/curren
 # Implementation Plan
 
 ## Requirement Summary
-<from REQUIREMENT.md>
+<from REQUIREMENT.md, or from BRIEF.md if quick workflow>
 
 ## Approach
 <confirmed approach>

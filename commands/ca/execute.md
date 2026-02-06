@@ -15,7 +15,7 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 
 Read these files and collect their full content:
 - `.dev/current/PLAN.md`
-- `.dev/current/REQUIREMENT.md`
+- `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/context.md` (if it has content)
 
 ### 2. Resolve model for ca-executor
@@ -29,7 +29,7 @@ Read the model configuration from config (global then workspace override):
 
 Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch the ca-executor agent. Pass it:
 - The full content of PLAN.md
-- The full content of REQUIREMENT.md
+- The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
 - The full content of context.md (if any)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt

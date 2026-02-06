@@ -1,4 +1,4 @@
-# /ca:new — Start a New Requirement
+# /ca:quick — Quick Workflow
 
 Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
@@ -74,11 +74,11 @@ Write `.dev/current/STATUS.md` with:
 ```markdown
 # Workflow Status
 
-workflow_type: standard
-current_step: new
+workflow_type: quick
+current_step: quick
 init_completed: true
-discuss_completed: false
-research_completed: false
+discuss_completed: true
+research_completed: true
 plan_completed: false
 plan_confirmed: false
 execute_completed: false
@@ -87,6 +87,6 @@ verify_completed: false
 
 ### 7. Confirm completion
 
-Tell the user the new requirement has been created. Show the brief. Suggest proceeding with `/ca:discuss` to discuss and refine the requirements.
+Tell the user the quick workflow has been created. Show the brief. Suggest proceeding with `/ca:plan` to create the implementation plan.
 
-**Do NOT proceed to discuss automatically. Wait for the user to invoke the next command.**
+**Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**
