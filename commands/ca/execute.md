@@ -1,6 +1,6 @@
 # /ca:execute — Execute Confirmed Plan
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
 ## Prerequisites
 
@@ -16,9 +16,6 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 Read these files and collect their full content:
 - `.ca/current/PLAN.md`
 - `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
-- `.ca/context.md` (if it has content)
-- `.ca/errors.md` (if exists — pass to executor so it can avoid past mistakes)
-- `~/.claude/ca/errors.md` (if exists — pass to executor for global error lessons)
 
 ### 2. Resolve model for ca-executor
 
@@ -32,9 +29,6 @@ Read the model configuration from config (global then workspace override):
 Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch the ca-executor agent. Pass it:
 - The full content of PLAN.md
 - The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
-- The full content of context.md (if any)
-- The content of `.ca/errors.md` (if exists)
-- The content of `~/.claude/ca/errors.md` (if exists)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt
 

@@ -1,21 +1,11 @@
 # /ca:discuss — Discuss Requirements
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
-
 ## Prerequisites
 
 1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 2. Read `.ca/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
 
 ## Behavior
-
-### 0. Read error history
-
-Read these files if they exist:
-- `.ca/errors.md` (if exists — review past mistakes to inform discussion)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 You are conducting a focused requirements discussion. Your goal is to understand **exactly** what the user wants before any code is written.
 

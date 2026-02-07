@@ -1,8 +1,6 @@
 # /ca:research — Analyze Codebase and Resources
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
 ## Prerequisites
 
@@ -18,9 +16,6 @@ You are the research orchestrator. Use the `ca-researcher` agent for deep codeba
 
 Read these files:
 - `.ca/current/REQUIREMENT.md`
-- `.ca/context.md` (if it has content)
-- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
 
 ### 2. Resolve model for ca-researcher

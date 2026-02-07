@@ -1,22 +1,15 @@
 # /ca:quick — Quick Workflow
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings and to check if global config exists.
 
 ## Behavior
-
-### 0. Read error history
-
-Read these files if they exist:
-- `.ca/errors.md` (if exists — review past mistakes)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 1. Check for global config
 
 If `~/.claude/ca/config.md` does not exist, **automatically run the settings flow inline**:
 - Ask the user for the three language settings (interaction_language, comment_language, code_language) using `AskUserQuestion`, one at a time.
 - Save to `~/.claude/ca/config.md` as global config.
+- Also generate `~/.claude/rules/ca-settings.md` with corresponding language rules.
 - Then continue with the steps below.
 
 ### 2. Check for unfinished workflow
@@ -41,7 +34,6 @@ Create the following directories and files if they don't exist:
 
 ```
 .ca/
-  context.md
   todos.md
   current/
   history/

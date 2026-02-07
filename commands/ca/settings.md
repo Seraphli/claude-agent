@@ -1,8 +1,6 @@
 # /ca:settings — Configure Settings
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
 ## Behavior
 
@@ -91,6 +89,26 @@ For workspace config, omit settings that inherit from global (do not write them)
 Omit per-agent model overrides that are empty (not set).
 Omit auto_proceed settings that are `false` (default).
 
-### 5. Confirm
+### 5. Sync rules file
+
+After writing the config, generate the corresponding rules file from the language settings:
+
+Based on the save location:
+- **Global**: Write `~/.claude/rules/ca-settings.md`
+- **Workspace**: Write `.claude/rules/ca-settings.md`
+
+The rules file format:
+```
+# CA Settings Rules
+
+- Always communicate in <interaction_language>
+- Write all code comments in <comment_language>
+- Use <code_language> for code strings (logs, error messages, etc.)
+```
+
+Only include rules for language settings that were explicitly set (not inherited).
+For workspace rules, only include settings that override the global values.
+
+### 6. Confirm
 
 Show the user the final configuration and which file it was saved to.

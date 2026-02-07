@@ -48,5 +48,20 @@ if (fs.existsSync(settingsPath)) {
   }
 }
 
+// Remove all CA rules files
+const rulesDir = path.join(homeDir, ".claude", "rules");
+if (fs.existsSync(rulesDir)) {
+  let removedRules = 0;
+  for (const entry of fs.readdirSync(rulesDir)) {
+    if (entry.startsWith("ca-") && entry.endsWith(".md")) {
+      fs.unlinkSync(path.join(rulesDir, entry));
+      removedRules++;
+    }
+  }
+  if (removedRules > 0) {
+    console.log(`Removed ${removedRules} CA rules files from ${rulesDir}`);
+  }
+}
+
 console.log("\nCA uninstalled successfully!");
-console.log("Note: .ca/ directories and ~/.claude/ca/ config are preserved.");
+console.log("Note: .ca/ directories and ~/.claude/ca/ config are preserved. CA rules files have been removed.");

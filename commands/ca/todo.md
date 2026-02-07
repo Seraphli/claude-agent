@@ -1,7 +1,5 @@
 # /ca:todo — Add a Todo Item
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
 ## Prerequisites
 
 Check `.ca/todos.md` exists. If not, tell the user to run `/ca:new` first and stop.

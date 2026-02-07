@@ -1,7 +1,5 @@
 # /ca:help — Command Reference
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
 Display all available CA commands in the user's preferred language:
 
 ## Setup

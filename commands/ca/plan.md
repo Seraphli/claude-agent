@@ -1,8 +1,6 @@
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
 ## Prerequisites
 
@@ -18,9 +16,6 @@ This is the **most critical step** in the workflow. You must get **three separat
 Read these files:
 - `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
 - `.ca/current/RESEARCH.md` (if exists)
-- `.ca/context.md` (if it has content)
-- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
 - `.ca/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 

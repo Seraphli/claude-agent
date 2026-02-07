@@ -1,7 +1,5 @@
 # /ca:status — Show Workflow Status
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
 ## Steps
 
 ### 1. Check initialization

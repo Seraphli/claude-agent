@@ -31,6 +31,24 @@ function copyAgents(src, dest) {
   }
 }
 
+function generateSettingsRules(configContent) {
+  const lines = configContent.split("\n");
+  const rules = ["# CA Settings Rules\n"];
+  for (const line of lines) {
+    const match = line.match(/^(\w+):\s*(.+)$/);
+    if (!match) continue;
+    const [, key, value] = match;
+    if (key === "interaction_language") {
+      rules.push(`- Always communicate in ${value}`);
+    } else if (key === "comment_language") {
+      rules.push(`- Write all code comments in ${value}`);
+    } else if (key === "code_language") {
+      rules.push(`- Use ${value} for code strings (logs, error messages, etc.)`);
+    }
+  }
+  return rules.join("\n") + "\n";
+}
+
 // Copy commands
 const srcCommandsDir = path.join(srcDir, "commands", "ca");
 copyDir(srcCommandsDir, targetCommandsDir);
@@ -53,6 +71,41 @@ console.log(`Copied ${hookFile} to ${targetHooksDir}`);
 // Create global config directory
 fs.mkdirSync(caConfigDir, { recursive: true });
 console.log(`Created ${caConfigDir}`);
+
+// Create rules directory and install rules files
+const rulesDir = path.join(homeDir, ".claude", "rules");
+fs.mkdirSync(rulesDir, { recursive: true });
+
+// Copy _rules.md as ca-rules.md
+const rulesSource = path.join(srcCommandsDir, "_rules.md");
+const rulesTarget = path.join(rulesDir, "ca-rules.md");
+fs.copyFileSync(rulesSource, rulesTarget);
+console.log(`Copied rules to ${rulesTarget}`);
+
+// Generate ca-settings.md from existing config
+const globalConfigPath = path.join(caConfigDir, "config.md");
+if (fs.existsSync(globalConfigPath)) {
+  const configContent = fs.readFileSync(globalConfigPath, "utf8");
+  const settingsRules = generateSettingsRules(configContent);
+  fs.writeFileSync(path.join(rulesDir, "ca-settings.md"), settingsRules);
+  console.log("Generated ca-settings.md from existing config");
+}
+
+// Migrate old context.md to rules if exists
+const oldGlobalContext = path.join(caConfigDir, "context.md");
+const newGlobalContext = path.join(rulesDir, "ca-context.md");
+if (fs.existsSync(oldGlobalContext) && !fs.existsSync(newGlobalContext)) {
+  fs.copyFileSync(oldGlobalContext, newGlobalContext);
+  console.log("Migrated global context.md to rules/ca-context.md");
+}
+
+// Migrate old errors.md to rules if exists
+const oldGlobalErrors = path.join(caConfigDir, "errors.md");
+const newGlobalErrors = path.join(rulesDir, "ca-errors.md");
+if (fs.existsSync(oldGlobalErrors) && !fs.existsSync(newGlobalErrors)) {
+  fs.copyFileSync(oldGlobalErrors, newGlobalErrors);
+  console.log("Migrated global errors.md to rules/ca-errors.md");
+}
 
 // Write version file
 const pkg = JSON.parse(fs.readFileSync(path.join(srcDir, "package.json"), "utf8"));

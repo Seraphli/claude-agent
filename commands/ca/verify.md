@@ -1,8 +1,6 @@
 # /ca:verify — Verify Results and Commit
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
 ## Prerequisites
 
@@ -20,8 +18,6 @@ Read these files and collect their full content:
 - `.ca/current/PLAN.md`
 - `.ca/current/SUMMARY.md`
 - `.ca/current/CRITERIA.md` (if exists — the authoritative success criteria)
-- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 2. Resolve model for ca-verifier
 

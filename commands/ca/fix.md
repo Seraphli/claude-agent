@@ -1,20 +1,10 @@
 # /ca:fix — Roll Back to a Previous Step
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
-
-Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
-
 ## Prerequisites
 
 Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
-
-### 0. Read error history
-
-Read these files if they exist:
-- `.ca/errors.md` (if exists — review past mistakes)
-- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 1. Show current state
 
