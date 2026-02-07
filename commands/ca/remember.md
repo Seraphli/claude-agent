@@ -2,9 +2,11 @@
 
 Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
+Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
+
 ## Prerequisites
 
-Check `.dev/context.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Check `.dev/context.md` exists. If not AND the user chose project level, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
@@ -14,14 +16,24 @@ The user wants to save information to persistent context that will be available 
 
 The user's message after `/ca:remember` contains the information to save. If empty, ask what they want to remember.
 
-### 2. Append to context.md
+### 2. Ask target level
 
-Read `.dev/context.md`, then append the new information as a bullet point with a timestamp:
+Use `AskUserQuestion` with:
+- header: "Level"
+- question: "Save to global or project context?"
+- options:
+  - "Project" — "Save to .dev/context.md (this project only)"
+  - "Global" — "Save to ~/.claude/ca/context.md (all projects)"
 
-```markdown
-- [YYYY-MM-DD] <information>
-```
+### 3. Append to context file
 
-### 3. Confirm
+Based on the user's choice:
+- **Project**: Read `.dev/context.md`, then append the new information as a bullet point with a timestamp:
+  ```
+  - [YYYY-MM-DD] <information>
+  ```
+- **Global**: Read `~/.claude/ca/context.md` (create if it doesn't exist), then append in the same format.
 
-Tell the user the information has been saved. Show the updated context.
+### 4. Confirm
+
+Tell the user the information has been saved and to which level. Show the updated context.

@@ -19,6 +19,7 @@ Read these files and collect their full content:
 - `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/current/PLAN.md`
 - `.dev/current/SUMMARY.md`
+- `.dev/current/CRITERIA.md` (if exists — the authoritative success criteria)
 - `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
@@ -35,8 +36,10 @@ Use the Task tool with `subagent_type: "ca-verifier"` and the resolved `model` p
 - The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
 - The full content of PLAN.md
 - The full content of SUMMARY.md
+- The full content of CRITERIA.md (if exists — this is the authoritative source of success criteria)
 - The project root path
 - Instructions to follow the `ca-verifier` agent prompt
+- Instruct the verifier: If CRITERIA.md exists, use it as the authoritative success criteria list. Verify ALL criteria, including those from previous cycles that were already passing. This ensures fix modifications have not broken previously working functionality.
 
 The agent independently checks every success criterion and returns a verification report.
 
@@ -109,7 +112,7 @@ After verification (regardless of commit decision):
      f. Save the updated `.dev/todos.md`.
 
 2. Create archive directory: `.dev/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-3. Move all files from `.dev/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md).
+3. Move all files from `.dev/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
 4. Ensure `.dev/current/` is empty after archiving.
 
 Tell the user the workflow cycle is complete.

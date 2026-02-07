@@ -41,6 +41,39 @@ Based on the target step, reset the status flags:
 
 Do NOT delete any existing files in `.dev/current/`. They serve as reference for the user when revising.
 
-### 5. Confirm
+### 5. Update PLAN.md for fix mode (if rolling back to plan)
+
+If the target step is `plan` and `.dev/current/PLAN.md` exists:
+- Read the current PLAN.md and `.dev/current/SUMMARY.md` (if exists)
+- Based on the execution summary, mark completed implementation steps with `[x]` prefix
+- Mark steps that failed, need modification, or were not reached with `[ ]` prefix
+- Add a section at the end of PLAN.md:
+
+```
+## Fix Notes
+
+Rolled back to plan on YYYY-MM-DD.
+Steps marked [x] were completed before rollback.
+Steps marked [ ] need to be re-planned or modified.
+The planner should append/update fix steps below, NOT rewrite the entire plan.
+```
+
+### 6. Update CRITERIA.md for fix mode (if rolling back to plan)
+
+If `.dev/current/CRITERIA.md` exists:
+- Read the current CRITERIA.md
+- Keep all existing criteria entries intact
+- Add a note at the end:
+
+```
+## Fix Notes
+
+Rolled back on YYYY-MM-DD. All criteria above must still be verified after fix.
+New criteria for fix changes should be appended below this line.
+```
+
+### 7. Confirm
 
 Tell the user which step they've rolled back to and what command to run next.
+
+If rolled back to plan, also tell the user: "PLAN.md has been updated with completion markers. When `/ca:plan` runs, it will append/update steps rather than rewriting."

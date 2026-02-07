@@ -67,7 +67,16 @@ Display to the user:
 
 Set `execute_completed: true`, `current_step: execute`.
 
-### 7. Auto-proceed to verification
+### 7. Update codebase map
+
+If `.dev/map.md` exists:
+- Read the current map and the execution summary
+- Update `.dev/map.md` to reflect any new or modified files and their purposes
+- Update the "Last updated" date
+
+If `.dev/map.md` does not exist, skip this step. The user can run `/ca:map` to create it.
+
+### 8. Auto-proceed to verification
 
 Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify`.
 

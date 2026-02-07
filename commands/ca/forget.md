@@ -10,18 +10,29 @@ Check `.dev/context.md` exists. If not, tell the user to run `/ca:new` first and
 
 ## Behavior
 
-### 1. Read current context
+### 1. Ask target level
 
-Read `.dev/context.md` and display its contents.
+Use `AskUserQuestion` with:
+- header: "Level"
+- question: "Remove from global or project context?"
+- options:
+  - "Project" — "Remove from .dev/context.md"
+  - "Global" — "Remove from ~/.claude/ca/context.md"
 
-### 2. Identify what to remove
+### 2. Read current context
+
+Based on the user's choice:
+- **Project**: Read `.dev/context.md` and display its contents.
+- **Global**: Read `~/.claude/ca/context.md` and display its contents. If the file doesn't exist, tell the user there is no global context and stop.
+
+### 3. Identify what to remove
 
 The user's message after `/ca:forget` describes what to remove. Match it against existing entries.
 
 If the match is ambiguous, show the matching entries and ask the user to confirm which one(s) to remove.
 
-### 3. Remove and confirm
+### 4. Remove and confirm
 
-Remove the matching entry/entries from `.dev/context.md` and write the updated file.
+Remove the matching entry/entries from the chosen context file and write the updated file.
 
 Tell the user what was removed and show the remaining context.

@@ -21,6 +21,7 @@ Read these files:
 - `.dev/context.md` (if it has content)
 - `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
+- `.dev/map.md` (if exists — use as codebase reference for understanding project structure)
 
 ### 2. Resolve model for ca-researcher
 

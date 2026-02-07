@@ -21,6 +21,8 @@ Read these files:
 - `.dev/context.md` (if it has content)
 - `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
+- `.dev/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.dev/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
 ### 2. Draft the plan
 
@@ -30,7 +32,6 @@ Prepare a plan covering:
 - **Files to create**: List any new files
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
-- **Success criteria**: How to verify it works (from REQUIREMENT.md, or from BRIEF.md if quick workflow)
 
 **IMPORTANT — Plan Detail Requirement**: Each implementation step MUST contain the specific content to be added or modified. Include:
 - The exact text/code to insert or change (use code blocks or quoted text)
@@ -38,6 +39,14 @@ Prepare a plan covering:
 - Before/after examples where applicable
 
 The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
+
+**Fix Append Mode**: If `.dev/current/PLAN.md` already exists with "## Fix Notes" section:
+- Read the existing PLAN.md
+- Preserve all `[x]` marked (completed) steps as-is
+- Update or replace `[ ]` marked steps as needed
+- Append new fix steps at the end (before Success Criteria and Expected Results)
+- Do NOT remove or rewrite completed steps
+- Ensure the plan is coherent as a whole
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
@@ -105,8 +114,18 @@ Only after ALL THREE confirmations pass, write the complete plan to `.dev/curren
 
 ## Expected Results
 <confirmed expected results>
+```
 
-## Success Criteria
+### 4b. Write/Update CRITERIA.md
+
+Write success criteria to `.dev/current/CRITERIA.md`:
+
+If the file already exists (fix mode), append new criteria below the existing ones.
+If the file does not exist, create it:
+
+```
+# Success Criteria
+
 1. ...
 2. ...
 ```

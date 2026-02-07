@@ -21,6 +21,7 @@ Display all available CA commands in the user's preferred language:
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
 | `/ca:execute` | Execute the confirmed plan (uses ca-executor agent) |
 | `/ca:verify` | Self-check + user acceptance + git commit confirmation (uses ca-verifier agent) |
+| `/ca:next` | Auto-detect current step and execute the next one |
 
 ## Context Management
 
@@ -43,6 +44,7 @@ Display all available CA commands in the user's preferred language:
 |---------|-------------|
 | `/ca:status` | Show current workflow status |
 | `/ca:fix [step]` | Roll back to a previous step |
+| `/ca:map` | Scan project structure and generate/update `.dev/map.md` |
 | `/ca:help` | Show this reference |
 
 ## Typical Workflow
@@ -51,10 +53,12 @@ Display all available CA commands in the user's preferred language:
 ```
 /ca:new → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
 ```
+**Or use `/ca:next` repeatedly to auto-advance through each step.**
 
 **Quick:**
 ```
 /ca:quick → /ca:plan → /ca:execute → /ca:verify
 ```
+**Or use `/ca:next` repeatedly to auto-advance through each step.**
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.
