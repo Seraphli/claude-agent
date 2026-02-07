@@ -70,5 +70,5 @@ Check config for `auto_proceed_to_plan`:
   - options:
     - "Accurate" — "Findings look good, proceed"
     - "Needs changes" — "Something is missing or incorrect"
-  - If **Accurate**: Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`. Also mention: "Tip: You can set `auto_proceed_to_plan: true` in `/ca:settings` to auto-proceed."
+  - If **Accurate**: Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan` (or `/ca:next`). Also mention: "Tip: You can set `auto_proceed_to_plan: true` in `/ca:settings` to auto-proceed."
   - If **Needs changes**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.

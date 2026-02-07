@@ -80,6 +80,8 @@ Write `.ca/current/BRIEF.md` with:
 linked_todo: <todo text if linked, otherwise omit this line>
 ```
 
+**IMPORTANT**: The `linked_todo` value must be the **exact original text** from `todos.md`. Do NOT modify, abbreviate, rephrase, or summarize the todo text. Copy it verbatim.
+
 Include `linked_todo` only if a todo was linked in step 4.
 
 ### 6. Initialize STATUS.md
@@ -102,6 +104,6 @@ verify_completed: false
 
 ### 7. Confirm completion
 
-Tell the user the quick workflow has been created. Show the brief. Suggest proceeding with `/ca:plan` to create the implementation plan.
+Tell the user the quick workflow has been created. Show the brief. Suggest proceeding with `/ca:plan` (or `/ca:next`) to create the implementation plan.
 
 **Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**

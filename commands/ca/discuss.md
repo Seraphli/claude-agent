@@ -68,7 +68,7 @@ Use `AskUserQuestion` with:
 1. ...
 2. ...
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan`. Suggest using `/clear` before proceeding to the next step to free up context.
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan` (or `/ca:next`). Suggest using `/clear` before proceeding to the next step to free up context.
 - If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 
 **Do NOT proceed to any next step automatically. Wait for the user to invoke the next command.**

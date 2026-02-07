@@ -84,6 +84,18 @@ Use `AskUserQuestion` with:
 
 - If **No**: Ask what the expected results should be, revise, and re-ask Confirmation 3.
 
+### 3b. Self-check: Requirements Coverage
+
+After all three confirmations pass, perform an automatic self-check before writing the plan:
+
+1. Compare the confirmed success criteria against the original requirements (from REQUIREMENT.md or BRIEF.md).
+2. For each requirement in the original document, verify there is at least one corresponding success criterion.
+3. If any requirement is missing a corresponding criterion:
+   - **Stop** and alert the user: "I found that the following requirements don't have corresponding success criteria: [list]"
+   - Ask the user to confirm whether to add criteria for the missing items or intentionally exclude them.
+   - Only proceed after the user confirms.
+4. If all requirements are covered, proceed to write the plan.
+
 ### 4. Write PLAN.md
 
 Only after ALL THREE confirmations pass, write the complete plan to `.ca/current/PLAN.md`:
@@ -129,6 +141,6 @@ If the file does not exist, create it:
 
 Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
 
-Tell the user the plan is confirmed and they can proceed with `/ca:execute`. Suggest using `/clear` before proceeding to free up context.
+Tell the user the plan is confirmed and they can proceed with `/ca:execute` (or `/ca:next`). Suggest using `/clear` before proceeding to free up context.
 
 **Do NOT proceed to execution automatically.**

@@ -30,3 +30,11 @@ Users may invoke `/ca:todo` at any point during a workflow (discuss, research, p
 - Treat it as an independent command — process the todo addition, then resume the current workflow where you left off.
 - Do NOT incorporate the todo content into the current requirement, plan, or discussion.
 - Do NOT let the todo interrupt or alter the ongoing workflow state.
+
+## Map-First File Lookup Rule
+
+When searching for project-related files, agents must follow this priority:
+1. **First**, check `.ca/map.md` (if it exists) for the file location or relevant section.
+2. **Only if** the map does not contain the needed information, fall back to Glob/Grep search.
+
+This reduces unnecessary searches and ensures agents leverage the existing codebase map.

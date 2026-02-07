@@ -17,6 +17,13 @@ Read these files and collect their full content:
 - `.ca/current/PLAN.md`
 - `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
 
+### 1b. Ensure codebase map exists
+
+Check if `.ca/map.md` exists:
+- If it does NOT exist, check if the project has existing source files (i.e., the project is not empty).
+  - If the project is **not empty**: Run `/ca:map` to create the codebase map before proceeding to execution.
+  - If the project is **empty** (new project): Skip for now — the map will be created after execution (see step 7).
+
 ### 2. Resolve model for ca-executor
 
 Read the model configuration from config (global then workspace override):
@@ -68,12 +75,12 @@ If `.ca/map.md` exists:
 - Update `.ca/map.md` to reflect any new or modified files and their purposes
 - Update the "Last updated" date
 
-If `.ca/map.md` does not exist, skip this step. The user can run `/ca:map` to create it.
+If `.ca/map.md` does not exist (e.g., new project that was empty before execution), create it now by running the equivalent of `/ca:map` — scan the project structure and write `.ca/map.md`.
 
 ### 8. Auto-proceed to verification
 
 Check config for `auto_proceed_to_verify`.
 - If `true`: Tell the user execution is complete, then automatically execute `Skill(ca:verify)`.
-- If `false` or not set: Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify`. Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
+- If `false` or not set: Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify` (or `/ca:next`). Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
 
 **Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config.**

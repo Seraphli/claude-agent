@@ -14,30 +14,37 @@ If the files are empty or don't exist, tell the user there's no saved context ye
 
 ### 2. Show loaded files in current context
 
-List all files that the current workflow commands load into context. Check which of the following files exist and display them:
+Check your own context window to determine which files are currently loaded. Do NOT use Glob or Read tools to check the disk — instead, inspect what you can actually "see" in your current conversation context.
 
-**Auto-loaded via rules/ system:**
-- `~/.claude/rules/ca-rules.md` — shared rules (if exists)
-- `~/.claude/rules/ca-settings.md` — global language settings (if exists)
-- `~/.claude/rules/ca-context.md` — global persistent context (if exists)
-- `~/.claude/rules/ca-errors.md` — global error lessons (if exists)
-- `.claude/rules/ca-settings.md` — project language settings (if exists)
-- `.claude/rules/ca-context.md` — project persistent context (if exists)
-- `.claude/rules/ca-errors.md` — project error lessons (if exists)
+For each of the following categories, report whether the file's content is present in your context and show a brief summary if loaded:
 
-**Runtime config (read by workflow commands):**
-- `~/.claude/ca/config.md` — global config (if exists)
-- `.ca/config.md` — workspace config (if exists)
+**Auto-loaded via rules/ system** (loaded into context automatically by Claude Code if the file exists on disk):
+- `~/.claude/rules/ca-rules.md` — shared rules
+- `~/.claude/rules/ca-settings.md` — global language settings
+- `~/.claude/rules/ca-context.md` — global persistent context
+- `~/.claude/rules/ca-errors.md` — global error lessons
+- `.claude/rules/ca-settings.md` — project language settings
+- `.claude/rules/ca-context.md` — project persistent context
+- `.claude/rules/ca-errors.md` — project error lessons
 
-**Workflow files (loaded when in active workflow):**
-- `.ca/current/STATUS.md` (if exists)
-- `.ca/current/BRIEF.md` (if exists)
-- `.ca/current/REQUIREMENT.md` (if exists)
-- `.ca/current/RESEARCH.md` (if exists)
-- `.ca/current/PLAN.md` (if exists)
-- `.ca/current/SUMMARY.md` (if exists)
+**Runtime config** (loaded only when a workflow command explicitly reads them):
+- `~/.claude/ca/config.md` — global config
+- `.ca/config.md` — workspace config
+
+**Workflow files** (loaded only when read during workflow command execution):
+- `.ca/current/STATUS.md`
+- `.ca/current/BRIEF.md`
+- `.ca/current/REQUIREMENT.md`
+- `.ca/current/RESEARCH.md`
+- `.ca/current/PLAN.md`
+- `.ca/current/SUMMARY.md`
 
 **Other persistent data:**
-- `.ca/todos.md` (if exists)
+- `.ca/todos.md`
+- `.ca/map.md`
 
-Display each file with its existence status (present / not found). This helps the user understand what the agent "sees" during the current workflow.
+For each file, display:
+- ✅ **Loaded** — if you can see its content in your context, followed by a 1-line summary
+- ❌ **Not loaded** — if you cannot see its content in your context
+
+This helps the user understand exactly what the agent currently "sees" in its context window.
