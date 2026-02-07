@@ -11,6 +11,12 @@ Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.c
 
 ## Behavior
 
+### 0. Read error history
+
+Read these files if they exist:
+- `.dev/errors.md` (if exists — review past mistakes to inform discussion)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
+
 You are conducting a focused requirements discussion. Your goal is to understand **exactly** what the user wants before any code is written.
 
 ### 1. Start the discussion
@@ -31,6 +37,8 @@ Do NOT dump a list of questions. Ask the most important question first, wait for
 - **Success criteria**: How will we know it's done correctly?
 
 Keep asking until the requirements are clear. Typically 2-5 questions suffice.
+
+**IMPORTANT**: If the user indicates they don't understand your question, you MUST stop and explain or rephrase the current question. Do NOT move on to the next question until the current one is resolved. Follow the Discussion Completeness Rule in `_rules.md`.
 
 ### 3. Present requirement summary
 
@@ -63,7 +71,7 @@ Use `AskUserQuestion` with:
   - "Accurate" — "Requirements are correct, proceed"
   - "Needs changes" — "I want to revise something"
 
-- If **Accurate**: Write the summary to `.dev/current/REQUIREMENT.md` and update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan`.
+- If **Accurate**: Write the summary to `.dev/current/REQUIREMENT.md` and update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan`. Suggest using `/clear` before proceeding to the next step to free up context.
 - If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 
 **Do NOT proceed to any next step automatically. Wait for the user to invoke the next command.**

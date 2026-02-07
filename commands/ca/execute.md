@@ -17,6 +17,8 @@ Read these files and collect their full content:
 - `.dev/current/PLAN.md`
 - `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/context.md` (if it has content)
+- `.dev/errors.md` (if exists — pass to executor so it can avoid past mistakes)
+- `~/.claude/ca/errors.md` (if exists — pass to executor for global error lessons)
 
 ### 2. Resolve model for ca-executor
 
@@ -31,6 +33,8 @@ Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` p
 - The full content of PLAN.md
 - The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
 - The full content of context.md (if any)
+- The content of `.dev/errors.md` (if exists)
+- The content of `~/.claude/ca/errors.md` (if exists)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt
 
@@ -63,6 +67,8 @@ Display to the user:
 
 Set `execute_completed: true`, `current_step: execute`.
 
-Tell the user execution is complete and they can proceed with `/ca:verify`.
+### 7. Auto-proceed to verification
 
-**Do NOT proceed to verification automatically.**
+Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify`.
+
+**Do NOT proceed to verification automatically — let the user /clear first if they want.**

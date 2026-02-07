@@ -19,6 +19,8 @@ Read these files and collect their full content:
 - `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/current/PLAN.md`
 - `.dev/current/SUMMARY.md`
+- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 2. Resolve model for ca-verifier
 
@@ -76,8 +78,11 @@ Use `AskUserQuestion` with:
 
 - If **No, skip**: Tell the user the workflow is complete without committing. Proceed to archiving.
 - If **Yes, commit**:
-  - Run `git diff --stat` and `git status` to show what will be committed.
+  - Run `git diff --stat` and `git status` to gather file information.
   - Propose a commit message.
+  - **Display to the user before asking for confirmation**:
+    - The full proposed commit message
+    - The complete list of files that will be committed (from git status/diff output)
   - Use `AskUserQuestion` with:
     - header: "Message"
     - question: "Confirm this commit message?"

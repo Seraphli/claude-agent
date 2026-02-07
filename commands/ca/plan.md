@@ -19,6 +19,8 @@ Read these files:
 - `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
 - `.dev/current/RESEARCH.md` (if exists)
 - `.dev/context.md` (if it has content)
+- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 2. Draft the plan
 
@@ -29,6 +31,13 @@ Prepare a plan covering:
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
 - **Success criteria**: How to verify it works (from REQUIREMENT.md, or from BRIEF.md if quick workflow)
+
+**IMPORTANT — Plan Detail Requirement**: Each implementation step MUST contain the specific content to be added or modified. Include:
+- The exact text/code to insert or change (use code blocks or quoted text)
+- The precise location in the file (which section, after which line/paragraph)
+- Before/after examples where applicable
+
+The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
@@ -106,6 +115,6 @@ Only after ALL THREE confirmations pass, write the complete plan to `.dev/curren
 
 Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
 
-Tell the user the plan is confirmed and they can proceed with `/ca:execute`.
+Tell the user the plan is confirmed and they can proceed with `/ca:execute`. Suggest using `/clear` before proceeding to free up context.
 
 **Do NOT proceed to execution automatically.**

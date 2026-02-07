@@ -19,6 +19,8 @@ You are the research orchestrator. Use the `ca-researcher` agent for deep codeba
 Read these files:
 - `.dev/current/REQUIREMENT.md`
 - `.dev/context.md` (if it has content)
+- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 2. Resolve model for ca-researcher
 

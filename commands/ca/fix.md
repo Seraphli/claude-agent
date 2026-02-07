@@ -10,6 +10,12 @@ Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` fi
 
 ## Behavior
 
+### 0. Read error history
+
+Read these files if they exist:
+- `.dev/errors.md` (if exists — review past mistakes)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
+
 ### 1. Show current state
 
 Read `.dev/current/STATUS.md` and display where the workflow currently is.

@@ -6,6 +6,12 @@ Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.c
 
 ## Behavior
 
+### 0. Read error history
+
+Read these files if they exist:
+- `.dev/errors.md` (if exists — review past mistakes)
+- `~/.claude/ca/errors.md` (if exists — review global error lessons)
+
 ### 1. Check for global config
 
 If `~/.claude/ca/config.md` does not exist, **automatically run the settings flow inline**:
