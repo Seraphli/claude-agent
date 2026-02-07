@@ -43,8 +43,5 @@ For each of the following categories, report whether the file's content is prese
 - `.ca/todos.md`
 - `.ca/map.md`
 
-For each file, display:
-- ✅ **Loaded** — if you can see its content in your context, followed by a 1-line summary
-- ❌ **Not loaded** — if you cannot see its content in your context
-
-This helps the user understand exactly what the agent currently "sees" in its context window.
+Only display files that are loaded in your context. Skip files that are not loaded — do not show them at all.
+For each loaded file, show: ✅ **Loaded** — followed by a 1-line summary.
