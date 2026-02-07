@@ -73,7 +73,12 @@ Use `AskUserQuestion` with:
 
 #### Confirmation 3: Expected Results
 
-Present the expected outcome and success criteria.
+Present the expected results and success criteria as **two separate sections**:
+
+- **Expected Results**: What the end state looks like after implementation (observable changes, behavior)
+- **Success Criteria**: Numbered, verifiable conditions to confirm correctness
+
+Both are presented together for confirmation but clearly separated so the user can review each independently.
 
 Use `AskUserQuestion` with:
 - header: "Results"
