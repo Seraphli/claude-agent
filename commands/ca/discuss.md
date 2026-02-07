@@ -56,9 +56,14 @@ When you have enough information, present a structured summary:
 
 ### 4. MANDATORY CONFIRMATION
 
-Ask the user: **"Does this accurately capture your requirements? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Requirements"
+- question: "Does this accurately capture your requirements?"
+- options:
+  - "Accurate" — "Requirements are correct, proceed"
+  - "Needs changes" — "I want to revise something"
 
-- If **yes**: Write the summary to `.dev/current/REQUIREMENT.md` and update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan`.
-- If **no**: Ask what needs to change, revise the summary, and ask for confirmation again.
+- If **Accurate**: Write the summary to `.dev/current/REQUIREMENT.md` and update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan`.
+- If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 
 **Do NOT proceed to any next step automatically. Wait for the user to invoke the next command.**

@@ -36,25 +36,40 @@ Prepare a plan covering:
 
 Present: "Based on the requirements, I understand you want: [concise summary]"
 
-Ask: **"Is my understanding of the requirements correct? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Requirements"
+- question: "Is my understanding of the requirements correct?"
+- options:
+  - "Correct" — "Understanding is accurate"
+  - "Not correct" — "Needs correction"
 
-- If **no**: Ask what you misunderstood, correct it, and re-ask Confirmation 1.
+- If **Not correct**: Ask what you misunderstood, correct it, and re-ask Confirmation 1.
 
 #### Confirmation 2: Approach and Method
 
 Present the full approach, files to modify, and implementation steps.
 
-Ask: **"Do you agree with this approach? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Approach"
+- question: "Do you agree with this approach?"
+- options:
+  - "Agree" — "Approach looks good"
+  - "Disagree" — "Needs adjustment"
 
-- If **no**: Ask what should change, revise the approach, and re-ask Confirmation 2.
+- If **Disagree**: Ask what should change, revise the approach, and re-ask Confirmation 2.
 
 #### Confirmation 3: Expected Results
 
 Present the expected outcome and success criteria.
 
-Ask: **"Are these the expected results you want? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Results"
+- question: "Are these the expected results you want?"
+- options:
+  - "Yes" — "Expected results are correct"
+  - "No" — "Needs revision"
 
-- If **no**: Ask what the expected results should be, revise, and re-ask Confirmation 3.
+- If **No**: Ask what the expected results should be, revise, and re-ask Confirmation 3.
 
 ### 4. Write PLAN.md
 

@@ -2,7 +2,7 @@
 
 ## UI Rule
 
-When using `AskUserQuestion`, always output **5 blank lines** before the question call. This prevents the option picker from obscuring the text above it in the terminal.
+Before calling `AskUserQuestion`, always output structured content first (summary, list, checkpoint, etc.) so the user has sufficient context visible above the option picker.
 
 ## Todo Independence Rule
 

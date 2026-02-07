@@ -20,9 +20,14 @@ If `.dev/current/STATUS.md` exists, check if `verify_completed` is `false`.
 If there is an unfinished workflow:
 - **Warn the user**: Tell them there is an unfinished workflow in `.dev/current/`.
 - Show what step it was on.
-- Ask: **"Do you want to archive the unfinished workflow and start fresh? (yes/no)"**
-- If **yes**: Move all files from `.dev/current/` to `.dev/history/<next-number>-unfinished/`, then continue.
-- If **no**: Stop. Tell the user to finish the current workflow first or use `/ca:fix` to go back.
+- Use `AskUserQuestion` with:
+  - header: "Archive"
+  - question: "Do you want to archive the unfinished workflow and start fresh?"
+  - options:
+    - "Archive and start fresh" — "Move old files to history and start new"
+    - "Keep current" — "Continue the existing workflow"
+- If **Archive and start fresh**: Move all files from `.dev/current/` to `.dev/history/<next-number>-unfinished/`, then continue.
+- If **Keep current**: Stop. Tell the user to finish the current workflow first or use `/ca:fix` to go back.
 
 ### 3. Create directory structure
 
@@ -41,12 +46,22 @@ Create the following directories and files if they don't exist:
 **If the user provided a description** with this command:
 1. Read `.dev/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
 2. Analyze the user's description and see if it matches any existing todo item.
-3. If a match is found, recommend it to the user: **"I found a matching todo: <todo text>. Do you want to link this requirement to it? (yes/no)"**
-   - If **yes**: Save the todo text for linking in step 5.
-   - If **no**: Continue without linking.
-4. If no match is found, ask: **"This requirement doesn't match any existing todo. Should I add it as a new todo item? (yes/no)"**
-   - If **yes**: Append to `.dev/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
-   - If **no**: Continue without linking.
+3. If a match is found, use `AskUserQuestion` with:
+   - header: "Link Todo"
+   - question: "I found a matching todo: <todo text>. Link this requirement to it?"
+   - options:
+     - "Yes, link" — "Link to this todo"
+     - "No, skip" — "Don't link"
+   - If **Yes, link**: Save the todo text for linking in step 5.
+   - If **No, skip**: Continue without linking.
+4. If no match is found, use `AskUserQuestion` with:
+   - header: "Add Todo"
+   - question: "This requirement doesn't match any existing todo. Add it as a new todo item?"
+   - options:
+     - "Yes, add" — "Add to todo list"
+     - "No, skip" — "Don't add"
+   - If **Yes, add**: Append to `.dev/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
+   - If **No, skip**: Continue without linking.
 
 **If the user did NOT provide a description**:
 1. Read `.dev/todos.md` and find all uncompleted todo items.

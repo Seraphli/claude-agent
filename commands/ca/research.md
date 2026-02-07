@@ -63,9 +63,14 @@ Ask the user if they need any external resources searched (documentation, APIs, 
 
 ### 6. MANDATORY CONFIRMATION
 
-Ask the user: **"Are these findings accurate and complete? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Findings"
+- question: "Are these findings accurate and complete?"
+- options:
+  - "Accurate" — "Findings look good, proceed"
+  - "Needs changes" — "Something is missing or incorrect"
 
-- If **yes**: Write the findings to `.dev/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`.
-- If **no**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.
+- If **Accurate**: Write the findings to `.dev/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`.
+- If **Needs changes**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.
 
 **Do NOT proceed to any next step automatically.**

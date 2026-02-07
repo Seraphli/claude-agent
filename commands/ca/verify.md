@@ -55,23 +55,39 @@ Display the report to the user:
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
-Ask the user: **"Do you accept these results? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Results"
+- question: "Do you accept these results?"
+- options:
+  - "Accept" — "Results are satisfactory"
+  - "Reject" — "Results need work"
 
-- If **no**: Ask what's wrong. Suggest running `/ca:fix` to go back to an earlier step.
-- If **yes**: Proceed to git commit step.
+- If **Reject**: Ask what's wrong. Suggest running `/ca:fix` to go back to an earlier step.
+- If **Accept**: Proceed to git commit step.
 
 ### 6. Git Commit Confirmation
 
-Ask the user: **"Would you like to commit these changes? (yes/no)"**
+Use `AskUserQuestion` with:
+- header: "Commit"
+- question: "Would you like to commit these changes?"
+- options:
+  - "Yes, commit" — "Commit the changes"
+  - "No, skip" — "Skip committing"
 
-- If **no**: Tell the user the workflow is complete without committing. Proceed to archiving.
-- If **yes**:
+- If **No, skip**: Tell the user the workflow is complete without committing. Proceed to archiving.
+- If **Yes, commit**:
   - Run `git diff --stat` and `git status` to show what will be committed.
   - Propose a commit message.
-  - Ask: **"Confirm this commit message? (yes/edit/no)"**
-    - If **edit**: Let the user provide a new message.
-    - If **yes**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
-    - If **no**: Skip committing.
+  - Use `AskUserQuestion` with:
+    - header: "Message"
+    - question: "Confirm this commit message?"
+    - options:
+      - "Confirm" — "Use this message"
+      - "Edit" — "I want to change the message"
+      - "Skip" — "Don't commit"
+    - If **Edit**: Let the user provide a new message.
+    - If **Confirm**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
+    - If **Skip**: Skip committing.
 
 ### 7. Archive and cleanup
 
