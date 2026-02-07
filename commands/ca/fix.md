@@ -1,24 +1,24 @@
 # /ca:fix — Roll Back to a Previous Step
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
 ## Prerequisites
 
-Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
 ### 0. Read error history
 
 Read these files if they exist:
-- `.dev/errors.md` (if exists — review past mistakes)
+- `.ca/errors.md` (if exists — review past mistakes)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 1. Show current state
 
-Read `.dev/current/STATUS.md` and display where the workflow currently is.
+Read `.ca/current/STATUS.md` and display where the workflow currently is.
 
 ### 2. Determine target step
 
@@ -39,12 +39,12 @@ Based on the target step, reset the status flags:
 
 ### 4. Preserve files
 
-Do NOT delete any existing files in `.dev/current/`. They serve as reference for the user when revising.
+Do NOT delete any existing files in `.ca/current/`. They serve as reference for the user when revising.
 
 ### 5. Update PLAN.md for fix mode (if rolling back to plan)
 
-If the target step is `plan` and `.dev/current/PLAN.md` exists:
-- Read the current PLAN.md and `.dev/current/SUMMARY.md` (if exists)
+If the target step is `plan` and `.ca/current/PLAN.md` exists:
+- Read the current PLAN.md and `.ca/current/SUMMARY.md` (if exists)
 - Based on the execution summary, mark completed implementation steps with `[x]` prefix
 - Mark steps that failed, need modification, or were not reached with `[ ]` prefix
 - Add a section at the end of PLAN.md:
@@ -60,7 +60,7 @@ The planner should append/update fix steps below, NOT rewrite the entire plan.
 
 ### 6. Update CRITERIA.md for fix mode (if rolling back to plan)
 
-If `.dev/current/CRITERIA.md` exists:
+If `.ca/current/CRITERIA.md` exists:
 - Read the current CRITERIA.md
 - Keep all existing criteria entries intact
 - Add a note at the end:

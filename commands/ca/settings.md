@@ -1,6 +1,6 @@
 # /ca:settings — Configure Settings
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
@@ -10,7 +10,7 @@ Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.c
 
 Ask the user where to save the configuration using `AskUserQuestion`:
 - **Global** (`~/.claude/ca/config.md`) — applies to all projects
-- **Workspace** (`.dev/config.md`) — applies to this project only, overrides global
+- **Workspace** (`.ca/config.md`) — applies to this project only, overrides global
 
 ### 2. Load existing config
 
@@ -57,6 +57,18 @@ Options for each: `opus`, `sonnet`, `haiku`, or leave empty to use profile defau
 
 Per-agent overrides take priority over the profile setting.
 
+#### `auto_proceed_to_plan` — Auto-proceed from research to plan
+
+Options: `true`, `false`.
+
+Default: `false`. When `true`, research will automatically invoke plan after findings are confirmed, without requiring the user to manually run `/ca:plan`.
+
+#### `auto_proceed_to_verify` — Auto-proceed from execute to verify
+
+Options: `true`, `false`.
+
+Default: `false`. When `true`, execute will automatically invoke verify after execution is complete, without requiring the user to manually run `/ca:verify`.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -71,10 +83,13 @@ model_profile: <value>
 ca-executor_model: <value>
 ca-researcher_model: <value>
 ca-verifier_model: <value>
+auto_proceed_to_plan: <value>
+auto_proceed_to_verify: <value>
 ```
 
 For workspace config, omit settings that inherit from global (do not write them).
 Omit per-agent model overrides that are empty (not set).
+Omit auto_proceed settings that are `false` (default).
 
 ### 5. Confirm
 

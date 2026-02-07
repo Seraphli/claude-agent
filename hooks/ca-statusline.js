@@ -1,5 +1,12 @@
 const readline = require("readline");
 const path = require("path");
+const fs = require("fs");
+const os = require("os");
+
+let version = "";
+try {
+  version = fs.readFileSync(path.join(os.homedir(), ".claude", "ca", "version"), "utf8").trim();
+} catch {}
 
 const rl = readline.createInterface({ input: process.stdin });
 let input = "";
@@ -35,8 +42,8 @@ rl.on("close", () => {
       }
     }
 
-    const dirname = path.basename(dir);
-    process.stdout.write(`\x1b[2m${model}\x1b[0m \u2502 \x1b[2m${dirname}\x1b[0m${ctx}`);
+    const ver = version ? ` ${version}` : "";
+    process.stdout.write(`\x1b[2m${model}\x1b[0m \u2502 \x1b[2mca${ver}\x1b[0m${ctx}`);
   } catch {
     // Silent fail
   }

@@ -55,7 +55,7 @@ This is a deliberate trade-off. CA is slower than letting Claude run free. You'l
 ## Design Principles
 
 1. **No automatic progression** — Each command ends by telling you what's available next. It never silently moves to the next step.
-2. **Artifacts over memory** — Everything important is written to files in `.dev/`. If context is lost, the artifacts remain.
+2. **Artifacts over memory** — Everything important is written to files in `.ca/`. If context is lost, the artifacts remain.
 3. **Explicit over implicit** — If the AI needs to make a choice, it asks. If something is ambiguous, it clarifies. If a step fails, it reports rather than retries.
-4. **Minimal footprint** — CA is just markdown files that instruct Claude Code how to behave. No runtime dependencies, no build step, no lock-in. Uninstall and everything is gone except your `.dev/` data.
+4. **Minimal footprint** — CA is just markdown files that instruct Claude Code how to behave. No runtime dependencies, no build step, no lock-in. Uninstall and everything is gone except your `.ca/` data.
 5. **Reversibility** — Every step can be rolled back. Files are archived, not deleted. You can always get back to a known state.

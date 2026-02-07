@@ -49,4 +49,4 @@ if (fs.existsSync(settingsPath)) {
 }
 
 console.log("\nCA uninstalled successfully!");
-console.log("Note: .dev/ directories and ~/.claude/ca/ config are preserved.");
+console.log("Note: .ca/ directories and ~/.claude/ca/ config are preserved.");

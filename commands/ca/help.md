@@ -1,6 +1,6 @@
 # /ca:help — Command Reference
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Display all available CA commands in the user's preferred language:
 
@@ -14,7 +14,7 @@ Display all available CA commands in the user's preferred language:
 
 | Command | Description |
 |---------|-------------|
-| `/ca:new [description]` | Start a new requirement — creates `.dev/` directory, collects initial brief |
+| `/ca:new [description]` | Start a new requirement — creates `.ca/` directory, collects initial brief |
 | `/ca:quick [description]` | Quick workflow — skip discuss & research, go straight to plan |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:research` | Analyze codebase + external resources (optional step) |
@@ -44,7 +44,7 @@ Display all available CA commands in the user's preferred language:
 |---------|-------------|
 | `/ca:status` | Show current workflow status |
 | `/ca:fix [step]` | Roll back to a previous step |
-| `/ca:map` | Scan project structure and generate/update `.dev/map.md` |
+| `/ca:map` | Scan project structure and generate/update `.ca/map.md` |
 | `/ca:help` | Show this reference |
 
 ## Typical Workflow

@@ -1,13 +1,13 @@
 # /ca:verify — Verify Results and Commit
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
 ## Prerequisites
 
-1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.dev/current/STATUS.md` and verify `execute_completed: true`. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
+1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+2. Read `.ca/current/STATUS.md` and verify `execute_completed: true`. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
 ## Behavior
 
@@ -16,11 +16,11 @@ You are the verification orchestrator. You delegate the actual verification to t
 ### 1. Read context
 
 Read these files and collect their full content:
-- `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
-- `.dev/current/PLAN.md`
-- `.dev/current/SUMMARY.md`
-- `.dev/current/CRITERIA.md` (if exists — the authoritative success criteria)
-- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
+- `.ca/current/PLAN.md`
+- `.ca/current/SUMMARY.md`
+- `.ca/current/CRITERIA.md` (if exists — the authoritative success criteria)
+- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 2. Resolve model for ca-verifier
@@ -102,17 +102,17 @@ Use `AskUserQuestion` with:
 After verification (regardless of commit decision):
 
 1. **Check for linked todo**:
-   - Read `.dev/current/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
+   - Read `.ca/current/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
    - If it does:
-     a. Read `.dev/todos.md`.
+     a. Read `.ca/todos.md`.
      b. Find the matching uncompleted todo item (under `# Todo List`, matching the exact text).
      c. Mark it as completed: change `- [ ]` to `- [x]`. (If the workflow was rejected/cancelled, mark as `- [-]` instead.)
      d. Update the time tag: If the line has `> Added: <date>`, change it to `> Added: <date> | Completed: YYYY-MM-DD` (or `| Cancelled: YYYY-MM-DD` if cancelled). Use today's date.
      e. Move the completed todo item to the `# Archive` section at the bottom of the file.
-     f. Save the updated `.dev/todos.md`.
+     f. Save the updated `.ca/todos.md`.
 
-2. Create archive directory: `.dev/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-3. Move all files from `.dev/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
-4. Ensure `.dev/current/` is empty after archiving.
+2. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
+3. Move all files from `.ca/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
+4. Ensure `.ca/current/` is empty after archiving.
 
 Tell the user the workflow cycle is complete.

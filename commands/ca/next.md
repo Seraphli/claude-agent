@@ -1,16 +1,16 @@
 # /ca:next — Execute Next Workflow Step
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Prerequisites
 
-Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
 ### 1. Read current status
 
-Read `.dev/current/STATUS.md` and determine the current workflow state.
+Read `.ca/current/STATUS.md` and determine the current workflow state.
 
 ### 2. Determine and execute next step
 

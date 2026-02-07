@@ -17,7 +17,7 @@ This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/age
 npm run uninstall-ca
 ```
 
-Removes commands, agents, and hooks from `~/.claude/`. Project `.dev/` directories and `~/.claude/ca/` config are preserved.
+Removes commands, agents, and hooks from `~/.claude/`. Project `.ca/` directories and `~/.claude/ca/` config are preserved.
 
 ## Workflow
 
@@ -27,7 +27,7 @@ Removes commands, agents, and hooks from `~/.claude/`. Project `.dev/` directori
 
 ### 1. New Requirement — `/ca:new [description]`
 
-Creates a `.dev/` directory in your project for workflow state. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists. Warns if there is an unfinished workflow.
+Creates a `.ca/` directory in your project for workflow state. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists. Warns if there is an unfinished workflow.
 
 ### 2. Discuss — `/ca:discuss`
 
@@ -53,7 +53,7 @@ Runs the confirmed plan using an isolated executor agent. Only proceeds if the p
 
 ### 6. Verify — `/ca:verify`
 
-An independent verifier agent checks every success criterion in a fresh context. After your acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.dev/history/`.
+An independent verifier agent checks every success criterion in a fresh context. After your acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
 
 ## Other Commands
 
@@ -74,7 +74,7 @@ An independent verifier agent checks every success criterion in a fresh context.
 CA uses a dual-layer configuration system:
 
 - **Global** (`~/.claude/ca/config.md`) — applies to all projects
-- **Workspace** (`.dev/config.md`) — applies to current project, overrides global
+- **Workspace** (`.ca/config.md`) — applies to current project, overrides global
 
 Three language settings:
 
@@ -92,7 +92,7 @@ Use `/ca:settings` to configure.
 ~/.claude/ca/
   config.md                    # Global language config
 
-.dev/                          # Created per-project by /ca:new
+.ca/                           # Created per-project by /ca:new
   config.md                    # Workspace language config (overrides global)
   context.md                   # Persistent context (/ca:remember)
   todos.md                     # Todo list

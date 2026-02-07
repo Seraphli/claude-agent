@@ -1,13 +1,13 @@
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
 ## Prerequisites
 
-1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.dev/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.dev/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+2. Read `.ca/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
 ## Behavior
 
@@ -16,13 +16,13 @@ This is the **most critical step** in the workflow. You must get **three separat
 ### 1. Read context
 
 Read these files:
-- `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
-- `.dev/current/RESEARCH.md` (if exists)
-- `.dev/context.md` (if it has content)
-- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
+- `.ca/current/RESEARCH.md` (if exists)
+- `.ca/context.md` (if it has content)
+- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
-- `.dev/map.md` (if exists — use as codebase reference for understanding project structure)
-- `.dev/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
+- `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.ca/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
 ### 2. Draft the plan
 
@@ -40,7 +40,7 @@ Prepare a plan covering:
 
 The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
 
-**Fix Append Mode**: If `.dev/current/PLAN.md` already exists with "## Fix Notes" section:
+**Fix Append Mode**: If `.ca/current/PLAN.md` already exists with "## Fix Notes" section:
 - Read the existing PLAN.md
 - Preserve all `[x]` marked (completed) steps as-is
 - Update or replace `[ ]` marked steps as needed
@@ -91,7 +91,7 @@ Use `AskUserQuestion` with:
 
 ### 4. Write PLAN.md
 
-Only after ALL THREE confirmations pass, write the complete plan to `.dev/current/PLAN.md`:
+Only after ALL THREE confirmations pass, write the complete plan to `.ca/current/PLAN.md`:
 
 ```markdown
 # Implementation Plan
@@ -118,7 +118,7 @@ Only after ALL THREE confirmations pass, write the complete plan to `.dev/curren
 
 ### 4b. Write/Update CRITERIA.md
 
-Write success criteria to `.dev/current/CRITERIA.md`:
+Write success criteria to `.ca/current/CRITERIA.md`:
 
 If the file already exists (fix mode), append new criteria below the existing ones.
 If the file does not exist, create it:

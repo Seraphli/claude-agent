@@ -1,14 +1,14 @@
 # /ca:research — Analyze Codebase and Resources
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
 ## Prerequisites
 
-1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Check `.dev/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
-3. Read `.dev/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The research step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
+1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+3. Read `.ca/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The research step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
 
 ## Behavior
 
@@ -17,11 +17,11 @@ You are the research orchestrator. Use the `ca-researcher` agent for deep codeba
 ### 1. Read context
 
 Read these files:
-- `.dev/current/REQUIREMENT.md`
-- `.dev/context.md` (if it has content)
-- `.dev/errors.md` (if exists — review past mistakes to avoid repeating them)
+- `.ca/current/REQUIREMENT.md`
+- `.ca/context.md` (if it has content)
+- `.ca/errors.md` (if exists — review past mistakes to avoid repeating them)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
-- `.dev/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
 
 ### 2. Resolve model for ca-researcher
 
@@ -73,7 +73,9 @@ Use `AskUserQuestion` with:
   - "Accurate" — "Findings look good, proceed"
   - "Needs changes" — "Something is missing or incorrect"
 
-- If **Accurate**: Write the findings to `.dev/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`.
+- If **Accurate**: Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`).
+  - Check config for `auto_proceed_to_plan`. If `true`, tell the user research is complete and automatically execute `Skill(ca:plan)`.
+  - If `false` or not set, tell the user they can proceed with `/ca:plan`. Also mention: "Tip: You can set `auto_proceed_to_plan: true` in `/ca:settings` to auto-proceed."
 - If **Needs changes**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.
 
-**Do NOT proceed to any next step automatically.**
+**Do NOT proceed to any next step automatically, unless `auto_proceed_to_plan` is set to `true` in config.**

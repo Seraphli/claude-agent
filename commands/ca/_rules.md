@@ -16,7 +16,7 @@ When asking clarifying questions one at a time during the discuss phase:
 ## Error Recording Rule
 
 When an agent makes a mistake during execution (wrong file, logic error, repeated mistake, etc.), it must record the error:
-- **Project-level**: Append to `.dev/errors.md` for project-specific lessons.
+- **Project-level**: Append to `.ca/errors.md` for project-specific lessons.
 - **Global-level**: Append to `~/.claude/ca/errors.md` for cross-project lessons.
 
 Format each entry as:

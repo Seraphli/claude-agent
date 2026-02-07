@@ -1,6 +1,6 @@
 # /ca:new — Start a New Requirement
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
@@ -9,7 +9,7 @@ Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.c
 ### 0. Read error history
 
 Read these files if they exist:
-- `.dev/errors.md` (if exists — review past mistakes)
+- `.ca/errors.md` (if exists — review past mistakes)
 - `~/.claude/ca/errors.md` (if exists — review global error lessons)
 
 ### 1. Check for global config
@@ -21,10 +21,10 @@ If `~/.claude/ca/config.md` does not exist, **automatically run the settings flo
 
 ### 2. Check for unfinished workflow
 
-If `.dev/current/STATUS.md` exists, check if `verify_completed` is `false`.
+If `.ca/current/STATUS.md` exists, check if `verify_completed` is `false`.
 
 If there is an unfinished workflow:
-- **Warn the user**: Tell them there is an unfinished workflow in `.dev/current/`.
+- **Warn the user**: Tell them there is an unfinished workflow in `.ca/current/`.
 - Show what step it was on.
 - Use `AskUserQuestion` with:
   - header: "Archive"
@@ -32,7 +32,7 @@ If there is an unfinished workflow:
   - options:
     - "Archive and start fresh" — "Move old files to history and start new"
     - "Keep current" — "Continue the existing workflow"
-- If **Archive and start fresh**: Move all files from `.dev/current/` to `.dev/history/<next-number>-unfinished/`, then continue.
+- If **Archive and start fresh**: Move all files from `.ca/current/` to `.ca/history/<next-number>-unfinished/`, then continue.
 - If **Keep current**: Stop. Tell the user to finish the current workflow first or use `/ca:fix` to go back.
 
 ### 3. Create directory structure
@@ -40,7 +40,7 @@ If there is an unfinished workflow:
 Create the following directories and files if they don't exist:
 
 ```
-.dev/
+.ca/
   context.md
   todos.md
   current/
@@ -50,7 +50,7 @@ Create the following directories and files if they don't exist:
 ### 4. Collect initial requirement description and link to todo
 
 **If the user provided a description** with this command:
-1. Read `.dev/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
+1. Read `.ca/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
 2. Analyze the user's description and see if it matches any existing todo item.
 3. If a match is found, use `AskUserQuestion` with:
    - header: "Link Todo"
@@ -66,11 +66,11 @@ Create the following directories and files if they don't exist:
    - options:
      - "Yes, add" — "Add to todo list"
      - "No, skip" — "Don't add"
-   - If **Yes, add**: Append to `.dev/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
+   - If **Yes, add**: Append to `.ca/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
    - If **No, skip**: Continue without linking.
 
 **If the user did NOT provide a description**:
-1. Read `.dev/todos.md` and find all uncompleted todo items.
+1. Read `.ca/todos.md` and find all uncompleted todo items.
 2. Analyze and present them to the user: **"Here are your current todos. Which one would you like to work on? (Or describe a new requirement)"**
    - Show each uncompleted todo with a number.
 3. If the user selects a todo, use that as the requirement description and save it for linking in step 5.
@@ -78,7 +78,7 @@ Create the following directories and files if they don't exist:
 
 ### 5. Write BRIEF.md
 
-Write `.dev/current/BRIEF.md` with:
+Write `.ca/current/BRIEF.md` with:
 
 ```markdown
 # Brief
@@ -92,7 +92,7 @@ Include `linked_todo` only if a todo was linked in step 4.
 
 ### 6. Initialize STATUS.md
 
-Write `.dev/current/STATUS.md` with:
+Write `.ca/current/STATUS.md` with:
 
 ```markdown
 # Workflow Status

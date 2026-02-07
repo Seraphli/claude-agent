@@ -1,12 +1,12 @@
 # /ca:remember — Save to Persistent Context
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 Read and follow the rules defined in `commands/ca/_rules.md` (installed at `~/.claude/commands/ca/_rules.md`).
 
 ## Prerequisites
 
-Check `.dev/context.md` exists. If not AND the user chose project level, tell the user to run `/ca:new` first and stop.
+Check `.ca/context.md` exists. If not AND the user chose project level, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
@@ -22,13 +22,13 @@ Use `AskUserQuestion` with:
 - header: "Level"
 - question: "Save to global or project context?"
 - options:
-  - "Project" — "Save to .dev/context.md (this project only)"
+  - "Project" — "Save to .ca/context.md (this project only)"
   - "Global" — "Save to ~/.claude/ca/context.md (all projects)"
 
 ### 3. Append to context file
 
 Based on the user's choice:
-- **Project**: Read `.dev/context.md`, then append the new information as a bullet point with a timestamp:
+- **Project**: Read `.ca/context.md`, then append the new information as a bullet point with a timestamp:
   ```
   - [YYYY-MM-DD] <information>
   ```

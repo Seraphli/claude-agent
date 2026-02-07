@@ -1,12 +1,12 @@
 # /ca:map — Scan Project Structure
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Behavior
 
 ### 1. Check existing map
 
-If `.dev/map.md` already exists, use `AskUserQuestion` with:
+If `.ca/map.md` already exists, use `AskUserQuestion` with:
 - header: "Map"
 - question: "A codebase map already exists. What would you like to do?"
 - options:
@@ -22,11 +22,11 @@ Scan the project root directory:
 - List all top-level directories and files
 - For each significant directory, list its contents (1-2 levels deep)
 - Identify key files (entry points, configs, READMEs, etc.)
-- Skip `.git/`, `node_modules/`, `.dev/`, and other common ignored directories
+- Skip `.git/`, `node_modules/`, `.ca/`, and other common ignored directories
 
 ### 3. Analyze and generate map
 
-For each significant file/directory, write a brief description of its purpose. Generate `.dev/map.md` with:
+For each significant file/directory, write a brief description of its purpose. Generate `.ca/map.md` with:
 
 ```
 # Codebase Map

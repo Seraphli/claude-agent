@@ -54,6 +54,11 @@ console.log(`Copied ${hookFile} to ${targetHooksDir}`);
 fs.mkdirSync(caConfigDir, { recursive: true });
 console.log(`Created ${caConfigDir}`);
 
+// Write version file
+const pkg = JSON.parse(fs.readFileSync(path.join(srcDir, "package.json"), "utf8"));
+fs.writeFileSync(path.join(caConfigDir, "version"), pkg.version);
+console.log(`Wrote version ${pkg.version} to ${path.join(caConfigDir, "version")}`);
+
 // Register statusline in settings.json
 let settings = {};
 if (fs.existsSync(settingsPath)) {
@@ -66,8 +71,8 @@ settings.statusLine = { type: "command", command: `node "${hookPath}"` };
 if (!settings.permissions) settings.permissions = {};
 if (!Array.isArray(settings.permissions.allow)) settings.permissions.allow = [];
 const readPermissions = [
-  "Read(.dev/*)",
-  "Read(.dev/**/*)",
+  "Read(.ca/*)",
+  "Read(.ca/**/*)",
   "Read(~/.claude/ca/*)"
 ];
 for (const perm of readPermissions) {

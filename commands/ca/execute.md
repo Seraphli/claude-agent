@@ -1,11 +1,11 @@
 # /ca:execute — Execute Confirmed Plan
 
-Read `~/.claude/ca/config.md` for global config, then read `.dev/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
+Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. If neither exists, default to English. Respond in the configured `interaction_language`.
 
 ## Prerequisites
 
-1. Check `.dev/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.dev/current/STATUS.md` and verify `plan_confirmed: true`. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
+1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+2. Read `.ca/current/STATUS.md` and verify `plan_confirmed: true`. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
 
 ## Behavior
 
@@ -14,10 +14,10 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 ### 1. Read context
 
 Read these files and collect their full content:
-- `.dev/current/PLAN.md`
-- `.dev/current/REQUIREMENT.md` (or `.dev/current/BRIEF.md` if `workflow_type: quick`)
-- `.dev/context.md` (if it has content)
-- `.dev/errors.md` (if exists — pass to executor so it can avoid past mistakes)
+- `.ca/current/PLAN.md`
+- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
+- `.ca/context.md` (if it has content)
+- `.ca/errors.md` (if exists — pass to executor so it can avoid past mistakes)
 - `~/.claude/ca/errors.md` (if exists — pass to executor for global error lessons)
 
 ### 2. Resolve model for ca-executor
@@ -33,7 +33,7 @@ Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` p
 - The full content of PLAN.md
 - The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
 - The full content of context.md (if any)
-- The content of `.dev/errors.md` (if exists)
+- The content of `.ca/errors.md` (if exists)
 - The content of `~/.claude/ca/errors.md` (if exists)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt
@@ -42,7 +42,7 @@ The agent runs in the foreground and executes the implementation steps, returnin
 
 ### 4. Write SUMMARY.md
 
-Take the agent's returned summary and write it to `.dev/current/SUMMARY.md`.
+Take the agent's returned summary and write it to `.ca/current/SUMMARY.md`.
 
 ### 5. Present execution summary
 
@@ -69,15 +69,17 @@ Set `execute_completed: true`, `current_step: execute`.
 
 ### 7. Update codebase map
 
-If `.dev/map.md` exists:
+If `.ca/map.md` exists:
 - Read the current map and the execution summary
-- Update `.dev/map.md` to reflect any new or modified files and their purposes
+- Update `.ca/map.md` to reflect any new or modified files and their purposes
 - Update the "Last updated" date
 
-If `.dev/map.md` does not exist, skip this step. The user can run `/ca:map` to create it.
+If `.ca/map.md` does not exist, skip this step. The user can run `/ca:map` to create it.
 
 ### 8. Auto-proceed to verification
 
-Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify`.
+Check config for `auto_proceed_to_verify`.
+- If `true`: Tell the user execution is complete, then automatically execute `Skill(ca:verify)`.
+- If `false` or not set: Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify`. Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
 
-**Do NOT proceed to verification automatically — let the user /clear first if they want.**
+**Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config.**
