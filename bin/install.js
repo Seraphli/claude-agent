@@ -78,6 +78,7 @@ for (const perm of readPermissions) {
 
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
 console.log("Registered statusline in settings.json");
+console.log(`Added ${readPermissions.length} Read permissions to settings.json`);
 
 console.log("\nCA installed successfully!");
 console.log("\nAvailable commands:");
