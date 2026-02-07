@@ -59,18 +59,16 @@ Display the research findings clearly:
 
 Ask the user if they need any external resources searched (documentation, APIs, etc.). If yes, launch another research task.
 
-### 6. MANDATORY CONFIRMATION
+### 6. Confirmation and next step
 
-Use `AskUserQuestion` with:
-- header: "Findings"
-- question: "Are these findings accurate and complete?"
-- options:
-  - "Accurate" — "Findings look good, proceed"
-  - "Needs changes" — "Something is missing or incorrect"
+Check config for `auto_proceed_to_plan`:
 
-- If **Accurate**: Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`).
-  - Check config for `auto_proceed_to_plan`. If `true`, tell the user research is complete and automatically execute `Skill(ca:plan)`.
-  - If `false` or not set, tell the user they can proceed with `/ca:plan`. Also mention: "Tip: You can set `auto_proceed_to_plan: true` in `/ca:settings` to auto-proceed."
-- If **Needs changes**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.
-
-**Do NOT proceed to any next step automatically, unless `auto_proceed_to_plan` is set to `true` in config.**
+- If `true`: Skip user confirmation. Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user research is complete and automatically execute `Skill(ca:plan)`.
+- If `false` or not set: Use `AskUserQuestion` with:
+  - header: "Findings"
+  - question: "Are these findings accurate and complete?"
+  - options:
+    - "Accurate" — "Findings look good, proceed"
+    - "Needs changes" — "Something is missing or incorrect"
+  - If **Accurate**: Write the findings to `.ca/current/RESEARCH.md` and update STATUS.md (`research_completed: true`, `current_step: research`). Tell the user they can proceed with `/ca:plan`. Also mention: "Tip: You can set `auto_proceed_to_plan: true` in `/ca:settings` to auto-proceed."
+  - If **Needs changes**: Ask what's missing or incorrect, do additional research, and ask for confirmation again.

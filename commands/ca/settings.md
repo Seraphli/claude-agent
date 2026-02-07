@@ -59,7 +59,7 @@ Per-agent overrides take priority over the profile setting.
 
 Options: `true`, `false`.
 
-Default: `false`. When `true`, research will automatically invoke plan after findings are confirmed, without requiring the user to manually run `/ca:plan`.
+Default: `false`. When `true`, research will skip user confirmation of findings and automatically proceed to plan, without requiring the user to manually confirm or run `/ca:plan`.
 
 #### `auto_proceed_to_verify` — Auto-proceed from execute to verify
 
