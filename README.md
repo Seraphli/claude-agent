@@ -5,6 +5,13 @@ A user-controlled development workflow for Claude Code. Every step requires your
 ## Install
 
 ```bash
+npx claude-agent
+```
+
+Or install from source:
+
+```bash
+git clone https://github.com/Seraphli/claude-agent.git
 cd claude-agent
 npm run install-ca
 ```

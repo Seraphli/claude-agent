@@ -5,6 +5,13 @@
   "bin": {
     "claude-agent": "bin/install.js"
   },
+  "files": [
+    "bin",
+    "commands",
+    "agents",
+    "hooks",
+    "references"
+  ],
   "scripts": {
     "install-ca": "node bin/install.js",
     "uninstall-ca": "node bin/uninstall.js"
