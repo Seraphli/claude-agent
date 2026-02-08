@@ -13,6 +13,9 @@ const settingsPath = path.join(homeDir, ".claude", "settings.json");
 
 const pkg = JSON.parse(fs.readFileSync(path.join(srcDir, "package.json"), "utf8"));
 
+const args = process.argv.slice(2);
+const hasUninstall = args.includes('--uninstall') || args.includes('-u');
+
 // Colors
 const cyan = '\x1b[36m';
 const green = '\x1b[32m';
@@ -29,6 +32,11 @@ const banner = '\n' +
   '  Claude Agent ' + dim + 'v' + pkg.version + reset + '\n';
 
 console.log(banner);
+
+if (hasUninstall) {
+  require('./uninstall');
+  process.exit(0);
+}
 
 function copyDir(src, dest) {
   fs.mkdirSync(dest, { recursive: true });

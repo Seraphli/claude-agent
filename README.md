@@ -21,6 +21,12 @@ This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/age
 ## Uninstall
 
 ```bash
+npx claude-agent --uninstall
+```
+
+Or from source:
+
+```bash
 npm run uninstall-ca
 ```
 
