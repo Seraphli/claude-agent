@@ -2,6 +2,15 @@
 
 Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
+## Auto-trigger Mode
+
+When this command is triggered automatically by other commands (e.g., `/ca:new`, `/ca:quick`, `/ca:help`) because `~/.claude/ca/config.md` does not exist, it runs in a simplified mode:
+
+- **Skip step 1** (choose save location) — always save to global (`~/.claude/ca/config.md`)
+- **Only ask the three language settings** (interaction_language, comment_language, code_language)
+- **Skip** model_profile, per-agent model overrides, and auto_proceed settings (use defaults)
+- After saving, return control to the calling command
+
 ## Behavior
 
 ### 1. Choose save location

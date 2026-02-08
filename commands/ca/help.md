@@ -1,5 +1,7 @@
 # /ca:help — Command Reference
 
+Read `~/.claude/ca/config.md` for global config. If the file does not exist, execute `Skill(ca:settings)` to trigger the settings command in auto-trigger mode for initial setup. After settings completes, continue displaying the help content below.
+
 Display all available CA commands in the user's preferred language:
 
 ## Setup

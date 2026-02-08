@@ -6,11 +6,7 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ### 1. Check for global config
 
-If `~/.claude/ca/config.md` does not exist, **automatically run the settings flow inline**:
-- Ask the user for the three language settings (interaction_language, comment_language, code_language) using `AskUserQuestion`, one at a time.
-- Save to `~/.claude/ca/config.md` as global config.
-- Also generate `~/.claude/rules/ca-settings.md` with corresponding language rules.
-- Then continue with the steps below.
+If `~/.claude/ca/config.md` does not exist, execute `Skill(ca:settings)` to trigger the settings command in auto-trigger mode for initial setup. After settings completes, continue with the steps below.
 
 ### 2. Check for unfinished workflow
 
