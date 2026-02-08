@@ -15,14 +15,30 @@ When asking clarifying questions one at a time during the discuss phase:
 
 ## Error Recording Rule
 
-When an agent makes a mistake during execution (wrong file, logic error, repeated mistake, etc.), it must record the error:
-- **Project-level**: Append to `.claude/rules/ca-errors.md` for project-specific lessons.
-- **Global-level**: Append to `~/.claude/rules/ca-errors.md` for cross-project lessons.
+The `ca-errors.md` files serve as **persistent error memory** for agents. They are auto-loaded by Claude Code's rules system, so agents automatically learn from past mistakes and avoid repeating them. There are two levels:
+- **Project-level** (`.claude/rules/ca-errors.md`): Lessons specific to this project (e.g., project conventions, architecture patterns).
+- **Global-level** (`~/.claude/rules/ca-errors.md`): Lessons that apply across all projects (e.g., general coding mistakes, tool usage errors).
+
+### When to record errors
+
+Agents MUST record errors in the following situations:
+- Making a mistake during execution (wrong file, logic error, incorrect approach, etc.)
+- Repeating a previously recorded mistake
+- **When the user expresses frustration or anger** — this is a strong signal that something went wrong. Immediately identify the cause, apologize, fix the issue, and record the lesson.
+- When the user corrects the agent's behavior or output
+
+### How to record
+
+Append to the appropriate `ca-errors.md` file:
 
 Format each entry as:
 ```
 - [YYYY-MM-DD] <brief description of the error and what was learned>
 ```
+
+- Use **project-level** for project-specific lessons.
+- Use **global-level** for cross-project lessons.
+- Keep entries concise but actionable — future agents should understand what to avoid.
 
 ## Todo Independence Rule
 
