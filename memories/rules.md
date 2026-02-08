@@ -54,3 +54,11 @@ When searching for project-related files, agents must follow this priority:
 2. **Only if** the map does not contain the needed information, fall back to Glob/Grep search.
 
 This reduces unnecessary searches and ensures agents leverage the existing codebase map.
+
+## Todo File Safety Rule
+
+When reading or modifying `.ca/todos.md`:
+- **ONLY** use `Read` tool to read the file
+- **ONLY** use `Write` or `Edit` tool to modify the file
+- **NEVER** use `Bash` commands (cat, echo, sed, awk, etc.) to write to todos.md
+- This prevents accidental data loss from overwriting the file without reading it first

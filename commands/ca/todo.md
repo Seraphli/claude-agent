@@ -2,7 +2,15 @@
 
 ## Prerequisites
 
-Check `.ca/todos.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Check `.ca/todos.md` exists. If not, create it with:
+
+```markdown
+# Todo List
+
+# Archive
+```
+
+Then continue with the normal flow.
 
 ## Behavior
 
@@ -11,6 +19,8 @@ Check `.ca/todos.md` exists. If not, tell the user to run `/ca:new` first and st
 The user's message after `/ca:todo` contains the item to add. If empty, ask what they want to add.
 
 ### 2. Append to todos.md
+
+**IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
 
 Read `.ca/todos.md`, then append the new item. **Always preserve the user's exact original input**:
 

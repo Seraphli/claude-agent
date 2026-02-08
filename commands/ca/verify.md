@@ -100,6 +100,7 @@ After verification (regardless of commit decision):
 1. **Check for linked todo**:
    - Read `.ca/current/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
    - If it does:
+     **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
      a. Read `.ca/todos.md`.
      b. Find the matching uncompleted todo item (under `# Todo List`, matching the exact text).
      c. Mark it as completed: change `- [ ]` to `- [x]`. (If the workflow was rejected/cancelled, mark as `- [-]` instead.)

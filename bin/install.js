@@ -97,8 +97,8 @@ console.log(`  ${green}✓${reset} Created config directory`);
 const rulesDir = path.join(homeDir, ".claude", "rules");
 fs.mkdirSync(rulesDir, { recursive: true });
 
-// Copy _rules.md as ca-rules.md
-const rulesSource = path.join(srcCommandsDir, "_rules.md");
+// Copy rules.md as ca-rules.md
+const rulesSource = path.join(srcDir, "memories", "rules.md");
 const rulesTarget = path.join(rulesDir, "ca-rules.md");
 fs.copyFileSync(rulesSource, rulesTarget);
 console.log(`  ${green}✓${reset} Installed rules`);

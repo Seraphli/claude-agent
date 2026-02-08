@@ -41,6 +41,8 @@ Create the following directories and files if they don't exist:
 
 ### 4. Collect initial requirement description and link to todo
 
+**IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
+
 **If the user provided a description** with this command:
 1. Read `.ca/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
 2. Analyze the user's description and see if it matches any existing todo item.
@@ -103,6 +105,8 @@ verify_completed: false
 ```
 
 ### 7. Confirm completion
+
+**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research belongs in `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
 Tell the user the quick workflow has been created. Show the brief. Suggest proceeding with `/ca:plan` (or `/ca:next`) to create the implementation plan.
 
