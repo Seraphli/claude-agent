@@ -78,7 +78,16 @@ Use `AskUserQuestion` with:
 - If **No, skip**: Tell the user the workflow is complete without committing. Proceed to archiving.
 - If **Yes, commit**:
   - Run `git diff --stat` and `git status` to gather file information.
-  - Propose a commit message.
+  - Propose a commit message following this format:
+    ```
+    <type>: <concise title (under 72 chars)>
+
+    - <detail 1: what was changed and why>
+    - <detail 2: what was changed and why>
+    - ...
+    ```
+    Where `<type>` is one of: feat, fix, refactor, docs, chore, test.
+    The body MUST contain a bulleted list describing each significant change made in this workflow cycle. Reference the PLAN.md implementation steps and SUMMARY.md to generate comprehensive details. Never omit the body — even for small changes, include at least one detail line.
   - **Display to the user before asking for confirmation**:
     - The full proposed commit message
     - The complete list of files that will be committed (from git status/diff output)
