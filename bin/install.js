@@ -101,6 +101,13 @@ console.log(`  ${green}✓${reset} Installed statusline hook`);
 fs.mkdirSync(caConfigDir, { recursive: true });
 console.log(`  ${green}✓${reset} Created config directory`);
 
+// Copy references
+const srcReferencesDir = path.join(srcDir, "references");
+const targetReferencesDir = path.join(caConfigDir, "references");
+copyDir(srcReferencesDir, targetReferencesDir);
+const refCount = fs.readdirSync(targetReferencesDir).filter((f) => f.endsWith(".md")).length;
+console.log(`  ${green}✓${reset} Installed ${refCount} references`);
+
 // Create rules directory and install rules files
 const rulesDir = path.join(homeDir, ".claude", "rules");
 fs.mkdirSync(rulesDir, { recursive: true });

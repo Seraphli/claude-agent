@@ -23,7 +23,7 @@ Read these files and collect their full content:
 
 Read the model configuration from config (global then workspace override):
 1. Check for per-agent override: `ca-verifier_model` in config. If set, use that model.
-2. Otherwise, read `model_profile` from config (default: `balanced`). Read `references/model-profiles.md` and look up the model for `ca-verifier` in the corresponding profile column.
+2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-verifier` in the corresponding profile column.
 3. The resolved model will be passed to the Task tool.
 
 ### 3. Launch ca-verifier agent

@@ -38,6 +38,16 @@ if (fs.existsSync(hookFile)) {
   console.log("Hook file not found, skipping.");
 }
 
+// Remove references directory
+const caConfigDir = path.join(homeDir, ".claude", "ca");
+const referencesDir = path.join(caConfigDir, "references");
+if (fs.existsSync(referencesDir)) {
+  fs.rmSync(referencesDir, { recursive: true });
+  console.log(`Removed ${referencesDir}`);
+} else {
+  console.log("References directory not found, skipping.");
+}
+
 // Deregister statusline from settings.json
 if (fs.existsSync(settingsPath)) {
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));

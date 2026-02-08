@@ -16,7 +16,7 @@ cd claude-agent
 npm run install-ca
 ```
 
-This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, and registers the statusline hook.
+This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, references to `~/.claude/ca/references/`, and registers the statusline hook.
 
 ## Uninstall
 
@@ -135,6 +135,7 @@ Use `/ca:settings` to configure.
   ca/
     config.md                    # Global config (language, model, auto-proceed)
     version                      # Installed version number
+    references/                  # Reference files (model-profiles.md, etc.)
   commands/ca/                   # Slash commands (installed by install-ca)
   agents/                        # Agent definitions (installed by install-ca)
   rules/
