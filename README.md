@@ -120,6 +120,7 @@ Additional settings:
 | `auto_proceed_to_plan` | Skip research confirmation in discuss, go straight to plan |
 | `auto_proceed_to_verify` | Skip manual verify trigger after execution |
 | `max_concurrency` | Max parallel agents in execute/verify (default: `4`) |
+| `track_ca_files` | Version control for CA files: `none` (default), `all`, `.ca/`, or `.claude/rules/ca*` |
 
 Per-agent model overrides (e.g., `ca-verifier_model: opus`) are also supported.
 

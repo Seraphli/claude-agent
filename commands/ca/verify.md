@@ -101,9 +101,47 @@ Use `AskUserQuestion` with:
   - "Reject" — "Results need work"
 
 - If **Reject**: Ask what's wrong. Suggest running `/ca:fix` to go back to an earlier step.
-- If **Accept**: Proceed to git commit step.
+- If **Accept**: Proceed to gitignore check.
 
-### 6. Git Commit Confirmation
+### 6. Gitignore Check
+
+Read `track_ca_files` from config (default: `none`).
+
+Define the CA gitignore patterns:
+- `.ca/` pattern: `.ca/`
+- `.claude/rules/ca*` pattern: `.claude/rules/ca*`
+
+Determine which patterns to check based on `track_ca_files`:
+- `none`: ALL patterns should be IN `.gitignore` (ensure exclusion)
+- `all`: ALL patterns should NOT be in `.gitignore` (ensure tracking)
+- `.ca/`: `.ca/` should NOT be in `.gitignore`; `.claude/rules/ca*` should be in `.gitignore`
+- `.claude/rules/ca*`: `.claude/rules/ca*` should NOT be in `.gitignore`; `.ca/` should be in `.gitignore`
+
+Check if `.gitignore` exists in project root. If not, and patterns need to be added, it will be created.
+
+Read `.gitignore` (if exists) and check for each pattern.
+
+For patterns that should be in `.gitignore` but are missing:
+- Use `AskUserQuestion`:
+  - header: "Gitignore"
+  - question: "`.gitignore` is missing CA entries: <list>. Add them?"
+  - options:
+    - "Yes, add" — "Add missing entries to .gitignore"
+    - "No, skip" — "Leave .gitignore as is"
+- If **Yes, add**: Append missing patterns to `.gitignore`.
+
+For patterns that should NOT be in `.gitignore` but are present:
+- Use `AskUserQuestion`:
+  - header: "Gitignore"
+  - question: "`.gitignore` contains CA entries that should be removed for version control: <list>. Remove them?"
+  - options:
+    - "Yes, remove" — "Remove entries from .gitignore"
+    - "No, skip" — "Leave .gitignore as is"
+- If **Yes, remove**: Remove matching lines from `.gitignore`.
+
+After any changes, proceed to the next step.
+
+### 7. Git Commit Confirmation
 
 Use `AskUserQuestion` with:
 - header: "Commit"
@@ -139,7 +177,7 @@ Use `AskUserQuestion` with:
     - If **Confirm**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
     - If **Skip**: Skip committing.
 
-### 7. Archive and cleanup
+### 8. Archive and cleanup
 
 After verification (regardless of commit decision):
 

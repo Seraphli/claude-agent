@@ -82,6 +82,17 @@ Options: `2`, `3`, `4`, `6`, `8`, or custom number.
 
 Default: `4`. Controls how many agents can run in parallel during execute and verify phases. When parallel tasks exceed this limit, they are executed in batches of this size.
 
+#### `track_ca_files` — Version control for CA files
+
+Options: `none`, `all`, `.ca/`, `.claude/rules/ca*`.
+
+- `none`: CA files are excluded from version control (default)
+- `all`: All CA files are tracked (`.ca/` and `.claude/rules/ca*`)
+- `.ca/`: Only the `.ca/` workflow directory is tracked
+- `.claude/rules/ca*`: Only project-level CA rule files are tracked
+
+Default: `none`. Controls whether CA-related files are committed to version control. When not `none`, the verify command will check `.gitignore` and offer to remove CA entries. When `none`, it will check `.gitignore` and offer to add missing CA entries.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -99,12 +110,14 @@ ca-verifier_model: <value>
 auto_proceed_to_plan: <value>
 auto_proceed_to_verify: <value>
 max_concurrency: <value>
+track_ca_files: <value>
 ```
 
 For workspace config, omit settings that inherit from global (do not write them).
 Omit per-agent model overrides that are empty (not set).
 Omit auto_proceed settings that are `false` (default).
 Omit max_concurrency if it is `4` (default).
+Omit track_ca_files if it is `none` (default).
 
 ### 5. Sync rules file
 
