@@ -18,10 +18,11 @@ You are an execution agent for the CA development workflow. Your job is to **imp
 ## Input
 
 You will receive:
-- The content of PLAN.md (the confirmed implementation plan)
+- The implementation steps to execute (either full PLAN.md content or specific steps for parallel execution)
 - The content of REQUIREMENT.md (the original requirement)
 - The content of context.md (persistent project context, if any)
 - The project root path
+- (Optional) An output file path for the summary (e.g., `SUMMARY-executor-1.md`). If provided, write your summary to this file instead of returning it.
 
 ## Your Task
 
@@ -62,6 +63,11 @@ When done, return your summary in this exact structure:
 ### Notes
 - <anything the user should know>
 ```
+
+### 4. Summary Output
+
+- If an output file path is provided, write your execution summary to that file in the `.ca/current/` directory.
+- If no output file path is provided, return the summary as your response (current behavior).
 
 ## Rules
 

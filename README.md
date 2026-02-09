@@ -74,7 +74,7 @@ All three must pass before the plan is finalized.
 
 ### 5. Execute — `/ca:execute`
 
-Runs the confirmed plan using an isolated executor agent. Only proceeds if the plan has been triple-confirmed. Returns an execution summary.
+Runs the confirmed plan using isolated executor agents. When the plan contains subtask grouping (independent steps grouped together), multiple executors run in parallel for faster execution. Steps with dependencies are executed sequentially across subtask boundaries. Only proceeds if the plan has been triple-confirmed. Returns an execution summary.
 
 ### 6. Verify — `/ca:verify`
 
@@ -170,7 +170,7 @@ Use `/ca:settings` to configure.
 | Agent | Role | Why isolated |
 |-------|------|-------------|
 | `ca-researcher` | Deep codebase analysis | Research consumes large context |
-| `ca-executor` | Implements the plan | Code edits cause context bloat |
+| `ca-executor` | Implements the plan (parallel when subtasks are independent) | Code edits cause context bloat |
 | `ca-verifier` | Independent verification | Fresh context avoids confirmation bias |
 
 ## Statusline

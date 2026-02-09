@@ -28,6 +28,23 @@ Prepare a plan covering:
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
 
+**Subtask Grouping (optional)**: When the plan has multiple steps that are independent of each other (modifying different files with no dependencies), group them under the same subtask. Steps with dependencies on other steps should go into separate subtasks. Subtask grouping is optional — simple plans with sequential steps do not need subtask markers.
+
+When using subtask grouping, format the Implementation Steps as:
+
+```
+## Implementation Steps
+
+### Subtask 1
+1. Step description...
+2. Step description...
+
+### Subtask 2
+3. Step description...
+```
+
+Steps within the same subtask are independent and will be executed in parallel by separate executor agents. Steps in different subtasks have dependencies and will be executed sequentially (subtask 1 completes before subtask 2 starts).
+
 **IMPORTANT — Plan Detail Requirement**: Each implementation step MUST contain the specific content to be added or modified. Include:
 - The exact text/code to insert or change (use code blocks or quoted text)
 - The precise location in the file (which section, after which line/paragraph)
@@ -123,6 +140,17 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/current
 ## Implementation Steps
 1. ...
 2. ...
+
+(or with subtask grouping:)
+
+## Implementation Steps
+
+### Subtask 1
+1. ...
+2. ...
+
+### Subtask 2
+3. ...
 
 ## Expected Results
 <confirmed expected results>

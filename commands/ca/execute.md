@@ -31,19 +31,41 @@ Read the model configuration from config (global then workspace override):
 2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-executor` in the corresponding profile column.
 3. The resolved model will be passed to the Task tool.
 
-### 3. Launch ca-executor agent
+### 3. Parse subtask grouping
 
-Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch the ca-executor agent. Pass it:
+Check if PLAN.md contains `### Subtask N` headers under `## Implementation Steps`:
+- If **no subtask headers found**: Go to step 3a (single executor).
+- If **subtask headers found**: Go to step 3b (parallel execution).
+
+### 3a. Single executor (no subtask grouping)
+
+Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch a single ca-executor agent. Pass it:
 - The full content of PLAN.md
 - The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
 - The project root path
 - Instructions to follow the `ca-executor` agent prompt
 
-The agent runs in the foreground and executes the implementation steps, returning an execution summary.
+The agent runs in the foreground and executes the implementation steps, returning an execution summary. Go to step 4.
+
+### 3b. Parallel execution (with subtask grouping)
+
+Process subtasks sequentially. For each subtask:
+
+1. Extract the steps belonging to this subtask from PLAN.md.
+2. If this subtask has **only 1 step**: Launch a single `ca-executor` agent with that step inlined in the prompt. Pass an output file path `SUMMARY-executor-{N}.md` where N is a sequential counter starting from 1.
+3. If this subtask has **multiple steps**: Launch multiple `ca-executor` agents **in the same message** (parallel execution). Each agent receives:
+   - Its specific step(s) inlined in the prompt (because `@` references don't work across Task boundaries)
+   - The full content of REQUIREMENT.md (or BRIEF.md)
+   - The project root path
+   - A unique output file path: `SUMMARY-executor-{N}.md`
+4. Wait for all agents in this subtask to complete before proceeding to the next subtask.
+
+After all subtasks complete, go to step 4.
 
 ### 4. Write SUMMARY.md
 
-Take the agent's returned summary and write it to `.ca/current/SUMMARY.md`.
+- **Single executor mode (3a)**: Take the agent's returned summary and write it to `.ca/current/SUMMARY.md`.
+- **Parallel execution mode (3b)**: Read all `SUMMARY-executor-*.md` files from `.ca/current/`, merge them into a single coherent summary, and write the merged result to `.ca/current/SUMMARY.md`. Then delete the individual `SUMMARY-executor-*.md` files.
 
 ### 5. Present execution summary
 
