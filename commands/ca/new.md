@@ -40,6 +40,9 @@ Create the following directories and files if they don't exist:
 **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
 
 **If the user provided a description** with this command:
+
+**First, check if the user's description is a todo reference** (e.g., "处理 todo", "处理所有 todo", "处理 todo 中的 XXX 问题", "handle the todos", or similar expressions indicating they want to work on existing todo items rather than describing a new requirement). If so, treat this as if the user did NOT provide a description — go to the "If the user did NOT provide a description" flow below (list todos and let user select). Do NOT use the reference text (e.g., "处理 todo") as the requirement description.
+
 1. Read `.ca/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
 2. Analyze the user's description and see if it matches any existing todo item.
 3. If a match is found, use `AskUserQuestion` with:
@@ -93,7 +96,6 @@ workflow_type: standard
 current_step: new
 init_completed: true
 discuss_completed: false
-research_completed: false
 plan_completed: false
 plan_confirmed: false
 execute_completed: false
@@ -102,7 +104,7 @@ verify_completed: false
 
 ### 7. Confirm completion
 
-**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research belongs in `/ca:research` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
+**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
 Tell the user the new requirement has been created. Show the brief. Suggest proceeding with `/ca:discuss` (or `/ca:next`) to discuss and refine the requirements.
 

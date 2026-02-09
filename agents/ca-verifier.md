@@ -19,13 +19,18 @@ You will receive:
 - The content of REQUIREMENT.md (what was requested)
 - The content of PLAN.md (what was planned)
 - The content of SUMMARY.md (what was executed)
+- The criteria to verify (may be all criteria or a subset for parallel mode)
+- Whether criteria are `[auto]` or `[manual]` tagged — only verify `[auto]` criteria
+- (Optional) An output file path for the report (e.g., `VERIFY-verifier-1.md`). If provided, write your report to this file instead of returning it.
 - The project root path
 
 ## Your Task
 
 ### 1. Check each success criterion
 
-Read the success criteria from REQUIREMENT.md. For each one:
+Read the success criteria provided to you. Only verify criteria tagged `[auto]`. Skip `[manual]` criteria (those require user confirmation and are handled by the orchestrator).
+
+For each criterion:
 - Verify it's actually met by reading the relevant code/files
 - Record the evidence (what you found)
 - Mark as PASS or FAIL
@@ -51,9 +56,9 @@ Return your report in this exact structure:
 ## Verification Report
 
 ### Success Criteria
-| # | Criterion | Status | Evidence |
-|---|-----------|--------|----------|
-| 1 | <criterion> | PASS/FAIL | <what you found> |
+| # | Criterion | Type | Status | Evidence |
+|---|-----------|------|--------|----------|
+| 1 | <criterion> | auto | PASS/FAIL | <what you found> |
 
 ### Plan Compliance
 | # | Planned Step | Status | Notes |
@@ -70,6 +75,11 @@ Return your report in this exact structure:
 ### Recommendations (if any)
 - <recommendation>
 ```
+
+### 5. Report Output
+
+- If an output file path is provided, write your verification report to that file.
+- If no output file path is provided, return the report as your response.
 
 ## Rules
 

@@ -19,6 +19,8 @@ Read these files and collect their full content:
 - `.ca/current/SUMMARY.md`
 - `.ca/current/CRITERIA.md` (if exists — the authoritative success criteria)
 
+Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within each group, note the list structure (ordered = sequential, unordered = parallel) for execution planning.
+
 ### 2. Resolve model for ca-verifier
 
 Read the model configuration from config (global then workspace override):
@@ -26,29 +28,64 @@ Read the model configuration from config (global then workspace override):
 2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-verifier` in the corresponding profile column.
 3. The resolved model will be passed to the Task tool.
 
-### 3. Launch ca-verifier agent
+### 3. Execute auto verification
 
-Use the Task tool with `subagent_type: "ca-verifier"` and the resolved `model` parameter to launch the ca-verifier agent. Pass it:
-- The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
-- The full content of PLAN.md
-- The full content of SUMMARY.md
-- The full content of CRITERIA.md (if exists — this is the authoritative source of success criteria)
+#### 3a. Parse auto criteria structure
+
+Read the `[auto]` section from CRITERIA.md. Check the list structure:
+- If **unordered list** with multiple items that can be split: go to 3c (parallel verification).
+- Otherwise: go to 3b (single verifier).
+
+#### 3b. Single verifier
+
+Launch a single `ca-verifier` agent with all `[auto]` criteria. The agent verifies each criterion and returns a report.
+
+#### 3c. Parallel verification (optional)
+
+Launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
+- Its assigned criteria
+- All context files (REQUIREMENT.md/BRIEF.md, PLAN.md, SUMMARY.md)
 - The project root path
-- Instructions to follow the `ca-verifier` agent prompt
-- Instruct the verifier: If CRITERIA.md exists, use it as the authoritative success criteria list. Verify ALL criteria, including those from previous cycles that were already passing. This ensures fix modifications have not broken previously working functionality.
+- A unique output file path: `VERIFY-verifier-{N}.md`
 
-The agent independently checks every success criterion and returns a verification report.
+Wait for all agents to complete, then merge reports.
+
+#### 3d. Handle auto results
+
+If all auto criteria PASS: proceed to step 3e (manual verification).
+
+If any auto criteria FAIL:
+1. Increment retry counter (track in STATUS.md as `verify_retry_count`).
+2. If retry count > 3: Stop and tell the user: "Auto verification has failed 3 times. Please review the failures and decide how to proceed." Suggest `/ca:fix`.
+3. If retry count <= 3: Report the failures to the user, then automatically:
+   - Reset STATUS.md: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
+   - Add a "## Fix Notes" section to PLAN.md describing what failed and needs fixing
+   - Execute `Skill(ca:plan)` to enter fix mode
+
+#### 3e. Manual verification
+
+Present all `[manual]` criteria to the user one at a time. For each:
+- Describe what needs to be verified
+- Use `AskUserQuestion` to ask the user to confirm PASS or FAIL
+- Record the result
+
+After all manual criteria are verified, proceed to step 4.
 
 ### 4. Present verification report
 
-Display the report to the user:
+Display the report with auto and manual sections:
 
 ```
 ## Verification Report
 
-### Results
+### Auto Results
 | # | Criterion | Status | Evidence |
 |---|-----------|--------|----------|
+| 1 | ... | PASS/FAIL | ... |
+
+### Manual Results
+| # | Criterion | Status | User Confirmation |
+|---|-----------|--------|-------------------|
 | 1 | ... | PASS/FAIL | ... |
 
 ### Overall: PASS/FAIL

@@ -18,8 +18,7 @@ Based on the status flags and `workflow_type`, determine the next step and execu
 
 **For `workflow_type: standard`:**
 - If `init_completed: true` and `discuss_completed: false` → Execute `Skill(ca:discuss)`
-- If `discuss_completed: true` and `research_completed: false` → Execute `Skill(ca:research)`
-- If `research_completed: true` and `plan_completed: false` → Execute `Skill(ca:plan)`
+- If `discuss_completed: true` and `plan_completed: false` → Execute `Skill(ca:plan)`
 - If `plan_confirmed: true` and `execute_completed: false` → Execute `Skill(ca:execute)`
 - If `execute_completed: true` and `verify_completed: false` → Execute `Skill(ca:verify)`
 - If `verify_completed: true` → Tell the user the workflow is complete.

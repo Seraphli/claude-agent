@@ -36,10 +36,10 @@ Removes commands, agents, and hooks from `~/.claude/`. Project `.ca/` directorie
 
 Two workflow modes are available:
 
-**Full workflow** — for requirements that need discussion and research:
+**Full workflow** — for requirements that need discussion:
 
 ```
-/ca:new → /ca:discuss → /ca:research → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify
 ```
 
 **Quick workflow** — for clear, simple changes:
@@ -56,39 +56,35 @@ Creates a `.ca/` directory in your project for workflow state. Collects an initi
 
 ### 2. Discuss — `/ca:discuss`
 
-Clarifies your requirements through focused Q&A (one question at a time), starting from the brief collected in `/ca:new`. Produces a requirement summary that you must confirm before moving on.
+Starts with automated 4-dimension research (Stack, Features, Architecture, Pitfalls) using parallel researcher agents, then clarifies your requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
 
-### 3. Research — `/ca:research` (optional)
+### 3. Plan — `/ca:plan`
 
-Analyzes the codebase and optionally searches external resources. Uses an isolated agent to keep the main conversation clean. Findings require your confirmation.
-
-### 4. Plan — `/ca:plan`
-
-Proposes an implementation plan with **triple confirmation**:
+For quick workflows, performs automated research first. Clarifies any uncertain items before drafting. Proposes an implementation plan with **triple confirmation** and backtracking:
 
 1. **Requirement understanding** — "I understand you want X, correct?"
 2. **Approach and method** — "I'll modify these files using this approach, agreed?"
 3. **Expected results** — "The end result will be X, is that what you want?"
 
-All three must pass before the plan is finalized.
+If changes at a later step affect earlier confirmations, the system backtracks and re-confirms affected steps. Success criteria are tagged `[auto]` or `[manual]` for verification.
 
-### 5. Execute — `/ca:execute`
+### 4. Execute — `/ca:execute`
 
-Runs the confirmed plan using isolated executor agents. When the plan contains subtask grouping (independent steps grouped together), multiple executors run in parallel for faster execution. Steps with dependencies are executed sequentially across subtask boundaries. Only proceeds if the plan has been triple-confirmed. Returns an execution summary.
+Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary.
 
-### 6. Verify — `/ca:verify`
+### 5. Verify — `/ca:verify`
 
-An independent verifier agent checks every success criterion in a fresh context. After your acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
+Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails, automatically retries via plan → execute → verify cycle (max 3 times). Manual criteria are confirmed with you one at a time. After acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
 
 ### Quick Mode — `/ca:quick [description]`
 
-Skips the discuss and research phases entirely. Creates a brief and goes straight to planning. Best for small, well-understood changes.
+Skips the discuss phase. Creates a brief and goes straight to planning (with automated research). Best for small, well-understood changes.
 
 ## Other Commands
 
 | Command | Description |
 |---------|-------------|
-| `/ca:quick [desc]` | Start a quick workflow (skip discuss/research) |
+| `/ca:quick [desc]` | Start a quick workflow (skip discuss) |
 | `/ca:next` | Auto-detect and run the next workflow step |
 | `/ca:map` | Scan and record project structure |
 | `/ca:settings` | Configure language, model, and auto-proceed settings |
@@ -121,7 +117,7 @@ Additional settings:
 | Setting | Purpose |
 |---------|---------|
 | `model_profile` | Agent model tier: `quality`, `balanced` (default), or `budget` |
-| `auto_proceed_to_plan` | Skip research confirmation, go straight to plan |
+| `auto_proceed_to_plan` | Skip research confirmation in discuss, go straight to plan |
 | `auto_proceed_to_verify` | Skip manual verify trigger after execution |
 
 Per-agent model overrides (e.g., `ca-verifier_model: opus`) are also supported.
@@ -152,7 +148,6 @@ Use `/ca:settings` to configure.
     STATUS.md                    # Workflow state
     BRIEF.md                     # Initial requirement brief
     REQUIREMENT.md               # Finalized requirement from /ca:discuss
-    RESEARCH.md                  # Findings from /ca:research
     PLAN.md                      # Confirmed plan from /ca:plan
     SUMMARY.md                   # Execution summary from /ca:execute
     CRITERIA.md                  # Success criteria from /ca:plan
@@ -170,8 +165,8 @@ Use `/ca:settings` to configure.
 | Agent | Role | Why isolated |
 |-------|------|-------------|
 | `ca-researcher` | Deep codebase analysis | Research consumes large context |
-| `ca-executor` | Implements the plan (parallel when subtasks are independent) | Code edits cause context bloat |
-| `ca-verifier` | Independent verification | Fresh context avoids confirmation bias |
+| `ca-executor` | Implements the plan (parallel for independent steps) | Code edits cause context bloat |
+| `ca-verifier` | Independent verification (supports auto/manual, parallel mode) | Fresh context avoids confirmation bias |
 
 ## Statusline
 

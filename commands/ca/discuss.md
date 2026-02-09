@@ -9,7 +9,52 @@
 
 You are conducting a focused requirements discussion. Your goal is to understand **exactly** what the user wants before any code is written.
 
-### 1. Start the discussion
+### 1. Automated Research
+
+Before starting the discussion, perform an automatic 4-dimension research to gather context.
+
+#### 1a. Resolve model for ca-researcher
+
+Read the model configuration from config (global then workspace override):
+1. Check for per-agent override: `ca-researcher_model` in config. If set, use that model.
+2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-researcher` in the corresponding profile column.
+3. The resolved model will be passed to the Task tool.
+
+#### 1b. Launch 4 parallel researchers
+
+Use the Task tool to launch **4 ca-researcher agents in parallel** (in a single message), each with the resolved `model` parameter. Pass each agent:
+- The full content of BRIEF.md
+- The project root path
+- The content of `.ca/map.md` (if exists)
+- A specific research dimension:
+
+**Agent 1 — Stack**: "Research the technology stack relevant to this requirement. Identify frameworks, libraries, dependencies, and technical constraints that apply."
+
+**Agent 2 — Features**: "Research existing features and code related to this requirement. Find relevant files, functions, patterns, and current behavior."
+
+**Agent 3 — Architecture**: "Research the architecture relevant to this requirement. Analyze module structure, data flow, integration points, and dependencies between components."
+
+**Agent 4 — Pitfalls**: "Research potential risks and pitfalls for this requirement. Check error history (`.claude/rules/ca-errors.md`), known issues, and common mistakes in similar changes."
+
+#### 1c. Present research findings
+
+After all 4 agents complete, present a merged summary:
+
+## Research Findings
+
+### Stack
+<findings from Agent 1>
+
+### Features
+<findings from Agent 2>
+
+### Architecture
+<findings from Agent 3>
+
+### Pitfalls
+<findings from Agent 4>
+
+### 2. Start the discussion
 
 Read `.ca/current/BRIEF.md` if it exists. Use the brief as the starting point for the discussion — acknowledge what the user wants to do based on the brief.
 
@@ -19,7 +64,7 @@ If the user also provided a task description with this command, incorporate it a
 
 If neither the brief nor a task description exists, ask what they want to accomplish.
 
-### 2. Ask clarifying questions ONE AT A TIME
+### 3. Ask clarifying questions ONE AT A TIME
 
 Do NOT dump a list of questions. Ask the most important question first, wait for the answer, then ask the next based on their response. Focus on:
 
@@ -34,7 +79,9 @@ Keep asking until the requirements are clear. Typically 2-5 questions suffice.
 
 **When a question has clear, enumerable options** (e.g., choosing between approaches, selecting a strategy, yes/no decisions), use `AskUserQuestion` with appropriate options instead of plain text. Reserve plain text for open-ended questions that cannot be expressed as choices.
 
-### 3. Present requirement summary
+**Supplementary Research**: If during the discussion the user raises questions that require additional investigation, you can launch another ca-researcher agent with a targeted research prompt to gather the needed information. Present the findings to the user before continuing the discussion.
+
+### 4. Present requirement summary
 
 When you have enough information, present a structured summary:
 
@@ -52,7 +99,7 @@ When you have enough information, present a structured summary:
 - Out of scope: ...
 ```
 
-### 4. MANDATORY CONFIRMATION
+### 5. MANDATORY CONFIRMATION
 
 Use `AskUserQuestion` with:
 - header: "Requirements"
@@ -68,7 +115,7 @@ Use `AskUserQuestion` with:
 1. ...
 2. ...
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:research` or `/ca:plan` (or `/ca:next`). Suggest using `/clear` before proceeding to the next step to free up context.
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user they can proceed with `/ca:plan` (or `/ca:next`). Suggest using `/clear` before proceeding to the next step to free up context.
 - If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 
 **Do NOT proceed to any next step automatically. Wait for the user to invoke the next command.**

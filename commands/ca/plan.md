@@ -15,9 +15,28 @@ This is the **most critical step** in the workflow. You must get **three separat
 
 Read these files:
 - `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
-- `.ca/current/RESEARCH.md` (if exists)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
 - `.ca/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
+
+### 1b. Research (quick workflow only)
+
+If `workflow_type: quick`, perform automatic 4-dimension research before drafting the plan. This follows the same pattern as the discuss command's automated research:
+
+1. Resolve model for ca-researcher (same logic as discuss).
+2. Launch 4 parallel ca-researcher agents (Stack, Features, Architecture, Pitfalls) with BRIEF.md content, project root, and map.
+3. Present merged research findings to the user.
+
+If `workflow_type: standard`, skip this step (research was already done in discuss).
+
+### 1c. Clarify uncertain items
+
+Before proceeding to draft the plan, check if there are any uncertain or ambiguous items discovered during research (from discuss phase or step 1b). If there are:
+
+1. List each uncertain item to the user.
+2. Ask the user to clarify each one, one at a time.
+3. Only proceed to drafting the plan after all uncertainties are resolved.
+
+This ensures that the triple confirmation below contains only concrete, well-defined content — no items should say "needs further research" or "to be determined".
 
 ### 2. Draft the plan
 
@@ -28,22 +47,21 @@ Prepare a plan covering:
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
 
-**Subtask Grouping (optional)**: When the plan has multiple steps that are independent of each other (modifying different files with no dependencies), group them under the same subtask. Steps with dependencies on other steps should go into separate subtasks. Subtask grouping is optional — simple plans with sequential steps do not need subtask markers.
+**Execution Order**: Implementation Steps use a multi-level list outline to express execution order:
+- **Ordered list** (1. 2. 3.) = sequential execution, items have dependencies
+- **Unordered list** (- - -) = parallel execution, items are independent
 
-When using subtask grouping, format the Implementation Steps as:
+Nesting is supported. For example:
+1. Preparation step
+2. Parallel modifications:
+   - Modify file A
+   - Modify file B
+   - Modify file C
+3. Final integration step
 
-```
-## Implementation Steps
+When all steps are independent, use a single unordered list. When all steps are sequential, use a single ordered list. Only use mixed/nested lists when the execution order genuinely requires it — keep it simple.
 
-### Subtask 1
-1. Step description...
-2. Step description...
-
-### Subtask 2
-3. Step description...
-```
-
-Steps within the same subtask are independent and will be executed in parallel by separate executor agents. Steps in different subtasks have dependencies and will be executed sequentially (subtask 1 completes before subtask 2 starts).
+After the outline, provide a "## Step Details" section with detailed instructions for each step. The outline determines execution order; Step Details provides the implementation content for each step.
 
 **IMPORTANT — Plan Detail Requirement**: Each implementation step MUST contain the specific content to be added or modified. Include:
 - The exact text/code to insert or change (use code blocks or quoted text)
@@ -63,6 +81,8 @@ The plan must be detailed enough that the executor agent can follow it mechanica
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
 #### Confirmation 1: Requirement Understanding
+
+**IMPORTANT**: This step ONLY confirms whether the requirement understanding is correct. Do NOT discuss approach, method, or implementation details here. Those belong in Confirmation 2.
 
 Present: "Based on the requirements, I understand you want: [concise summary]"
 
@@ -86,7 +106,7 @@ Use `AskUserQuestion` with:
   - "Agree" — "Approach looks good"
   - "Disagree" — "Needs adjustment"
 
-- If **Disagree**: Ask what should change, revise the approach, and re-ask Confirmation 2.
+- If **Disagree**: Ask what should change, revise the approach. Then check: does this change affect the requirement understanding confirmed in Confirmation 1? If yes, inform the user and re-ask Confirmation 1 first, then re-ask Confirmation 2. If no, re-ask Confirmation 2 only.
 
 #### Confirmation 3: Expected Results
 
@@ -104,7 +124,7 @@ Use `AskUserQuestion` with:
   - "Yes" — "Expected results are correct"
   - "No" — "Needs revision"
 
-- If **No**: Ask what the expected results should be, revise, and re-ask Confirmation 3.
+- If **No**: Ask what the expected results should be, revise. Then check: does this change affect the approach (Confirmation 2) or requirement understanding (Confirmation 1)? If yes, inform the user and re-ask the affected confirmations in order, then re-ask Confirmation 3. If no, re-ask Confirmation 3 only.
 
 ### 3b. Self-check: Requirements Coverage
 
@@ -138,19 +158,15 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/current
 - ...
 
 ## Implementation Steps
-1. ...
-2. ...
+<multi-level ordered/unordered list outline>
 
-(or with subtask grouping:)
+## Step Details
+### Step 1: <title>
+<detailed instructions>
 
-## Implementation Steps
-
-### Subtask 1
-1. ...
-2. ...
-
-### Subtask 2
-3. ...
+### Step 2a: <title>
+<detailed instructions>
+...
 
 ## Expected Results
 <confirmed expected results>
@@ -166,8 +182,19 @@ If the file does not exist, create it:
 ```
 # Success Criteria
 
-1. ...
-2. ...
+Each criterion must be tagged with `[auto]` (verifiable by automated checks — reading files, running tests, etc.) or `[manual]` (requires user confirmation).
+
+Group criteria by type. Within each group, use unordered list if items are independent (can be verified in parallel), or ordered list if items have dependencies (must be verified sequentially).
+
+**[auto]**
+
+- criterion 1
+- criterion 2
+
+**[manual]**
+
+- criterion 3
+- criterion 4
 ```
 
 ### 5. Update STATUS.md

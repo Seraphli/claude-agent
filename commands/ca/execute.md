@@ -31,36 +31,29 @@ Read the model configuration from config (global then workspace override):
 2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-executor` in the corresponding profile column.
 3. The resolved model will be passed to the Task tool.
 
-### 3. Parse subtask grouping
+### 3. Parse execution order
 
-Check if PLAN.md contains `### Subtask N` headers under `## Implementation Steps`:
-- If **no subtask headers found**: Go to step 3a (single executor).
-- If **subtask headers found**: Go to step 3b (parallel execution).
+Parse the `## Implementation Steps` section in PLAN.md to determine execution order based on list structure:
 
-### 3a. Single executor (no subtask grouping)
+- **Ordered list items** → execute sequentially (wait for previous to complete)
+- **Unordered list items** → execute in parallel (launch simultaneously)
+- **Nested lists** → follow the nesting structure recursively
 
-Use the Task tool with `subagent_type: "ca-executor"` and the resolved `model` parameter to launch a single ca-executor agent. Pass it:
-- The full content of PLAN.md
-- The full content of REQUIREMENT.md (or BRIEF.md if `workflow_type: quick`)
+For each executable item (leaf node in the list), find its corresponding entry in the `## Step Details` section. The detail content is what gets passed to the executor agent.
+
+### 3a. Sequential execution
+
+For ordered list items or single items: launch a single `ca-executor` agent with the step details inlined in the prompt. Wait for completion before proceeding to the next item.
+
+### 3b. Parallel execution
+
+For unordered list items: launch multiple `ca-executor` agents **in the same message** (one per item). Each agent receives:
+- Its specific step details inlined in the prompt
+- The full content of REQUIREMENT.md (or BRIEF.md)
 - The project root path
-- Instructions to follow the `ca-executor` agent prompt
+- A unique output file path: `SUMMARY-executor-{N}.md`
 
-The agent runs in the foreground and executes the implementation steps, returning an execution summary. Go to step 4.
-
-### 3b. Parallel execution (with subtask grouping)
-
-Process subtasks sequentially. For each subtask:
-
-1. Extract the steps belonging to this subtask from PLAN.md.
-2. If this subtask has **only 1 step**: Launch a single `ca-executor` agent with that step inlined in the prompt. Pass an output file path `SUMMARY-executor-{N}.md` where N is a sequential counter starting from 1.
-3. If this subtask has **multiple steps**: Launch multiple `ca-executor` agents **in the same message** (parallel execution). Each agent receives:
-   - Its specific step(s) inlined in the prompt (because `@` references don't work across Task boundaries)
-   - The full content of REQUIREMENT.md (or BRIEF.md)
-   - The project root path
-   - A unique output file path: `SUMMARY-executor-{N}.md`
-4. Wait for all agents in this subtask to complete before proceeding to the next subtask.
-
-After all subtasks complete, go to step 4.
+Wait for all parallel agents to complete before proceeding to the next sequential item.
 
 ### 4. Write SUMMARY.md
 

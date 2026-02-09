@@ -41,3 +41,10 @@ If you have additional understanding or notes to add, put them on the same block
 ### 3. Confirm
 
 Tell the user the item has been added. Show the updated todo list.
+
+## Rules
+
+- `/ca:todo` ONLY records todo items. Nothing else.
+- Do NOT perform research, answer questions about the todo content, or analyze its implications.
+- Do NOT update any memory files (context, errors, or other persistent files).
+- After recording the item and confirming, STOP immediately. Do not take any further actions.

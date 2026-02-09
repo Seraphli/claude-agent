@@ -21,7 +21,6 @@ Show:
 Check which of these files exist and show their status:
 - `.ca/current/BRIEF.md` — initial brief collected?
 - `.ca/current/REQUIREMENT.md` — requirement defined?
-- `.ca/current/RESEARCH.md` — research done?
 - `.ca/current/PLAN.md` — plan created?
 - `.ca/current/SUMMARY.md` — execution done?
 
