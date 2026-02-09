@@ -16,7 +16,7 @@ cd claude-agent
 npm run install-ca
 ```
 
-This copies slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, references to `~/.claude/ca/references/`, and registers the statusline hook.
+This syncs slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, references to `~/.claude/ca/references/`, and registers the statusline hook. Stale files removed from source are automatically cleaned up during install.
 
 ## Uninstall
 

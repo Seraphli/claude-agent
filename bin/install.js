@@ -51,12 +51,24 @@ function copyDir(src, dest) {
   }
 }
 
-function copyAgents(src, dest) {
+function syncDir(src, dest) {
+  if (fs.existsSync(dest)) {
+    fs.rmSync(dest, { recursive: true });
+  }
+  copyDir(src, dest);
+}
+
+function syncAgents(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
-  for (const entry of fs.readdirSync(src)) {
-    if (entry.startsWith("ca-") && entry.endsWith(".md")) {
-      fs.copyFileSync(path.join(src, entry), path.join(dest, entry));
+  const srcFiles = fs.readdirSync(src).filter(f => f.startsWith("ca-") && f.endsWith(".md"));
+  const destFiles = fs.readdirSync(dest).filter(f => f.startsWith("ca-") && f.endsWith(".md"));
+  for (const f of destFiles) {
+    if (!srcFiles.includes(f)) {
+      fs.unlinkSync(path.join(dest, f));
     }
+  }
+  for (const f of srcFiles) {
+    fs.copyFileSync(path.join(src, f), path.join(dest, f));
   }
 }
 
@@ -80,13 +92,13 @@ function generateSettingsRules(configContent) {
 
 // Copy commands
 const srcCommandsDir = path.join(srcDir, "commands", "ca");
-copyDir(srcCommandsDir, targetCommandsDir);
+syncDir(srcCommandsDir, targetCommandsDir);
 const commandCount = fs.readdirSync(targetCommandsDir).filter((f) => f.endsWith(".md")).length;
 console.log(`  ${green}✓${reset} Installed ${commandCount} commands`);
 
 // Copy agents
 const srcAgentsDir = path.join(srcDir, "agents");
-copyAgents(srcAgentsDir, targetAgentsDir);
+syncAgents(srcAgentsDir, targetAgentsDir);
 const agentFiles = fs.readdirSync(srcAgentsDir).filter((f) => f.startsWith("ca-") && f.endsWith(".md"));
 console.log(`  ${green}✓${reset} Installed ${agentFiles.length} agents`);
 
@@ -104,7 +116,7 @@ console.log(`  ${green}✓${reset} Created config directory`);
 // Copy references
 const srcReferencesDir = path.join(srcDir, "references");
 const targetReferencesDir = path.join(caConfigDir, "references");
-copyDir(srcReferencesDir, targetReferencesDir);
+syncDir(srcReferencesDir, targetReferencesDir);
 const refCount = fs.readdirSync(targetReferencesDir).filter((f) => f.endsWith(".md")).length;
 console.log(`  ${green}✓${reset} Installed ${refCount} references`);
 
