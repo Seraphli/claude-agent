@@ -76,6 +76,12 @@ Options: `true`, `false`.
 
 Default: `false`. When `true`, execute will automatically invoke verify after execution is complete, without requiring the user to manually run `/ca:verify`.
 
+#### `max_concurrency` — Maximum concurrent agents
+
+Options: `2`, `3`, `4`, `6`, `8`, or custom number.
+
+Default: `4`. Controls how many agents can run in parallel during execute and verify phases. When parallel tasks exceed this limit, they are executed in batches of this size.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -92,11 +98,13 @@ ca-researcher_model: <value>
 ca-verifier_model: <value>
 auto_proceed_to_plan: <value>
 auto_proceed_to_verify: <value>
+max_concurrency: <value>
 ```
 
 For workspace config, omit settings that inherit from global (do not write them).
 Omit per-agent model overrides that are empty (not set).
 Omit auto_proceed settings that are `false` (default).
+Omit max_concurrency if it is `4` (default).
 
 ### 5. Sync rules file
 

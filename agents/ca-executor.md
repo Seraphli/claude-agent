@@ -40,6 +40,10 @@ Keep a running log of:
 - Each file created and why
 - Any deviations from the plan (with explanation)
 
+### Localization
+
+If the user's `interaction_language` is not English (check the config context passed to you), translate all output headings to that language. The heading structure in "Output Format" below shows the English keys — translate them when writing your summary. For example, if language is 中文: "## Execution Summary" → "## 执行摘要", "### Changes Made" → "### 变更内容", "### Files Created" → "### 新建文件", "### Steps Completed" → "### 完成步骤", "### Deviations from Plan" → "### 偏离计划", "### Notes" → "### 备注".
+
 ### 3. Output Format
 
 When done, return your summary in this exact structure:

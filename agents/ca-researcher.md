@@ -38,6 +38,10 @@ If the user asked for external research:
 - Find API references, library docs, or best practices
 - Summarize findings concisely
 
+### Localization
+
+If the user's `interaction_language` is not English (check the config context passed to you), translate all output headings to that language. The heading structure in "Output Format" below shows the English keys — translate them when writing your findings. For example, if language is 中文: "## Research Findings" → "## 研究发现", "### Relevant Files" → "### 相关文件", "### Code Patterns" → "### 代码模式", "### Constraints and Dependencies" → "### 约束与依赖", "### External Resources" → "### 外部资源", "### Key Observations" → "### 关键观察".
+
 ### 3. Output Format
 
 Return your findings in this exact structure:

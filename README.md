@@ -119,6 +119,7 @@ Additional settings:
 | `model_profile` | Agent model tier: `quality`, `balanced` (default), or `budget` |
 | `auto_proceed_to_plan` | Skip research confirmation in discuss, go straight to plan |
 | `auto_proceed_to_verify` | Skip manual verify trigger after execution |
+| `max_concurrency` | Max parallel agents in execute/verify (default: `4`) |
 
 Per-agent model overrides (e.g., `ca-verifier_model: opus`) are also supported.
 
@@ -129,7 +130,7 @@ Use `/ca:settings` to configure.
 ```
 ~/.claude/
   ca/
-    config.md                    # Global config (language, model, auto-proceed)
+    config.md                    # Global config (language, model, concurrency, auto-proceed)
     version                      # Installed version number
     references/                  # Reference files (model-profiles.md, etc.)
   commands/ca/                   # Slash commands (installed by install-ca)

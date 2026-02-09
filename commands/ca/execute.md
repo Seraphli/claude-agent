@@ -47,7 +47,7 @@ For ordered list items or single items: launch a single `ca-executor` agent with
 
 ### 3b. Parallel execution
 
-For unordered list items: launch multiple `ca-executor` agents **in the same message** (one per item). Each agent receives:
+For unordered list items: read `max_concurrency` from config (default: `4`). If the number of items exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch (or all items if within limit), launch multiple `ca-executor` agents **in the same message** (one per item). Each agent receives:
 - Its specific step details inlined in the prompt
 - The full content of REQUIREMENT.md (or BRIEF.md)
 - The project root path

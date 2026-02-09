@@ -62,3 +62,22 @@ When reading or modifying `.ca/todos.md`:
 - **ONLY** use `Write` or `Edit` tool to modify the file
 - **NEVER** use `Bash` commands (cat, echo, sed, awk, etc.) to write to todos.md
 - This prevents accidental data loss from overwriting the file without reading it first
+
+## Localization Rule
+
+All structural output content MUST match the `interaction_language` setting from ca-settings:
+
+- **Markdown headings** (`##`, `###`) in output to the user: translate to the target language
+- **AskUserQuestion** `header`, `question`, and `options` text: use the target language
+- **Table headers** in output: translate to the target language
+
+**Exception**: Headings inside file templates (PLAN.md, CRITERIA.md, SUMMARY.md, etc.) MUST remain in English. These serve as structural keys for cross-command parsing. Only translate headings when displaying output directly to the user.
+
+Examples (interaction_language: 中文):
+- `## Research Findings` → `## 研究发现`
+- `## Verification Report` → `## 验证报告`
+- `## Execution Summary` → `## 执行摘要`
+- `### Changes Made` → `### 变更内容`
+- `### Success Criteria` → `### 成功标准`
+- `### Expected Results` → `### 预期结果`
+- AskUserQuestion header "Requirements" → "需求确认"

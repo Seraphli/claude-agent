@@ -42,7 +42,7 @@ Launch a single `ca-verifier` agent with all `[auto]` criteria. The agent verifi
 
 #### 3c. Parallel verification (optional)
 
-Launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
+Read `max_concurrency` from config (default: `4`). If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch (or all groups if within limit), launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
 - Its assigned criteria
 - All context files (REQUIREMENT.md/BRIEF.md, PLAN.md, SUMMARY.md)
 - The project root path

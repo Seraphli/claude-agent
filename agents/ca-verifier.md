@@ -48,6 +48,10 @@ Compare SUMMARY.md against PLAN.md:
 - Are there obvious bugs or issues?
 - Do imports look correct?
 
+### Localization
+
+If the user's `interaction_language` is not English (check the config context passed to you), translate all output headings to that language. The heading structure in "Output Format" below shows the English keys — translate them when writing your report. For example, if language is 中文: "## Verification Report" → "## 验证报告", "### Success Criteria" → "### 成功标准", "### Plan Compliance" → "### 计划合规", "### Quality Checks" → "### 质量检查", "### Overall" → "### 总结", "### Recommendations" → "### 建议".
+
 ### 4. Output Format
 
 Return your report in this exact structure:

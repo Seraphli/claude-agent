@@ -182,7 +182,21 @@ If the file does not exist, create it:
 ```
 # Success Criteria
 
-Each criterion must be tagged with `[auto]` (verifiable by automated checks — reading files, running tests, etc.) or `[manual]` (requires user confirmation).
+Each criterion must be tagged with `[auto]` or `[manual]`:
+
+**Use `[auto]` when the verifier can check it by:**
+- Reading file contents (checking if code/config contains expected content)
+- Running shell commands (tests, linters, build checks)
+- Searching with grep/glob (verifying patterns exist or don't exist)
+- Comparing file structures (checking files were created/modified)
+
+**Use `[manual]` ONLY when verification genuinely requires:**
+- User interaction with a UI/application (e.g., "click button and verify behavior")
+- Subjective human judgment (e.g., "the error message is clear and helpful")
+- Access to external services the verifier cannot reach (e.g., "verify the deployment works")
+- Real-time observation (e.g., "watch the animation play smoothly")
+
+**Default to `[auto]`** — if unsure whether a criterion can be automated, prefer `[auto]`. The verifier has Read, Bash, Grep, and Glob tools and can verify most code-level checks automatically.
 
 Group criteria by type. Within each group, use unordered list if items are independent (can be verified in parallel), or ordered list if items have dependencies (must be verified sequentially).
 
