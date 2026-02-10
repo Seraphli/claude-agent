@@ -4,8 +4,9 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Prerequisites
 
-1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.ca/current/STATUS.md` and verify `plan_confirmed: true`. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
+1. Read `.ca/active.md` to get the active workflow ID. If it doesn't exist, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+3. Read `.ca/workflows/<active_id>/STATUS.md` and verify `plan_confirmed: true`. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
 
 ## Behavior
 
@@ -14,8 +15,8 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 ### 1. Read context
 
 Read these files and collect their full content:
-- `.ca/current/PLAN.md`
-- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/PLAN.md`
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
 
 ### 1b. Ensure codebase map exists
 
@@ -57,8 +58,8 @@ Wait for all parallel agents to complete before proceeding to the next sequentia
 
 ### 4. Write SUMMARY.md
 
-- **Single executor mode (3a)**: Take the agent's returned summary and write it to `.ca/current/SUMMARY.md`.
-- **Parallel execution mode (3b)**: Read all `SUMMARY-executor-*.md` files from `.ca/current/`, merge them into a single coherent summary, and write the merged result to `.ca/current/SUMMARY.md`. Then delete the individual `SUMMARY-executor-*.md` files.
+- **Single executor mode (3a)**: Take the agent's returned summary and write it to `.ca/workflows/<active_id>/SUMMARY.md`.
+- **Parallel execution mode (3b)**: Read all `SUMMARY-executor-*.md` files from `.ca/workflows/<active_id>/`, merge them into a single coherent summary, and write the merged result to `.ca/workflows/<active_id>/SUMMARY.md`. Then delete the individual `SUMMARY-executor-*.md` files.
 
 ### 5. Present execution summary
 

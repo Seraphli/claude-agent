@@ -8,21 +8,25 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 If `~/.claude/ca/config.md` does not exist, execute `Skill(ca:settings)` to trigger the settings command in auto-trigger mode for initial setup. After settings completes, continue with the steps below.
 
-### 2. Check for unfinished workflow
+### 2. Check for existing workflows
 
-If `.ca/current/STATUS.md` exists, check if `verify_completed` is `false`.
+Read `.ca/active.md` (if exists) to get the currently active workflow ID.
 
-If there is an unfinished workflow:
-- **Warn the user**: Tell them there is an unfinished workflow in `.ca/current/`.
+If there is an active workflow, read `.ca/workflows/<active_id>/STATUS.md` and check if `verify_completed` is `false`.
+
+If there is an unfinished active workflow:
+- **Warn the user**: Tell them there is an unfinished workflow `<active_id>` in `.ca/workflows/`.
 - Show what step it was on.
 - Use `AskUserQuestion` with:
-  - header: "Archive"
-  - question: "Do you want to archive the unfinished workflow and start fresh?"
+  - header: "Workflow"
+  - question: "There is an unfinished workflow. What would you like to do?"
   - options:
-    - "Archive and start fresh" — "Move old files to history and start new"
-    - "Keep current" — "Continue the existing workflow"
-- If **Archive and start fresh**: Move all files from `.ca/current/` to `.ca/history/<next-number>-unfinished/`, then continue.
-- If **Keep current**: Stop. Tell the user to finish the current workflow first or use `/ca:fix` to go back.
+    - "Keep and start new" — "Keep existing workflow, create a new one alongside it"
+    - "Archive and start new" — "Archive existing workflow to history, then create new"
+    - "Continue current" — "Continue the existing workflow instead"
+- If **Keep and start new**: Leave the existing workflow in `workflows/`, continue to create new.
+- If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
+- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:fix` to go back.
 
 ### 3. Create directory structure
 
@@ -31,9 +35,21 @@ Create the following directories and files if they don't exist:
 ```
 .ca/
   todos.md
-  current/
+  workflows/
   history/
 ```
+
+### 3b. Generate workflow ID
+
+Generate a workflow ID from the user's description:
+- Convert to lowercase English slug (letters, numbers, hyphens only)
+- Max 30 characters
+- If user description is in non-English, use a brief English translation for the slug
+- Examples: "Add multi-workflow support" → `add-multi-workflow-support`, "修复登录bug" → `fix-login-bug`
+- If `.ca/workflows/<id>/` already exists, append `-2`, `-3`, etc.
+- If no description yet (user will provide later), use `workflow-<N>` where N is next available number
+
+Create the workflow directory: `.ca/workflows/<id>/`
 
 ### 4. Collect initial requirement description and link to todo
 
@@ -71,7 +87,7 @@ Create the following directories and files if they don't exist:
 
 ### 5. Write BRIEF.md
 
-Write `.ca/current/BRIEF.md` with:
+Write `.ca/workflows/<id>/BRIEF.md` with:
 
 ```markdown
 # Brief
@@ -87,11 +103,12 @@ Include `linked_todo` only if a todo was linked in step 4.
 
 ### 6. Initialize STATUS.md
 
-Write `.ca/current/STATUS.md` with:
+Write `.ca/workflows/<id>/STATUS.md` with:
 
 ```markdown
 # Workflow Status
 
+workflow_id: <id>
 workflow_type: quick
 current_step: quick
 init_completed: true
@@ -102,10 +119,12 @@ execute_completed: false
 verify_completed: false
 ```
 
+Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
+
 ### 7. Confirm completion
 
 **CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research belongs in `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
-Tell the user the quick workflow has been created. Show the brief. Suggest proceeding with `/ca:plan` (or `/ca:next`) to create the implementation plan.
+Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest proceeding with `/ca:plan` (or `/ca:next`) to create the implementation plan.
 
 **Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**

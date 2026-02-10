@@ -50,9 +50,17 @@ Two workflow modes are available:
 
 Use `/ca:next` at any point to automatically detect and run the next step.
 
+**Multi-workflow** — plan multiple requirements, then batch execute:
+
+```
+/ca:new → /ca:discuss → /ca:plan   (repeat for each requirement)
+/ca:switch                          (switch between workflows)
+/ca:batch                           (batch execute all confirmed plans)
+```
+
 ### 1. New Requirement — `/ca:new [description]`
 
-Creates a `.ca/` directory in your project for workflow state. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists. Warns if there is an unfinished workflow.
+Creates a workflow in `.ca/workflows/<id>/`. If an unfinished workflow exists, offers to keep it alongside the new one, archive it, or continue it. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists.
 
 ### 2. Discuss — `/ca:discuss`
 
@@ -90,6 +98,9 @@ Skips the discuss phase. Creates a brief and goes straight to planning (with aut
 | `/ca:settings` | Configure language, model, and auto-proceed settings |
 | `/ca:status` | Show current workflow state |
 | `/ca:fix [step]` | Roll back to a previous step |
+| `/ca:switch` | Switch active workflow |
+| `/ca:list` | List all workflows with status summary |
+| `/ca:batch` | Batch execute all plan-confirmed workflows |
 | `/ca:remember <info>` | Save to persistent context (project or global) |
 | `/ca:context` | Show loaded context in current session |
 | `/ca:forget <info>` | Remove from persistent context |
@@ -146,13 +157,15 @@ Use `/ca:settings` to configure.
   config.md                      # Workspace config (overrides global)
   todos.md                       # Todo list with archive
   map.md                         # Codebase structure map (/ca:map)
-  current/
-    STATUS.md                    # Workflow state
-    BRIEF.md                     # Initial requirement brief
-    REQUIREMENT.md               # Finalized requirement from /ca:discuss
-    PLAN.md                      # Confirmed plan from /ca:plan
-    SUMMARY.md                   # Execution summary from /ca:execute
-    CRITERIA.md                  # Success criteria from /ca:plan
+  active.md                      # Currently active workflow ID
+  workflows/
+    <workflow-id>/
+      STATUS.md                  # Workflow state
+      BRIEF.md                   # Initial requirement brief
+      REQUIREMENT.md             # Finalized requirement from /ca:discuss
+      PLAN.md                    # Confirmed plan from /ca:plan
+      SUMMARY.md                 # Execution summary from /ca:execute
+      CRITERIA.md                # Success criteria from /ca:plan
   history/
     0001-feature-slug/           # Archived workflow cycles
 

@@ -17,11 +17,13 @@ Display all available CA commands in the user's preferred language:
 | `/ca:new [description]` | Start a new requirement — creates `.ca/` directory, collects initial brief |
 | `/ca:quick [description]` | Quick workflow — skip discuss & research, go straight to plan |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
-| `/ca:research` | Analyze codebase + external resources (optional step) |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
 | `/ca:execute` | Execute the confirmed plan (uses ca-executor agent) |
 | `/ca:verify` | Self-check + user acceptance + git commit confirmation (uses ca-verifier agent) |
 | `/ca:next` | Auto-detect current step and execute the next one |
+| `/ca:switch` | Switch active workflow — select from available workflows |
+| `/ca:list` | List all workflows with status summary |
+| `/ca:batch` | Batch execute all plan-confirmed workflows (serial, with checkpoints) |
 
 ## Context Management
 
@@ -51,7 +53,7 @@ Display all available CA commands in the user's preferred language:
 
 **Standard:**
 ```
-/ca:new → /ca:discuss → /ca:research (optional) → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify
 ```
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 
@@ -60,5 +62,11 @@ Display all available CA commands in the user's preferred language:
 /ca:quick → /ca:plan → /ca:execute → /ca:verify
 ```
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
+
+**Multi-workflow:**
+```
+/ca:new → /ca:discuss → /ca:plan   (repeat for multiple requirements)
+/ca:batch                            (batch execute all confirmed plans)
+```
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.

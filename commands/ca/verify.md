@@ -4,8 +4,9 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Prerequisites
 
-1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.ca/current/STATUS.md` and verify `execute_completed: true`. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
+1. Read `.ca/active.md` to get the active workflow ID. If it doesn't exist, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+3. Read `.ca/workflows/<active_id>/STATUS.md` and verify `execute_completed: true`. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
 ## Behavior
 
@@ -14,10 +15,10 @@ You are the verification orchestrator. You delegate the actual verification to t
 ### 1. Read context
 
 Read these files and collect their full content:
-- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
-- `.ca/current/PLAN.md`
-- `.ca/current/SUMMARY.md`
-- `.ca/current/CRITERIA.md` (if exists — the authoritative success criteria)
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/PLAN.md`
+- `.ca/workflows/<active_id>/SUMMARY.md`
+- `.ca/workflows/<active_id>/CRITERIA.md` (if exists — the authoritative success criteria)
 
 Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within each group, note the list structure (ordered = sequential, unordered = parallel) for execution planning.
 
@@ -55,11 +56,11 @@ Wait for all agents to complete, then merge reports.
 If all auto criteria PASS: proceed to step 3e (manual verification).
 
 If any auto criteria FAIL:
-1. Increment retry counter (track in STATUS.md as `verify_retry_count`).
+1. Increment retry counter (track in `.ca/workflows/<active_id>/STATUS.md` as `verify_retry_count`).
 2. If retry count > 3: Stop and tell the user: "Auto verification has failed 3 times. Please review the failures and decide how to proceed." Suggest `/ca:fix`.
 3. If retry count <= 3: Report the failures to the user, then automatically:
-   - Reset STATUS.md: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
-   - Add a "## Fix Notes" section to PLAN.md describing what failed and needs fixing
+   - Reset `.ca/workflows/<active_id>/STATUS.md`: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
+   - Add a "## Fix Notes" section to `.ca/workflows/<active_id>/PLAN.md` describing what failed and needs fixing
    - Execute `Skill(ca:plan)` to enter fix mode
 
 #### 3e. Manual verification
@@ -182,7 +183,7 @@ Use `AskUserQuestion` with:
 After verification (regardless of commit decision):
 
 1. **Check for linked todo**:
-   - Read `.ca/current/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
+   - Read `.ca/workflows/<active_id>/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
    - If it does:
      **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
      a. Read `.ca/todos.md`.
@@ -193,7 +194,7 @@ After verification (regardless of commit decision):
      f. Save the updated `.ca/todos.md`.
 
 2. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-3. Move all files from `.ca/current/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
-4. Ensure `.ca/current/` is empty after archiving.
+3. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
+4. Remove the `.ca/workflows/<active_id>/` directory after archiving. If other workflows exist in `.ca/workflows/`, set `active.md` to one of them. If no workflows remain, delete `.ca/active.md`.
 
 Tell the user the workflow cycle is complete.

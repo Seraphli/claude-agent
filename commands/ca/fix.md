@@ -2,13 +2,15 @@
 
 ## Prerequisites
 
-Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
+
+Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
 ### 1. Show current state
 
-Read `.ca/current/STATUS.md` and display where the workflow currently is.
+Read `.ca/workflows/<active_id>/STATUS.md` and display where the workflow currently is.
 
 ### 2. Determine target step
 
@@ -29,12 +31,12 @@ Based on the target step, reset the status flags:
 
 ### 4. Preserve files
 
-Do NOT delete any existing files in `.ca/current/`. They serve as reference for the user when revising.
+Do NOT delete any existing files in `.ca/workflows/<active_id>/`. They serve as reference for the user when revising.
 
 ### 5. Update PLAN.md for fix mode (if rolling back to plan)
 
-If the target step is `plan` and `.ca/current/PLAN.md` exists:
-- Read the current PLAN.md and `.ca/current/SUMMARY.md` (if exists)
+If the target step is `plan` and `.ca/workflows/<active_id>/PLAN.md` exists:
+- Read the current PLAN.md and `.ca/workflows/<active_id>/SUMMARY.md` (if exists)
 - Based on the execution summary, mark completed implementation steps with `[x]` prefix
 - Mark steps that failed, need modification, or were not reached with `[ ]` prefix
 - Add a section at the end of PLAN.md:
@@ -50,7 +52,7 @@ The planner should append/update fix steps below, NOT rewrite the entire plan.
 
 ### 6. Update CRITERIA.md for fix mode (if rolling back to plan)
 
-If `.ca/current/CRITERIA.md` exists:
+If `.ca/workflows/<active_id>/CRITERIA.md` exists:
 - Read the current CRITERIA.md
 - Keep all existing criteria entries intact
 - Add a note at the end:

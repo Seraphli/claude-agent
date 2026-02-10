@@ -32,12 +32,12 @@ For each of the following categories, report whether the file's content is prese
 - `.ca/config.md` — workspace config
 
 **Workflow files** (loaded only when read during workflow command execution):
-- `.ca/current/STATUS.md`
-- `.ca/current/BRIEF.md`
-- `.ca/current/REQUIREMENT.md`
-- `.ca/current/RESEARCH.md`
-- `.ca/current/PLAN.md`
-- `.ca/current/SUMMARY.md`
+- `.ca/workflows/<active_id>/STATUS.md`
+- `.ca/workflows/<active_id>/BRIEF.md`
+- `.ca/workflows/<active_id>/REQUIREMENT.md`
+- `.ca/workflows/<active_id>/RESEARCH.md`
+- `.ca/workflows/<active_id>/PLAN.md`
+- `.ca/workflows/<active_id>/SUMMARY.md`
 
 **Other persistent data:**
 - `.ca/todos.md`

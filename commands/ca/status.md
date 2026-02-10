@@ -2,13 +2,19 @@
 
 ## Steps
 
-### 1. Check initialization
+### 1. Read active workflow ID
 
-If `.ca/current/STATUS.md` doesn't exist, tell the user to run `/ca:new` first.
+Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` doesn't exist, tell the user to run `/ca:new` first.
 
-### 2. Read and display status
+### 2. Check initialization
 
-Read `.ca/current/STATUS.md` and display the current workflow state in a clear format.
+If `.ca/workflows/<active_id>/STATUS.md` doesn't exist, tell the user to run `/ca:new` first.
+
+### 3. Read and display status
+
+Read `.ca/workflows/<active_id>/STATUS.md` and display the current workflow state in a clear format.
+
+Display the active workflow ID at the top of the status output.
 
 Show:
 - Current step in the workflow
@@ -16,14 +22,14 @@ Show:
 - Which steps are pending
 - What the next recommended action is
 
-### 3. Show available files
+### 4. Show available files
 
 Check which of these files exist and show their status:
-- `.ca/current/BRIEF.md` — initial brief collected?
-- `.ca/current/REQUIREMENT.md` — requirement defined?
-- `.ca/current/PLAN.md` — plan created?
-- `.ca/current/SUMMARY.md` — execution done?
+- `.ca/workflows/<active_id>/BRIEF.md` — initial brief collected?
+- `.ca/workflows/<active_id>/REQUIREMENT.md` — requirement defined?
+- `.ca/workflows/<active_id>/PLAN.md` — plan created?
+- `.ca/workflows/<active_id>/SUMMARY.md` — execution done?
 
-### 4. Suggest next step
+### 5. Suggest next step
 
 Based on the current state, suggest the logical next command to run.

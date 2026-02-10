@@ -70,7 +70,7 @@ When done, return your summary in this exact structure:
 
 ### 4. Summary Output
 
-- If an output file path is provided, write your execution summary to that file in the `.ca/current/` directory.
+- If an output file path is provided, write your execution summary to the specified output file path.
 - If no output file path is provided, return the summary as your response (current behavior).
 
 ## Rules

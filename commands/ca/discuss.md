@@ -2,8 +2,9 @@
 
 ## Prerequisites
 
-1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.ca/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
+1. Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+3. Read `.ca/workflows/<active_id>/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
 
 ## Behavior
 
@@ -56,7 +57,7 @@ After all 4 agents complete, present a merged summary:
 
 ### 2. Start the discussion
 
-Read `.ca/current/BRIEF.md` if it exists. Use the brief as the starting point for the discussion — acknowledge what the user wants to do based on the brief.
+Read `.ca/workflows/<active_id>/BRIEF.md` if it exists. Use the brief as the starting point for the discussion — acknowledge what the user wants to do based on the brief.
 
 Also read `.ca/map.md` (if exists) to understand the project structure and inform the discussion.
 
@@ -108,7 +109,7 @@ Use `AskUserQuestion` with:
   - "Accurate" — "Requirements are correct, proceed"
   - "Needs changes" — "I want to revise something"
 
-- If **Accurate**: Write the summary to `.ca/current/REQUIREMENT.md` and also write the success criteria to `.ca/current/CRITERIA.md`:
+- If **Accurate**: Write the summary to `.ca/workflows/<active_id>/REQUIREMENT.md` and also write the success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
 ```
 # Success Criteria
 

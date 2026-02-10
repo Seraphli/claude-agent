@@ -4,8 +4,9 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Prerequisites
 
-1. Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-2. Read `.ca/current/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/current/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+1. Read `.ca/active.md` to get the active workflow ID (`<active_id>`). If the file doesn't exist, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+3. Read `.ca/workflows/<active_id>/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
 ## Behavior
 
@@ -14,9 +15,9 @@ This is the **most critical step** in the workflow. You must get **three separat
 ### 1. Read context
 
 Read these files:
-- `.ca/current/REQUIREMENT.md` (or `.ca/current/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
-- `.ca/current/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
+- `.ca/workflows/<active_id>/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
 ### 1b. Research (quick workflow only)
 
@@ -70,7 +71,7 @@ After the outline, provide a "## Step Details" section with detailed instruction
 
 The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
 
-**Fix Append Mode**: If `.ca/current/PLAN.md` already exists with "## Fix Notes" section:
+**Fix Append Mode**: If `.ca/workflows/<active_id>/PLAN.md` already exists with "## Fix Notes" section:
 - Read the existing PLAN.md
 - Preserve all `[x]` marked (completed) steps as-is
 - Update or replace `[ ]` marked steps as needed
@@ -140,7 +141,7 @@ After all three confirmations pass, perform an automatic self-check before writi
 
 ### 4. Write PLAN.md
 
-Only after ALL THREE confirmations pass, write the complete plan to `.ca/current/PLAN.md`:
+Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`:
 
 ```markdown
 # Implementation Plan
@@ -174,7 +175,7 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/current
 
 ### 4b. Write/Update CRITERIA.md
 
-Write success criteria to `.ca/current/CRITERIA.md`:
+Write success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
 
 If the file already exists (fix mode), append new criteria below the existing ones.
 If the file does not exist, create it:

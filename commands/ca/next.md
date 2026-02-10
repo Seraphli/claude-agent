@@ -4,13 +4,15 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Prerequisites
 
-Check `.ca/current/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
+
+Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
 ### 1. Read current status
 
-Read `.ca/current/STATUS.md` and determine the current workflow state.
+Read `.ca/workflows/<active_id>/STATUS.md` and determine the current workflow state.
 
 ### 2. Determine and execute next step
 
