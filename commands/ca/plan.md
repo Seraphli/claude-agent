@@ -21,15 +21,35 @@ Read these files:
 
 ### 1b. Research (quick workflow only)
 
-If `workflow_type: quick`, perform automatic 4-dimension research before drafting the plan. This follows the same pattern as the discuss command's automated research:
-
-1. Resolve model for ca-researcher (same logic as discuss).
-2. Launch 4 parallel ca-researcher agents (Stack, Features, Architecture, Pitfalls) with BRIEF.md content, project root, and map.
-3. Present merged research findings to the user.
-
 If `workflow_type: standard`, skip this step (research was already done in discuss).
 
+If `workflow_type: quick`:
+
+1. **Analyze requirement complexity**: Read BRIEF.md content and assess whether the requirement is simple enough to skip research. A requirement is considered **simple** if it meets ALL of the following:
+   - The scope is narrow and clearly defined (e.g., modifying 1-2 files)
+   - No architectural changes involved
+   - No new technologies, libraries, or dependencies
+   - Examples: documentation updates, config adjustments, simple bug fixes, minor text changes, straightforward additions to existing patterns
+
+2. **Based on complexity assessment**:
+   - **If the requirement appears simple**: Use `AskUserQuestion` to ask the user:
+     - header: "Research"
+     - question: "This requirement appears simple enough to skip the 4-dimension research. Skip research and go straight to planning?"
+     - options:
+       - "Skip research" — "Go directly to planning"
+       - "Run research" — "Execute 4-dimension research first"
+     - If **Skip research**: Skip the rest of step 1b AND skip step 1c entirely. Proceed directly to step 2 (Draft the plan).
+     - If **Run research**: Continue with step 3 below.
+   - **If the requirement is complex**: Proceed directly with step 3 below (no need to ask).
+
+3. **Execute 4-dimension research** (same pattern as discuss command):
+   1. Resolve model for ca-researcher (same logic as discuss).
+   2. Launch 4 parallel ca-researcher agents (Stack, Features, Architecture, Pitfalls) with BRIEF.md content, project root, and map.
+   3. Present merged research findings to the user.
+
 ### 1c. Clarify uncertain items
+
+**Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 2.
 
 Before proceeding to draft the plan, check if there are any uncertain or ambiguous items discovered during research (from discuss phase or step 1b). If there are:
 

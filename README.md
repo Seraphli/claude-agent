@@ -68,7 +68,7 @@ Starts with automated 4-dimension research (Stack, Features, Architecture, Pitfa
 
 ### 3. Plan — `/ca:plan`
 
-For quick workflows, performs automated research first. Clarifies any uncertain items before drafting. Proposes an implementation plan with **triple confirmation** and backtracking:
+For quick workflows, assesses requirement complexity — simple requirements can skip research, complex ones get automated research. Clarifies any uncertain items before drafting. Proposes an implementation plan with **triple confirmation** and backtracking:
 
 1. **Requirement understanding** — "I understand you want X, correct?"
 2. **Approach and method** — "I'll modify these files using this approach, agreed?"
@@ -86,7 +86,7 @@ Auto criteria are verified by independent verifier agents (optionally in paralle
 
 ### Quick Mode — `/ca:quick [description]`
 
-Skips the discuss phase. Creates a brief and goes straight to planning (with automated research). Best for small, well-understood changes.
+Skips the discuss phase. Creates a brief and goes straight to planning. For simple requirements, the system offers to skip the 4-dimension research; for complex ones, research runs automatically. Best for small, well-understood changes.
 
 ## Other Commands
 
