@@ -118,7 +118,14 @@ Use `AskUserQuestion` with:
 
 #### Confirmation 2: Approach and Method
 
-Present the full approach, files to modify, and implementation steps.
+Present the plan in TWO parts:
+
+**Part 1 — Outline**: First present a concise outline (table-of-contents style) containing ONLY:
+- Approach (1-2 sentences)
+- Files to modify/create (bullet list)
+- Implementation steps outline (multi-level ordered/unordered list, NO details — just step titles)
+
+**Part 2 — Step Details**: Then present detailed instructions for each step in the outline, with exact code/text changes, file locations, and before/after examples.
 
 Use `AskUserQuestion` with:
 - header: "Approach"
