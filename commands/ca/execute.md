@@ -95,8 +95,11 @@ If `.ca/map.md` does not exist (e.g., new project that was empty before executio
 
 ### 8. Auto-proceed to verification
 
-Check config for `auto_proceed_to_verify`.
+**First**, check if `batch_mode: true` is set in `.ca/workflows/<active_id>/STATUS.md`:
+- If `batch_mode: true`, do NOT auto-proceed to verify regardless of `auto_proceed_to_verify` config. The batch orchestrator will call verify separately. Tell the user execution is complete and stop here.
+
+**Otherwise**, check config for `auto_proceed_to_verify`:
 - If `true`: Tell the user execution is complete, then automatically execute `Skill(ca:verify)`.
 - If `false` or not set: Tell the user execution is complete. Suggest using `/clear` before verification to free up context, then tell the user to run `/ca:verify` (or `/ca:next`). Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
 
-**Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config.**
+**Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config and `batch_mode` is not enabled.**

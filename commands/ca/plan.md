@@ -245,4 +245,6 @@ Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
 
 Tell the user the plan is confirmed and they can proceed with `/ca:execute` (or `/ca:next`). Suggest using `/clear` before proceeding to free up context.
 
+**Batch tip**: If you have multiple requirements to implement, you can plan them all first (using `/ca:quick` or `/ca:new` for each), then use `/ca:batch` to execute all confirmed plans sequentially.
+
 **Do NOT proceed to execution automatically.**

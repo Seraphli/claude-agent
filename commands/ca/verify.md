@@ -56,14 +56,33 @@ Wait for all agents to complete, then merge reports.
 If all auto criteria PASS: proceed to step 3e (manual verification).
 
 If any auto criteria FAIL:
-1. Increment retry counter (track in `.ca/workflows/<active_id>/STATUS.md` as `verify_retry_count`).
-2. If retry count > 3: Stop and tell the user: "Auto verification has failed 3 times. Please review the failures and decide how to proceed." Suggest `/ca:fix`.
-3. If retry count <= 3: Report the failures to the user, then automatically:
-   - Reset `.ca/workflows/<active_id>/STATUS.md`: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
-   - Add a "## Fix Notes" section to `.ca/workflows/<active_id>/PLAN.md` describing what failed and needs fixing
-   - Execute `Skill(ca:plan)` to enter fix mode
+
+Check `batch_mode` in STATUS.md:
+
+**If `batch_mode: true`**:
+- Do NOT retry or trigger fix. Report the failures and return failure status immediately.
+- The batch orchestrator (batch.md) will handle rollback and continue to the next workflow.
+
+**If `batch_mode` is false or not set (normal mode)**:
+1. Report the failures to the user.
+2. Use `AskUserQuestion` with:
+   - header: "Fix"
+   - question: "Auto verification failed. Would you like to auto-fix and retry?"
+   - options:
+     - "Yes, fix" — "Auto-fix and retry verification"
+     - "No, stop" — "Stop and review manually"
+3. If **Yes, fix**:
+   - Increment retry counter (track in `.ca/workflows/<active_id>/STATUS.md` as `verify_retry_count`).
+   - If retry count > 3: Stop and tell the user: "Auto verification has failed 3 times. Please review the failures and decide how to proceed." Suggest `/ca:fix`.
+   - If retry count <= 3:
+     - Reset `.ca/workflows/<active_id>/STATUS.md`: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
+     - Add a "## Fix Notes" section to `.ca/workflows/<active_id>/PLAN.md` describing what failed and needs fixing
+     - Execute `Skill(ca:plan)` to enter fix mode
+4. If **No, stop**: Stop and suggest `/ca:fix` for manual intervention.
 
 #### 3e. Manual verification
+
+If `batch_mode: true` in STATUS.md: skip manual verification entirely and proceed to step 4.
 
 Present all `[manual]` criteria to the user one at a time. For each:
 - Describe what needs to be verified
@@ -94,6 +113,8 @@ Display the report with auto and manual sections:
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
+If `batch_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed to gitignore check.
+
 Use `AskUserQuestion` with:
 - header: "Results"
 - question: "Do you accept these results?"
@@ -105,6 +126,8 @@ Use `AskUserQuestion` with:
 - If **Accept**: Proceed to gitignore check.
 
 ### 6. Gitignore Check
+
+If `batch_mode: true` in STATUS.md: skip gitignore check entirely and proceed to git commit.
 
 Read `track_ca_files` from config (default: `none`).
 
@@ -143,6 +166,15 @@ For patterns that should NOT be in `.gitignore` but are present:
 After any changes, proceed to the next step.
 
 ### 7. Git Commit Confirmation
+
+If `batch_mode: true` in STATUS.md:
+- Run `git diff --stat` and `git status` to gather file information.
+- Generate a commit message following the same format (type: title + detail body).
+- Stage the relevant files and commit directly without asking the user.
+- Proceed to archiving.
+- Do NOT use `AskUserQuestion` — commit automatically.
+
+If `batch_mode` is false or not set: (existing logic unchanged)
 
 Use `AskUserQuestion` with:
 - header: "Commit"

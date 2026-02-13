@@ -82,7 +82,7 @@ Runs the confirmed plan using isolated executor agents. Implementation steps use
 
 ### 5. Verify — `/ca:verify`
 
-Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails, automatically retries via plan → execute → verify cycle (max 3 times). Manual criteria are confirmed with you one at a time. After acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
+Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails, asks you whether to auto-fix and retry (max 3 times) or stop for manual review. In batch mode, verification runs fully automated — skips manual criteria, user acceptance, and gitignore check; auto-commits on success; fails immediately without retry on failure. Manual criteria are confirmed with you one at a time. After acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
 
 ### Quick Mode — `/ca:quick [description]`
 

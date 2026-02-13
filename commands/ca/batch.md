@@ -37,7 +37,8 @@ For each workflow in order:
 #### 3a. Set active and create checkpoint
 
 1. Write the workflow ID to `.ca/active.md` (set as active).
-2. Create a git checkpoint: `git stash push -m "ca-batch-checkpoint-<workflow_id>"` (if there are uncommitted changes) or use `git tag ca-batch-checkpoint-<workflow_id>` on the current HEAD.
+2. Write `batch_mode: true` to the workflow's STATUS.md.
+3. Create a git checkpoint: `git stash push -m "ca-batch-checkpoint-<workflow_id>"` (if there are uncommitted changes) or use `git tag ca-batch-checkpoint-<workflow_id>` on the current HEAD.
    - Prefer using `git tag` for checkpoints since it's non-destructive.
 
 #### 3b. Execute
@@ -47,7 +48,7 @@ Execute `Skill(ca:execute)` for the current workflow.
 #### 3c. Verify
 
 After execution completes, execute `Skill(ca:verify)` for the current workflow.
-- In batch mode, skip the git commit step in verify (commits will be handled per-workflow during verify but the user has already confirmed batch execution).
+- The `batch_mode: true` flag in STATUS.md tells verify to: skip manual criteria, skip user acceptance, skip gitignore check, auto-commit on success, and disable auto-fix on failure.
 - If verify succeeds: The workflow is archived to history automatically by verify.
 - If verify fails:
   1. Roll back: `git reset --hard ca-batch-checkpoint-<workflow_id>` to restore to pre-execution state.
@@ -55,6 +56,8 @@ After execution completes, execute `Skill(ca:verify)` for the current workflow.
   3. Reset the workflow's STATUS.md back to `plan_confirmed: true`, `execute_completed: false`, `verify_completed: false`.
   4. Record the failure reason.
   5. Continue to the next workflow.
+
+After verify completes (regardless of success or failure), remove the `batch_mode` line from the workflow's STATUS.md (or set to `false`).
 
 #### 3d. Clean up checkpoint
 
