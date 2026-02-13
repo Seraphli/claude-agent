@@ -47,6 +47,8 @@ If `workflow_type: quick`:
    2. Launch 4 parallel ca-researcher agents (Stack, Features, Architecture, Pitfalls) with BRIEF.md content, project root, and map.
    3. Present merged research findings to the user.
 
+**IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
+
 ### 1c. Clarify uncertain items
 
 **Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 2.
@@ -120,10 +122,19 @@ Use `AskUserQuestion` with:
 
 Present the plan in TWO parts:
 
-**Part 1 — Outline**: First present a concise outline (table-of-contents style) containing ONLY:
-- Approach (1-2 sentences)
-- Files to modify/create (bullet list)
-- Implementation steps outline (multi-level ordered/unordered list, NO details — just step titles)
+**Part 1 — Outline**: Present as THREE clearly separated sections:
+
+1. **Approach**: 1-2 sentences summarizing the strategy. This is prose, NOT a list.
+
+2. **Files**: Bullet list of files to modify/create.
+
+3. **Implementation Steps**: A PURE multi-level list outline. Rules:
+   - Each list item is ONLY a short step title (e.g., "Modify authentication middleware")
+   - NO descriptions, explanations, or details in list items
+   - NO prose paragraphs mixed into the list
+   - Ordered list (1. 2. 3.) = sequential execution
+   - Unordered list (- - -) = parallel execution
+   - This section contains NOTHING except the list itself
 
 **Part 2 — Step Details**: Then present detailed instructions for each step in the outline, with exact code/text changes, file locations, and before/after examples.
 
@@ -158,9 +169,10 @@ Use `AskUserQuestion` with:
 
 After all three confirmations pass, perform an automatic self-check before writing the plan:
 
-1. Compare the confirmed success criteria against the original requirements (from REQUIREMENT.md or BRIEF.md).
-2. For each requirement in the original document, verify there is at least one corresponding success criterion.
-3. If any requirement is missing a corresponding criterion:
+1. Read the original requirements from REQUIREMENT.md (or BRIEF.md if quick workflow).
+2. For EACH original requirement, check whether there is at least one confirmed success criterion that covers it. The check direction is: requirement → criterion (NOT criterion → requirement).
+3. Do NOT check whether each criterion has a corresponding requirement — that is the wrong direction.
+4. If any requirement is missing a corresponding criterion:
    - **Stop** and alert the user: "I found that the following requirements don't have corresponding success criteria: [list]"
    - Ask the user to confirm whether to add criteria for the missing items or intentionally exclude them.
    - Only proceed after the user confirms.

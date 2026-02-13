@@ -64,21 +64,24 @@ Check `batch_mode` in STATUS.md:
 - The batch orchestrator (batch.md) will handle rollback and continue to the next workflow.
 
 **If `batch_mode` is false or not set (normal mode)**:
-1. Report the failures to the user.
-2. Use `AskUserQuestion` with:
-   - header: "Fix"
-   - question: "Auto verification failed. Would you like to auto-fix and retry?"
-   - options:
-     - "Yes, fix" — "Auto-fix and retry verification"
-     - "No, stop" — "Stop and review manually"
-3. If **Yes, fix**:
-   - Increment retry counter (track in `.ca/workflows/<active_id>/STATUS.md` as `verify_retry_count`).
-   - If retry count > 3: Stop and tell the user: "Auto verification has failed 3 times. Please review the failures and decide how to proceed." Suggest `/ca:fix`.
-   - If retry count <= 3:
-     - Reset `.ca/workflows/<active_id>/STATUS.md`: set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`
-     - Add a "## Fix Notes" section to `.ca/workflows/<active_id>/PLAN.md` describing what failed and needs fixing
-     - Execute `Skill(ca:plan)` to enter fix mode
-4. If **No, stop**: Stop and suggest `/ca:fix` for manual intervention.
+1. **Write VERIFY-REPORT.md**: Write the verification results to `.ca/workflows/<active_id>/VERIFY-REPORT.md`. The report MUST contain:
+   - Which criteria failed and what the failure details are
+   - References to any verifier output/log files (e.g., `VERIFY-verifier-1.md`, `VERIFY-verifier-2.md`) so the fix agent can read them directly
+   - Do NOT include fix plans, suggestions, or solutions — only record the problems
+2. Report the failures to the user (show the report summary).
+3. Suggest the user run `/ca:fix` to go back to a previous step and fix the issues.
+4. **Stop immediately.**
+
+**CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
+- Modify any source code or project files
+- Research or analyze how to fix failures
+- Investigate root causes by reading source code
+- Write fix plans or solutions in the report
+- Reset STATUS.md or modify PLAN.md
+- Call other skills (ca:plan, ca:execute, etc.)
+- Re-run tests that already have logged output
+
+If the user raises issues or asks questions about failures, respond with information from the report only, then guide them to use `/ca:fix`. Never start fixing or investigating within the verify context.
 
 #### 3e. Manual verification
 
@@ -122,7 +125,7 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
-- If **Reject**: Ask what's wrong. Suggest running `/ca:fix` to go back to an earlier step.
+- If **Reject**: Ask what's wrong to understand the issue, record it in VERIFY-REPORT.md (append to existing report or create new), then suggest running `/ca:fix` to go back to an earlier step. Do NOT attempt any fix, investigation, or modification — only record and guide.
 - If **Accept**: Proceed to gitignore check.
 
 ### 6. Gitignore Check

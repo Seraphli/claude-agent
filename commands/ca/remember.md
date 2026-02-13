@@ -10,7 +10,7 @@ The user wants to save information to persistent context that will be available 
 
 ### 1. Get the information
 
-The user's message after `/ca:remember` contains the information to save. If empty, ask what they want to remember.
+The user's message after `/ca:remember` contains the information to save. If empty, ask what they want to remember. **Always preserve the user's exact original wording** — this is the user's own record, not your interpretation.
 
 ### 2. Ask target level
 
@@ -22,6 +22,8 @@ Use `AskUserQuestion` with:
   - "Global" — "Save to ~/.claude/rules/ca-context.md (all projects)"
 
 ### 3. Append to context file
+
+**IMPORTANT**: Always preserve the user's exact original input verbatim. Do NOT rephrase, summarize, abbreviate, or rewrite the user's words in any way. Record exactly what the user said, character by character.
 
 Based on the user's choice:
 - **Project**: Read `.claude/rules/ca-context.md`, then append the new information as a bullet point with a timestamp:
