@@ -1,4 +1,4 @@
-# /ca:verify — Verify Results and Commit
+# /ca:verify — Verify Results
 
 Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
 
@@ -14,11 +14,19 @@ You are the verification orchestrator. You delegate the actual verification to t
 
 ### 1. Read context
 
+Read `fix_round` from STATUS.md (default: 0 if not present).
+
 Read these files and collect their full content:
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/CRITERIA.md` (if exists)
+
+If `fix_round` == 0:
 - `.ca/workflows/<active_id>/PLAN.md`
 - `.ca/workflows/<active_id>/SUMMARY.md`
-- `.ca/workflows/<active_id>/CRITERIA.md` (if exists — the authoritative success criteria)
+
+If `fix_round` > 0 (current fix round N):
+- `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`
+- `.ca/workflows/<active_id>/rounds/<N>/SUMMARY.md`
 
 Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within each group, note the list structure (ordered = sequential, unordered = parallel) for execution planning.
 
@@ -60,13 +68,17 @@ If any auto criteria FAIL:
 Check `batch_mode` in STATUS.md:
 
 **If `batch_mode: true`**:
+- Write VERIFY-REPORT.md (same path logic as normal mode based on fix_round).
 - Do NOT retry or trigger fix. Report the failures and return failure status immediately.
 - The batch orchestrator (batch.md) will handle rollback and continue to the next workflow.
 
 **If `batch_mode` is false or not set (normal mode)**:
-1. **Write VERIFY-REPORT.md**: Write the verification results to `.ca/workflows/<active_id>/VERIFY-REPORT.md`. The report MUST contain:
+1. **Write VERIFY-REPORT.md**:
+   - If `fix_round` > 0: write to `.ca/workflows/<active_id>/rounds/<N>/VERIFY-REPORT.md`
+   - If `fix_round` == 0: write to `.ca/workflows/<active_id>/VERIFY-REPORT.md`
+   The report MUST contain:
    - Which criteria failed and what the failure details are
-   - References to any verifier output/log files (e.g., `VERIFY-verifier-1.md`, `VERIFY-verifier-2.md`) so the fix agent can read them directly
+   - References to any verifier output/log files
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
 2. Report the failures to the user (show the report summary).
 3. Suggest the user run `/ca:fix` to go back to a previous step and fix the issues.
@@ -116,7 +128,7 @@ Display the report with auto and manual sections:
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
-If `batch_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed to gitignore check.
+If `batch_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed directly to step 6 (Update STATUS.md).
 
 Use `AskUserQuestion` with:
 - header: "Results"
@@ -125,111 +137,13 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
-- If **Reject**: Ask what's wrong to understand the issue, record it in VERIFY-REPORT.md (append to existing report or create new), then suggest running `/ca:fix` to go back to an earlier step. Do NOT attempt any fix, investigation, or modification — only record and guide.
-- If **Accept**: Proceed to gitignore check.
+- If **Reject**: Ask what's wrong to understand the issue, record it in VERIFY-REPORT.md (if `fix_round` > 0: `.ca/workflows/<active_id>/rounds/<N>/VERIFY-REPORT.md`, else: `.ca/workflows/<active_id>/VERIFY-REPORT.md`), then suggest running `/ca:fix` to go back to an earlier step. Do NOT attempt any fix, investigation, or modification — only record and guide.
+- If **Accept**: Proceed to step 6.
 
-### 6. Gitignore Check
+### 6. Update STATUS.md
 
-If `batch_mode: true` in STATUS.md: skip gitignore check entirely and proceed to git commit.
+Set `verify_completed: true`, `current_step: verify`.
 
-Read `track_ca_files` from config (default: `none`).
+Tell the user verification is complete and they can proceed with `/ca:finish` (or `/ca:next`) to wrap up. Suggest using `/clear` before proceeding to free up context.
 
-Define the CA gitignore patterns:
-- `.ca/` pattern: `.ca/`
-- `.claude/rules/ca*` pattern: `.claude/rules/ca*`
-
-Determine which patterns to check based on `track_ca_files`:
-- `none`: ALL patterns should be IN `.gitignore` (ensure exclusion)
-- `all`: ALL patterns should NOT be in `.gitignore` (ensure tracking)
-- `.ca/`: `.ca/` should NOT be in `.gitignore`; `.claude/rules/ca*` should be in `.gitignore`
-- `.claude/rules/ca*`: `.claude/rules/ca*` should NOT be in `.gitignore`; `.ca/` should be in `.gitignore`
-
-Check if `.gitignore` exists in project root. If not, and patterns need to be added, it will be created.
-
-Read `.gitignore` (if exists) and check for each pattern.
-
-For patterns that should be in `.gitignore` but are missing:
-- Use `AskUserQuestion`:
-  - header: "Gitignore"
-  - question: "`.gitignore` is missing CA entries: <list>. Add them?"
-  - options:
-    - "Yes, add" — "Add missing entries to .gitignore"
-    - "No, skip" — "Leave .gitignore as is"
-- If **Yes, add**: Append missing patterns to `.gitignore`.
-
-For patterns that should NOT be in `.gitignore` but are present:
-- Use `AskUserQuestion`:
-  - header: "Gitignore"
-  - question: "`.gitignore` contains CA entries that should be removed for version control: <list>. Remove them?"
-  - options:
-    - "Yes, remove" — "Remove entries from .gitignore"
-    - "No, skip" — "Leave .gitignore as is"
-- If **Yes, remove**: Remove matching lines from `.gitignore`.
-
-After any changes, proceed to the next step.
-
-### 7. Git Commit Confirmation
-
-If `batch_mode: true` in STATUS.md:
-- Run `git diff --stat` and `git status` to gather file information.
-- Generate a commit message following the same format (type: title + detail body).
-- Stage the relevant files and commit directly without asking the user.
-- Proceed to archiving.
-- Do NOT use `AskUserQuestion` — commit automatically.
-
-If `batch_mode` is false or not set: (existing logic unchanged)
-
-Use `AskUserQuestion` with:
-- header: "Commit"
-- question: "Would you like to commit these changes?"
-- options:
-  - "Yes, commit" — "Commit the changes"
-  - "No, skip" — "Skip committing"
-
-- If **No, skip**: Tell the user the workflow is complete without committing. Proceed to archiving.
-- If **Yes, commit**:
-  - Run `git diff --stat` and `git status` to gather file information.
-  - Propose a commit message following this format:
-    ```
-    <type>: <concise title (under 72 chars)>
-
-    - <detail 1: what was changed and why>
-    - <detail 2: what was changed and why>
-    - ...
-    ```
-    Where `<type>` is one of: feat, fix, refactor, docs, chore, test.
-    The body MUST contain a bulleted list describing each significant change made in this workflow cycle. Reference the PLAN.md implementation steps and SUMMARY.md to generate comprehensive details. Never omit the body — even for small changes, include at least one detail line.
-  - **Display to the user before asking for confirmation**:
-    - The full proposed commit message
-    - The complete list of files that will be committed (from git status/diff output)
-  - Use `AskUserQuestion` with:
-    - header: "Message"
-    - question: "Confirm this commit message?"
-    - options:
-      - "Confirm" — "Use this message"
-      - "Edit" — "I want to change the message"
-      - "Skip" — "Don't commit"
-    - If **Edit**: Let the user provide a new message.
-    - If **Confirm**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
-    - If **Skip**: Skip committing.
-
-### 8. Archive and cleanup
-
-After verification (regardless of commit decision):
-
-1. **Check for linked todo**:
-   - Read `.ca/workflows/<active_id>/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
-   - If it does:
-     **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
-     a. Read `.ca/todos.md`.
-     b. Find the matching uncompleted todo item (under `# Todo List`, matching the exact text).
-     c. Mark it as completed: change `- [ ]` to `- [x]`. (If the workflow was rejected/cancelled, mark as `- [-]` instead.)
-     d. Update the time tag: If the line has `> Added: <date>`, change it to `> Added: <date> | Completed: YYYY-MM-DD` (or `| Cancelled: YYYY-MM-DD` if cancelled). Use today's date.
-     e. Move the completed todo item to the `# Archive` section at the bottom of the file.
-     f. Save the updated `.ca/todos.md`.
-
-2. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-3. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, RESEARCH.md if exists, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md if exists).
-4. Remove the `.ca/workflows/<active_id>/` directory after archiving. If other workflows exist in `.ca/workflows/`, set `active.md` to one of them. If no workflows remain, delete `.ca/active.md`.
-
-Tell the user the workflow cycle is complete.
+**Do NOT proceed to finish automatically.**

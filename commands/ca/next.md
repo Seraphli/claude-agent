@@ -23,13 +23,13 @@ Based on the status flags and `workflow_type`, determine the next step and execu
 - If `discuss_completed: true` and `plan_completed: false` → Execute `Skill(ca:plan)`
 - If `plan_confirmed: true` and `execute_completed: false` → Execute `Skill(ca:execute)`
 - If `execute_completed: true` and `verify_completed: false` → Execute `Skill(ca:verify)`
-- If `verify_completed: true` → Tell the user the workflow is complete.
+- If `verify_completed: true` → Execute `Skill(ca:finish)`
 
 **For `workflow_type: quick`:**
 - If `init_completed: true` and `plan_completed: false` → Execute `Skill(ca:plan)`
 - If `plan_confirmed: true` and `execute_completed: false` → Execute `Skill(ca:execute)`
 - If `execute_completed: true` and `verify_completed: false` → Execute `Skill(ca:verify)`
-- If `verify_completed: true` → Tell the user the workflow is complete.
+- If `verify_completed: true` → Execute `Skill(ca:finish)`
 
 ### 3. Edge cases
 

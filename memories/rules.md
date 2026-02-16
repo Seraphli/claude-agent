@@ -40,6 +40,10 @@ Format each entry as:
 - Use **global-level** for cross-project lessons.
 - Keep entries concise but actionable — future agents should understand what to avoid.
 
+### When NOT to record errors
+
+- **Verify failures**: When `ca-verifier` reports criterion failures during `/ca:verify`, these are normal workflow results (expected part of the verify→fix cycle). Agents MUST NOT record verify failures in `ca-errors.md`. Only record errors when the agent itself makes a mistake (wrong approach, logic error, incorrect behavior), NOT when verification correctly identifies that code doesn't meet criteria.
+
 ## Todo Independence Rule
 
 Users may invoke `/ca:todo` at any point during a workflow (discuss, research, plan, execute, verify). When this happens:

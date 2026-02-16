@@ -4,24 +4,29 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Prerequisites
 
-Check `.ca/workflows/` exists. Scan for workflows with `plan_confirmed: true` and `execute_completed: false` in their STATUS.md. If none found, tell the user there are no workflows ready for batch execution and stop.
+Check `.ca/workflows/` exists. Scan for eligible workflows:
+- `plan_confirmed: true` and `execute_completed: false` (needs execute + verify)
+- `execute_completed: true` and `verify_completed: false` (needs verify only)
+
+Already completed workflows (`verify_completed: true`) are skipped.
+If none found, tell the user there are no workflows ready for batch execution and stop.
 
 ## Behavior
 
 ### 1. List batch candidates
 
-Present all plan_confirmed workflows:
+Present all eligible workflows:
 
-| # | ID | Type | Brief |
-|---|-----|------|-------|
-| 1 | feature-x | standard | Add feature X... |
-| 2 | fix-bug | quick | Fix login bug... |
+| # | ID | Type | Stage | Brief |
+|---|-----|------|-------|-------|
+| 1 | feature-x | standard | execute+verify | Add feature X... |
+| 2 | fix-bug | quick | verify only | Fix login bug... |
 
 ### 2. Confirm batch execution
 
 Use `AskUserQuestion` with:
 - header: "Batch"
-- question: "Execute these N workflows in order? Each will go through execute → verify."
+- question: "Execute these N workflows in order?"
 - options:
   - "Execute all" — "Run all listed workflows sequentially"
   - "Cancel" — "Don't execute"
@@ -31,56 +36,66 @@ If **Cancel**: Stop.
 ### 3. Serial execution with checkpoints
 
 Save the current active workflow ID (from `.ca/active.md`) to restore later.
+Initialize a results list to track each workflow's outcome.
 
 For each workflow in order:
 
 #### 3a. Set active and create checkpoint
-
 1. Write the workflow ID to `.ca/active.md` (set as active).
 2. Write `batch_mode: true` to the workflow's STATUS.md.
-3. Create a git checkpoint: `git stash push -m "ca-batch-checkpoint-<workflow_id>"` (if there are uncommitted changes) or use `git tag ca-batch-checkpoint-<workflow_id>` on the current HEAD.
-   - Prefer using `git tag` for checkpoints since it's non-destructive.
+3. Create a git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>` on the current HEAD.
 
-#### 3b. Execute
-
-Execute `Skill(ca:execute)` for the current workflow.
+#### 3b. Execute (if needed)
+If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workflow.
+If `execute_completed: true`: skip execution.
 
 #### 3c. Verify
+Execute `Skill(ca:verify)` for the current workflow.
+- The `batch_mode: true` flag tells verify to: skip manual criteria, skip user acceptance, and auto-update STATUS.md on success.
 
-After execution completes, execute `Skill(ca:verify)` for the current workflow.
-- The `batch_mode: true` flag in STATUS.md tells verify to: skip manual criteria, skip user acceptance, skip gitignore check, auto-commit on success, and disable auto-fix on failure.
-- If verify succeeds: The workflow is archived to history automatically by verify.
-- If verify fails:
-  1. Roll back: `git reset --hard ca-batch-checkpoint-<workflow_id>` to restore to pre-execution state.
-  2. Clean up the tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
-  3. Reset the workflow's STATUS.md back to `plan_confirmed: true`, `execute_completed: false`, `verify_completed: false`.
-  4. Record the failure reason.
-  5. Continue to the next workflow.
+#### 3d. Handle results
 
-After verify completes (regardless of success or failure), remove the `batch_mode` line from the workflow's STATUS.md (or set to `false`).
+**If verify succeeds** (verify_completed: true):
+1. Stage changed files and commit: generate a commit message based on PLAN.md and SUMMARY.md, using format `<type>: <title>` with body details.
+2. Record the commit hash and changed file list for this workflow.
+3. Remove `batch_mode` from STATUS.md.
+4. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
+5. Record success in results list.
 
-#### 3d. Clean up checkpoint
+**If verify fails**:
+1. Roll back: `git reset --hard ca-batch-checkpoint-<workflow_id>`.
+2. Clean up tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
+3. Reset STATUS.md: `plan_confirmed: true`, `execute_completed: false`, `verify_completed: false`.
+4. Remove `batch_mode` from STATUS.md.
+5. Record failure reason in results list.
+6. Continue to next workflow.
 
-If execution and verify succeeded, remove the checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
+### 4. Post-batch analysis
 
-### 4. Restore active workflow
-
-After all workflows are processed:
-- If there are remaining workflows in `.ca/workflows/`, set `active.md` to one of them.
-- If no workflows remain, delete `.ca/active.md`.
-
-### 5. Present batch report
-
-Display a summary report:
+#### 4a. Present summary table
 
 | # | ID | Status | Notes |
 |---|-----|--------|-------|
-| 1 | feature-x | ✅ Success | Archived to history/0005-feature-x |
-| 2 | fix-bug | ❌ Failed | Verification failed: <reason>. Rolled back. |
+| 1 | feature-x | ✅ Pass | Committed: abc1234 |
+| 2 | fix-bug | ❌ Fail | <failure reason> |
 
-Show counts:
-- Succeeded: N
-- Failed: N
-- Total: N
+Show counts: Passed / Failed / Total.
 
-If any workflows failed, suggest the user review them with `/ca:list` and `/ca:switch` to address failures individually.
+#### 4b. Code independence analysis (for passed workflows)
+
+If 2+ passed workflows, compare changed file lists between each pair:
+- No overlapping files → **Independent**
+- Overlapping files → **Code overlap** (list overlapping files)
+
+Present the analysis.
+
+#### 4c. Recommendations
+- **Independent passed**: "Run `/ca:switch <id>` then `/ca:finish` for each."
+- **Overlapping passed**: "Review overlapping files before finishing."
+- **Failed**: "Run `/ca:switch <id>` then `/ca:fix`."
+
+### 5. Restore active workflow
+
+After all workflows are processed:
+- If there are remaining unfinished workflows in `.ca/workflows/`, set `active.md` to one of them.
+- If no workflows remain, delete `.ca/active.md`.

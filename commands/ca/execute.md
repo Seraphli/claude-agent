@@ -18,6 +18,10 @@ Read these files and collect their full content:
 - `.ca/workflows/<active_id>/PLAN.md`
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
 
+Read `fix_round` from STATUS.md (default: 0).
+If `fix_round` > 0 (fix round N):
+- Read PLAN.md from `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`
+
 ### 1b. Ensure codebase map exists
 
 Check if `.ca/map.md` exists:
@@ -60,6 +64,8 @@ Wait for all parallel agents to complete before proceeding to the next sequentia
 
 - **Single executor mode (3a)**: Take the agent's returned summary and write it to `.ca/workflows/<active_id>/SUMMARY.md`.
 - **Parallel execution mode (3b)**: Read all `SUMMARY-executor-*.md` files from `.ca/workflows/<active_id>/`, merge them into a single coherent summary, and write the merged result to `.ca/workflows/<active_id>/SUMMARY.md`. Then delete the individual `SUMMARY-executor-*.md` files.
+
+If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/SUMMARY.md`.
 
 ### 5. Present execution summary
 

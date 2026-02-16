@@ -1,71 +1,76 @@
-# /ca:fix — Roll Back to a Previous Step
+# /ca:fix — Start Fix Round
 
 ## Prerequisites
 
-Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
-
-Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+1. Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
+2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+3. Read STATUS.md and verify `execute_completed: true`. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
 ## Behavior
 
-### 1. Show current state
+### 1. Read current state
 
-Read `.ca/workflows/<active_id>/STATUS.md` and display where the workflow currently is.
+Read `.ca/workflows/<active_id>/STATUS.md` and display:
+- Current `fix_round` value (default: 0 if not present)
+- Current workflow state
 
-### 2. Determine target step
+### 2. Determine fix round
 
-The user's message after `/ca:fix` may specify a step name. Valid steps:
-- `discuss` — go back to requirements discussion
-- `research` — go back to research
-- `plan` — go back to planning
+Read `fix_round` from STATUS.md (default: 0 if not present).
+Set N = fix_round + 1.
 
-If no step is specified, show the options and ask the user where they want to go back to.
+### 3. Create round directory
 
-### 3. Update STATUS.md
+Create `.ca/workflows/<active_id>/rounds/<N>/` directory.
 
-Based on the target step, reset the status flags:
+### 4. Collect issues
 
-- **Back to discuss**: Set `discuss_completed: false`, `research_completed: false`, `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`, `current_step: init`
-- **Back to research**: Set `research_completed: false`, `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`, `current_step: discuss`
-- **Back to plan**: Set `plan_completed: false`, `plan_confirmed: false`, `execute_completed: false`, `verify_completed: false`, `current_step: research` (or `discuss` if research wasn't done)
+**Read VERIFY-REPORT.md** from the previous location:
+- If N == 1: read `.ca/workflows/<active_id>/VERIFY-REPORT.md`
+- If N > 1: read `.ca/workflows/<active_id>/rounds/<N-1>/VERIFY-REPORT.md`
 
-### 4. Preserve files
+If VERIFY-REPORT.md exists, present its contents to the user as the known issues.
+If VERIFY-REPORT.md does not exist, inform the user no verification report was found.
 
-Do NOT delete any existing files in `.ca/workflows/<active_id>/`. They serve as reference for the user when revising.
+**Ask for additional feedback**: Use `AskUserQuestion` with:
+- header: "Issues"
+- question: "Are there additional issues beyond the verification report?"
+- options:
+  - "No additional issues" — "Only fix the issues in the report"
+  - "Add issues" — "I have additional feedback"
 
-### 5. Update PLAN.md for fix mode (if rolling back to plan)
+If **Add issues**: Let the user describe additional issues in conversation. Collect them.
 
-If the target step is `plan` and `.ca/workflows/<active_id>/PLAN.md` exists:
-- Read the current PLAN.md and `.ca/workflows/<active_id>/SUMMARY.md` (if exists)
-- Based on the execution summary, mark completed implementation steps with `[x]` prefix
-- Mark steps that failed, need modification, or were not reached with `[ ]` prefix
-- Add a section at the end of PLAN.md:
+### 5. Write ISSUES.md
 
+Write `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`:
+
+```markdown
+# Issues (Round N)
+
+## From Verification Report
+<issues extracted from VERIFY-REPORT.md, or "No verification report found">
+
+## Additional User Feedback
+<issues from user, or "None">
 ```
-## Fix Notes
 
-Rolled back to plan on YYYY-MM-DD.
-Steps marked [x] were completed before rollback.
-Steps marked [ ] need to be re-planned or modified.
-The planner should append/update fix steps below, NOT rewrite the entire plan.
-```
+### 6. Update STATUS.md
 
-### 6. Update CRITERIA.md for fix mode (if rolling back to plan)
-
-If `.ca/workflows/<active_id>/CRITERIA.md` exists:
-- Read the current CRITERIA.md
-- Keep all existing criteria entries intact
-- Add a note at the end:
-
-```
-## Fix Notes
-
-Rolled back on YYYY-MM-DD. All criteria above must still be verified after fix.
-New criteria for fix changes should be appended below this line.
-```
+Update STATUS.md with:
+- `fix_round: <N>`
+- `plan_completed: false`
+- `plan_confirmed: false`
+- `execute_completed: false`
+- `verify_completed: false`
+- `current_step: fix`
 
 ### 7. Confirm
 
-Tell the user which step they've rolled back to and what command to run next.
+Tell the user:
+- Fix round N has been started
+- Issues have been recorded in `rounds/<N>/ISSUES.md`
+- Suggest running `/ca:plan` (or `/ca:next`) to create a fix plan
+- Suggest using `/clear` before proceeding to free up context
 
-If rolled back to plan, also tell the user: "PLAN.md has been updated with completion markers. When `/ca:plan` runs, it will append/update steps rather than rewriting."
+**Do NOT proceed to plan automatically.**

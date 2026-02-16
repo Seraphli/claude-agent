@@ -21,9 +21,27 @@ Read the model configuration from config (global then workspace override):
 2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-researcher` in the corresponding profile column.
 3. The resolved model will be passed to the Task tool.
 
-#### 1b. Launch 4 parallel researchers
+#### 1a-pre. Determine requirement type
 
-Use the Task tool to launch **4 ca-researcher agents in parallel** (in a single message), each with the resolved `model` parameter. Pass each agent:
+Analyze BRIEF.md content to determine the requirement type:
+- **New feature**: Adding functionality, enhancing, refactoring, documentation
+- **Bug fix**: Fixing broken behavior, resolving errors, regressions
+
+Look for keywords: "fix", "bug", "broken", "error", "regression" → bug fix; "add", "new", "implement", "enhance" → feature.
+
+#### 1b. Launch researchers
+
+**If new feature** (default): Launch 4 parallel ca-researcher agents as currently defined (Stack, Features, Architecture, Pitfalls).
+
+**If bug fix**:
+1. Parse bug descriptions from BRIEF.md. Identify each distinct bug/issue.
+2. **Single bug**: Launch 1 ca-researcher with prompt: "Research the root cause of this bug: <description>. Examine relevant code, trace the issue, and report findings."
+3. **Multiple bugs**: Launch multiple ca-researcher agents in parallel (one per bug, up to `max_concurrency`), each with a focused root-cause prompt.
+4. Skip the 4-dimension agents.
+
+Present findings under "## Research Findings" with bug-specific subsections.
+
+**For new features**, use the Task tool to launch **4 ca-researcher agents in parallel** (in a single message), each with the resolved `model` parameter. Pass each agent:
 - The full content of BRIEF.md
 - The project root path
 - The content of `.ca/map.md` (if exists)

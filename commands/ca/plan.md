@@ -19,7 +19,28 @@ Read these files:
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
 - `.ca/workflows/<active_id>/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
+Also read `fix_round` from STATUS.md (default: 0).
+If `fix_round` > 0 (fix round N):
+- Read `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`
+- This is a fix planning session
+
+### 1a. Fix round research (fix mode only)
+
+If `fix_round` == 0, skip this step.
+
+If `fix_round` > 0 (fix round N):
+1. Parse issues from `rounds/<N>/ISSUES.md`.
+2. Resolve model for ca-researcher.
+3. For each issue, launch a ca-researcher agent with:
+   - The issue description, project root path, map content
+   - Prompt: "Investigate the root cause of this issue: <issue>. Read relevant source code, trace the problem, report findings with file/line references."
+4. Multiple independent issues → parallel researchers (up to `max_concurrency`).
+5. Present findings to the user.
+6. Skip step 1b, proceed to step 1c.
+
 ### 1b. Research (quick workflow only)
+
+If fix_round > 0, skip this step (handled in 1a).
 
 If `workflow_type: standard`, skip this step (research was already done in discuss).
 
@@ -42,10 +63,20 @@ If `workflow_type: quick`:
      - If **Run research**: Continue with step 3 below.
    - **If the requirement is complex**: Proceed directly with step 3 below (no need to ask).
 
-3. **Execute 4-dimension research** (same pattern as discuss command):
-   1. Resolve model for ca-researcher (same logic as discuss).
-   2. Launch 4 parallel ca-researcher agents (Stack, Features, Architecture, Pitfalls) with BRIEF.md content, project root, and map.
-   3. Present merged research findings to the user.
+3. **Determine requirement type and execute research**:
+   1. **Analyze BRIEF.md content** to determine requirement type:
+      - Look for keywords: "fix", "bug", "broken", "error", "regression" → **bug fix**
+      - Look for keywords: "add", "new", "implement", "enhance" → **new feature**
+   2. **Based on requirement type**:
+      - **New feature**: Execute 4-dimension research (Stack, Features, Architecture, Pitfalls):
+        1. Resolve model for ca-researcher (same logic as discuss).
+        2. Launch 4 parallel ca-researcher agents with BRIEF.md content, project root, and map.
+        3. Present merged research findings to the user.
+      - **Bug fix**: Execute focused root-cause research:
+        1. Parse bug descriptions from BRIEF.md.
+        2. Resolve model for ca-researcher.
+        3. Launch 1 ca-researcher agent per bug (up to max_concurrency) with prompt: "Investigate the root cause of this bug: <bug>. Read relevant source code, trace the problem, report findings with file/line references."
+        4. Present findings to the user.
 
 **IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
 
@@ -93,13 +124,7 @@ After the outline, provide a "## Step Details" section with detailed instruction
 
 The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
 
-**Fix Append Mode**: If `.ca/workflows/<active_id>/PLAN.md` already exists with "## Fix Notes" section:
-- Read the existing PLAN.md
-- Preserve all `[x]` marked (completed) steps as-is
-- Update or replace `[ ]` marked steps as needed
-- Append new fix steps at the end (before Success Criteria and Expected Results)
-- Do NOT remove or rewrite completed steps
-- Ensure the plan is coherent as a whole
+**Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<N>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
@@ -180,7 +205,7 @@ After all three confirmations pass, perform an automatic self-check before writi
 
 ### 4. Write PLAN.md
 
-Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`:
+Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
 
 ```markdown
 # Implementation Plan
@@ -216,7 +241,7 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflo
 
 Write success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
 
-If the file already exists (fix mode), append new criteria below the existing ones.
+If file exists and fix_round > 0, append new fix-specific criteria below existing ones.
 If the file does not exist, create it:
 
 ```
