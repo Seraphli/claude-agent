@@ -29,6 +29,13 @@ Agents MUST record errors in the following situations:
 
 ### How to record
 
+**Before recording, agents MUST get user confirmation:**
+1. Present the proposed error entry to the user (show the exact text that would be recorded)
+2. Use `AskUserQuestion` to ask: "Record this error lesson?" with options "Yes, record" / "No, skip" / "Revise"
+3. If **Yes**: proceed to record
+4. If **No**: skip recording entirely
+5. If **Revise**: let the user modify the content, then record the revised version
+
 Append to the appropriate `ca-errors.md` file:
 
 Format each entry as:

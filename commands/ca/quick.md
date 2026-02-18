@@ -125,6 +125,8 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 **CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research belongs in `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
-Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest proceeding with `/ca:plan` (or `/ca:next`) to create the implementation plan.
+Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
+- Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
+- Suggest using `/clear` before proceeding to free up context
 
 **Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**

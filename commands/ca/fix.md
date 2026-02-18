@@ -70,7 +70,7 @@ Update STATUS.md with:
 Tell the user:
 - Fix round N has been started
 - Issues have been recorded in `rounds/<N>/ISSUES.md`
-- Suggest running `/ca:plan` (or `/ca:next`) to create a fix plan
+- Run `/ca:plan` to create a fix plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
 **Do NOT proceed to plan automatically.**

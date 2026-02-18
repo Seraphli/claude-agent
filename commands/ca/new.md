@@ -125,6 +125,8 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 **CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
-Tell the user the new requirement has been created. Show the brief and the workflow ID. Suggest proceeding with `/ca:discuss` (or `/ca:next`) to discuss and refine the requirements.
+Tell the user the new requirement has been created. Show the brief and the workflow ID. Suggest next steps:
+- Run `/ca:discuss` to discuss and refine the requirements (or use `/ca:next`)
+- Suggest using `/clear` before proceeding to free up context
 
 **Do NOT proceed to discuss automatically. Wait for the user to invoke the next command.**

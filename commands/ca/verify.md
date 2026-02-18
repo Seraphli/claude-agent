@@ -144,6 +144,8 @@ Use `AskUserQuestion` with:
 
 Set `verify_completed: true`, `current_step: verify`.
 
-Tell the user verification is complete and they can proceed with `/ca:finish` (or `/ca:next`) to wrap up. Suggest using `/clear` before proceeding to free up context.
+Tell the user verification is complete. Suggest next steps:
+- Run `/ca:finish` to wrap up the workflow (or use `/ca:next`)
+- Suggest using `/clear` before proceeding to free up context
 
 **Do NOT proceed to finish automatically.**
