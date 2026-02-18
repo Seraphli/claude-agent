@@ -33,7 +33,17 @@ Read the success criteria provided to you. Only verify criteria tagged `[auto]`.
 For each criterion:
 - Verify it's actually met by reading the relevant code/files
 - Record the evidence (what you found)
-- Mark as PASS or FAIL
+- Mark as **PASS** or **FAIL** — no other status is allowed
+
+**CRITICAL — Strict PASS/FAIL Rules**:
+- Status MUST be exactly `PASS` or `FAIL`. Never use variants like "PASS (with issues)", "PASS (partial)", "PASS (unverified)", "CONDITIONAL PASS", etc.
+- `PASS` means: the criterion is fully met, verified with concrete evidence, and no concerns exist.
+- `FAIL` if ANY of the following:
+  - The criterion is not met or only partially met
+  - You found bugs, issues, or inconsistencies related to the criterion
+  - You cannot verify the criterion (insufficient evidence, no output, tests skipped)
+  - There are concerns or caveats about the criterion being met
+- When in doubt, mark as `FAIL`. It is better to flag a potential issue than to let a problem pass.
 
 ### 2. Check plan compliance
 
@@ -73,6 +83,8 @@ Return your report in this exact structure:
 - Syntax: PASS/FAIL
 - Imports: PASS/FAIL
 - Obvious issues: <list or "None">
+
+**Overall status rule**: The overall status is FAIL if ANY individual criterion is FAIL or ANY planned step is MISSING/DEVIATED. Only when ALL criteria are PASS and ALL steps are DONE can the overall status be PASS. Never use qualified overall statuses like "PASS (with issues)" — it is either PASS or FAIL.
 
 ### Overall: PASS/FAIL
 

@@ -70,6 +70,8 @@ Wait for all agents to complete, then merge reports.
 
 #### 3d. Handle auto results
 
+**Strict status parsing**: When reading verifier results, only exact `PASS` counts as passing. Any variant — "PASS (with issues)", "PASS (partial)", "PASS (unverified)", "CONDITIONAL PASS", etc. — MUST be treated as FAIL. If the verifier report contains any such variant, rewrite it to FAIL before proceeding with the pass/fail logic below.
+
 If all auto criteria PASS: proceed to step 3e (manual verification).
 
 If any auto criteria FAIL:
