@@ -10,6 +10,15 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Behavior
 
+**CRITICAL — Verify is READ-ONLY**: Throughout the ENTIRE verify command lifecycle, you MUST NEVER:
+- Modify any source code or project files
+- Research or analyze how to fix failures
+- Investigate root causes by reading source code
+- Write fix plans or solutions
+- Call other skills (ca:plan, ca:execute, etc.)
+
+This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user raises issues, reports problems, or asks questions at ANY point during verification, respond with information from the verification context only, then guide them to use `/ca:fix`. Never start fixing or investigating.
+
 You are the verification orchestrator. You delegate the actual verification to the `ca-verifier` agent running in a **fresh context** to avoid confirmation bias.
 
 ### 1. Read context
@@ -137,6 +146,7 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
+- If the user **cancels the selection and communicates directly** (e.g., raises new issues, asks questions, or describes problems in chat instead of clicking Accept/Reject): Treat this the same as a Reject. Do NOT investigate, analyze, or fix anything. Record the user's feedback in VERIFY-REPORT.md, then suggest running `/ca:fix`. **Stop immediately.**
 - If **Reject**: Ask what's wrong to understand the issue, record it in VERIFY-REPORT.md (if `fix_round` > 0: `.ca/workflows/<active_id>/rounds/<N>/VERIFY-REPORT.md`, else: `.ca/workflows/<active_id>/VERIFY-REPORT.md`), then suggest running `/ca:fix` to go back to an earlier step. Do NOT attempt any fix, investigation, or modification — only record and guide.
 - If **Accept**: Proceed to step 6.
 
