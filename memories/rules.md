@@ -92,3 +92,7 @@ Examples (interaction_language: 中文):
 - `### Success Criteria` → `### 成功标准`
 - `### Expected Results` → `### 预期结果`
 - AskUserQuestion header "Requirements" → "需求确认"
+
+## AskUserQuestion Fallback Rule
+
+When the user does not select any of the predefined options in an `AskUserQuestion`, you MUST handle the user's input or ask the user what they want. Do NOT ignore the response and continue with default values.
