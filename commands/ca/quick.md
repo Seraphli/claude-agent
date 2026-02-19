@@ -99,7 +99,7 @@ linked_todo: <todo text if linked, otherwise omit this line>
 
 **IMPORTANT**: The `linked_todo` value must be the **exact original text** from `todos.md`. Do NOT modify, abbreviate, rephrase, or summarize the todo text. Copy it verbatim.
 
-Include `linked_todo` only if a todo was linked in step 4.
+Include `linked_todo` if the user chose "Yes, link" or "Yes, add" in step 4. Omit this line only if the user chose "No, skip" or no todo interaction occurred.
 
 ### 6. Initialize STATUS.md
 
@@ -123,7 +123,13 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 ### 7. Confirm completion
 
-**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research belongs in `/ca:plan`. Simply record the user's description as-is and create the workflow files.
+**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, active.md) and records the user's requirement description. You MUST NOT:
+- Read source code files or project files (other than todos.md and workflow management files)
+- Analyze, summarize, or research the codebase
+- Generate any content beyond what the user provided
+- Execute any part of the requirement task
+
+All research, analysis, and implementation belong to later phases (`/ca:plan`, `/ca:execute`). Simply record the user's description verbatim and create the workflow files.
 
 Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
 - Run `/ca:plan` to create the implementation plan (or use `/ca:next`)

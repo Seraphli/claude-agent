@@ -1,6 +1,6 @@
 {
   "name": "claude-agent",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "User-controlled Claude Code development workflow system",
   "bin": {
     "claude-agent": "bin/install.js"

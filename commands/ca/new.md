@@ -99,7 +99,7 @@ linked_todo: <todo text if linked, otherwise omit this line>
 
 **IMPORTANT**: The `linked_todo` value must be the **exact original text** from `todos.md`. Do NOT modify, abbreviate, rephrase, or summarize the todo text. Copy it verbatim.
 
-Include `linked_todo` only if a todo was linked in step 4.
+Include `linked_todo` if the user chose "Yes, link" or "Yes, add" in step 4. Omit this line only if the user chose "No, skip" or no todo interaction occurred.
 
 ### 6. Initialize STATUS.md
 
