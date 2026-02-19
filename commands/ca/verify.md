@@ -160,4 +160,6 @@ Tell the user verification is complete. Suggest next steps:
 - Run `/ca:finish` to wrap up the workflow (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Do NOT proceed to finish automatically.**

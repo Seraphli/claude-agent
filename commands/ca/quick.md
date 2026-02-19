@@ -135,4 +135,6 @@ Tell the user the quick workflow has been created. Show the brief and the workfl
 - Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**

@@ -73,4 +73,6 @@ Tell the user:
 - Run `/ca:plan` to create a fix plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Do NOT proceed to plan automatically.**

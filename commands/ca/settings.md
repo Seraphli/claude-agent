@@ -93,6 +93,12 @@ Options: `none`, `all`, `.ca/`, `.claude/rules/ca*`.
 
 Default: `none`. Controls whether CA-related files are committed to version control. When not `none`, the verify command will check `.gitignore` and offer to remove CA entries. When `none`, it will check `.gitignore` and offer to add missing CA entries.
 
+#### `show_tg_commands` — Show Telegram-format commands
+
+Options: `true`, `false`.
+
+Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca:plan` → `/ca_plan`).
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -111,6 +117,7 @@ auto_proceed_to_plan: <value>
 auto_proceed_to_verify: <value>
 max_concurrency: <value>
 track_ca_files: <value>
+show_tg_commands: <value>
 ```
 
 For workspace config, omit settings that inherit from global (do not write them).
@@ -118,6 +125,7 @@ Omit per-agent model overrides that are empty (not set).
 Omit auto_proceed settings that are `false` (default).
 Omit max_concurrency if it is `4` (default).
 Omit track_ca_files if it is `none` (default).
+Omit show_tg_commands if it is `false` (default).
 
 ### 5. Sync rules file
 

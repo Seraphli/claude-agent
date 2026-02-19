@@ -284,6 +284,8 @@ Tell the user the plan is confirmed. Suggest next steps:
 - Run `/ca:execute` to implement the plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Batch tip**: If you have multiple requirements to implement, you can plan them all first (using `/ca:quick` or `/ca:new` for each), then use `/ca:batch` to execute all confirmed plans sequentially.
 
 **Do NOT proceed to execution automatically.**

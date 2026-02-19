@@ -111,4 +111,6 @@ If `.ca/map.md` does not exist (e.g., new project that was empty before executio
   - Suggest using `/clear` before proceeding to free up context
   - Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config and `batch_mode` is not enabled.**

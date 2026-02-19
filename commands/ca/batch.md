@@ -94,6 +94,8 @@ Present the analysis.
 - **Overlapping passed**: "Review overlapping files before finishing."
 - **Failed**: "Run `/ca:switch <id>` then `/ca:fix`."
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 ### 5. Restore active workflow
 
 After all workflows are processed:

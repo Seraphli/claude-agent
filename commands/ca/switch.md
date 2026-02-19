@@ -43,3 +43,5 @@ Use `AskUserQuestion` with:
 Write the selected workflow ID to `.ca/active.md`.
 
 Tell the user the active workflow has been switched. Show the new active workflow's status and suggest the next command.
+
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).

@@ -129,4 +129,6 @@ Tell the user the new requirement has been created. Show the brief and the workf
 - Run `/ca:discuss` to discuss and refine the requirements (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
+If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+
 **Do NOT proceed to discuss automatically. Wait for the user to invoke the next command.**
