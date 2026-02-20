@@ -106,11 +106,11 @@ If `.ca/map.md` does not exist (e.g., new project that was empty before executio
 
 **Otherwise**, check config for `auto_proceed_to_verify`:
 - If `true`: Tell the user execution is complete, then automatically execute `Skill(ca:verify)`.
-- If `false` or not set: Tell the user execution is complete. Suggest next steps:
+- If `false` or not set: Tell the user execution is complete. You MUST suggest next steps (do NOT skip this):
   - Run `/ca:verify` to verify the results (or use `/ca:next`)
   - Suggest using `/clear` before proceeding to free up context
   - Also mention: "Tip: You can set `auto_proceed_to_verify: true` in `/ca:settings` to auto-proceed."
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 **Do NOT proceed to verification automatically, unless `auto_proceed_to_verify` is set to `true` in config and `batch_mode` is not enabled.**

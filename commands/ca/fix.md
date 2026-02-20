@@ -8,6 +8,8 @@
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. Read current state
 
 Read `.ca/workflows/<active_id>/STATUS.md` and display:
@@ -67,12 +69,12 @@ Update STATUS.md with:
 
 ### 7. Confirm
 
-Tell the user:
+Tell the user the fix round has been set up. You MUST suggest next steps (do NOT skip this):
 - Fix round N has been started
 - Issues have been recorded in `rounds/<N>/ISSUES.md`
 - Run `/ca:plan` to create a fix plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 **Do NOT proceed to plan automatically.**

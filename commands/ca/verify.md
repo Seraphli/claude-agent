@@ -10,6 +10,8 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 **CRITICAL — Verify is READ-ONLY**: Throughout the ENTIRE verify command lifecycle, you MUST NEVER:
 - Modify any source code or project files
 - Research or analyze how to fix failures
@@ -156,10 +158,10 @@ Use `AskUserQuestion` with:
 
 Set `verify_completed: true`, `current_step: verify`.
 
-Tell the user verification is complete. Suggest next steps:
+Tell the user verification is complete. You MUST suggest next steps (do NOT skip this):
 - Run `/ca:finish` to wrap up the workflow (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 **Do NOT proceed to finish automatically.**

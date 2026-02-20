@@ -13,6 +13,8 @@ If none found, tell the user there are no workflows ready for batch execution an
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. List batch candidates
 
 Present all eligible workflows:
@@ -94,7 +96,7 @@ Present the analysis.
 - **Overlapping passed**: "Review overlapping files before finishing."
 - **Failed**: "Run `/ca:switch <id>` then `/ca:fix`."
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 ### 5. Restore active workflow
 

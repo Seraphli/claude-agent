@@ -4,6 +4,8 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. Check for global config
 
 If `~/.claude/ca/config.md` does not exist, execute `Skill(ca:settings)` to trigger the settings command in auto-trigger mode for initial setup. After settings completes, continue with the steps below.
@@ -131,10 +133,10 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 All research, analysis, and implementation belong to later phases (`/ca:plan`, `/ca:execute`). Simply record the user's description verbatim and create the workflow files.
 
-Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
+Tell the user the quick workflow has been created. Show the brief and the workflow ID. You MUST suggest next steps (do NOT skip this):
 - Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 **Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**

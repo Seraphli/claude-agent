@@ -2,6 +2,8 @@
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. Check existing map
 
 If `.ca/map.md` already exists, use `AskUserQuestion` with:

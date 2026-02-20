@@ -8,6 +8,8 @@
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 You are conducting a focused requirements discussion. Your goal is to understand **exactly** what the user wants before any code is written.
 
 ### 1. Automated Research
@@ -134,11 +136,11 @@ Use `AskUserQuestion` with:
 1. ...
 2. ...
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user discussion is complete. Suggest next steps:
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user discussion is complete. You MUST suggest next steps (do NOT skip this):
 - Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
 - Suggest using `/clear` before proceeding to free up context
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
 
 - If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 

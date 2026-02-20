@@ -13,6 +13,8 @@ When this command is triggered automatically by other commands (e.g., `/ca:new`,
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. Choose save location
 
 Ask the user where to save the configuration using `AskUserQuestion`:

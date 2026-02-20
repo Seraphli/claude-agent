@@ -8,6 +8,8 @@ Check `.ca/workflows/` directory exists and contains at least one workflow. If n
 
 ## Behavior
 
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+
 ### 1. List available workflows
 
 Scan `.ca/workflows/` for subdirectories. For each, read its `STATUS.md` to get:
@@ -44,4 +46,4 @@ Write the selected workflow ID to `.ca/active.md`.
 
 Tell the user the active workflow has been switched. Show the new active workflow's status and suggest the next command.
 
-If `show_tg_commands: true` in config, show each suggested command in both formats: `/ca:xxx` (`/ca_xxx`).
+If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
