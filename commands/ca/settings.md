@@ -1,15 +1,10 @@
 # /ca:settings — Configure Settings
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Auto-trigger Mode
 
-When this command is triggered automatically by other commands (e.g., `/ca:new`, `/ca:quick`, `/ca:help`) because `~/.claude/ca/config.md` does not exist, it runs in a simplified mode:
-
-- **Skip step 1** (choose save location) — always save to global (`~/.claude/ca/config.md`)
-- **Only ask the three language settings** (interaction_language, comment_language, code_language)
-- **Skip** model_profile, per-agent model overrides, and auto_proceed settings (use defaults)
-- After saving, return control to the calling command
+When auto-triggered (config missing): save to global, only ask 3 language settings, skip model/concurrency/auto-proceed, return to caller.
 
 ## Behavior
 
@@ -33,8 +28,7 @@ For each setting, ask the user ONE AT A TIME using `AskUserQuestion`:
 
 Options: English, 中文 (Chinese), or custom input.
 
-- If editing workspace config and user wants to inherit from global, they can choose "Inherit from global".
-- If the setting already has a value, show the current value and let user keep it.
+Workspace config can inherit from global. Show current value if set.
 
 #### `comment_language` — Language for code comments
 
@@ -88,12 +82,12 @@ Default: `4`. Controls how many agents can run in parallel during execute and ve
 
 Options: `none`, `all`, `.ca/`, `.claude/rules/ca*`.
 
-- `none`: CA files are excluded from version control (default)
-- `all`: All CA files are tracked (`.ca/` and `.claude/rules/ca*`)
-- `.ca/`: Only the `.ca/` workflow directory is tracked
-- `.claude/rules/ca*`: Only project-level CA rule files are tracked
+- `none` (default): excluded from VCS
+- `all`: both `.ca/` and `.claude/rules/ca*` tracked
+- `.ca/`: only workflow directory tracked
+- `.claude/rules/ca*`: only rule files tracked
 
-Default: `none`. Controls whether CA-related files are committed to version control. When not `none`, the verify command will check `.gitignore` and offer to remove CA entries. When `none`, it will check `.gitignore` and offer to add missing CA entries.
+Finish command checks `.gitignore` accordingly.
 
 #### `show_tg_commands` — Show Telegram-format commands
 
@@ -122,12 +116,7 @@ track_ca_files: <value>
 show_tg_commands: <value>
 ```
 
-For workspace config, omit settings that inherit from global (do not write them).
-Omit per-agent model overrides that are empty (not set).
-Omit auto_proceed settings that are `false` (default).
-Omit max_concurrency if it is `4` (default).
-Omit track_ca_files if it is `none` (default).
-Omit show_tg_commands if it is `false` (default).
+Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (`false`, `4`, `none`).
 
 ### 5. Sync rules file
 

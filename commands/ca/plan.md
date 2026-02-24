@@ -1,6 +1,6 @@
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
 
-This is the **most critical step** in the workflow. You must get **three separate confirmations** before the plan is finalized.
+Get **three separate confirmations** before finalizing.
 
 ### 1. Read context
 
@@ -48,11 +48,7 @@ If `workflow_type: standard`, skip this step (research was already done in discu
 
 If `workflow_type: quick`:
 
-1. **Analyze requirement complexity**: Read BRIEF.md content and assess whether the requirement is simple enough to skip research. A requirement is considered **simple** if it meets ALL of the following:
-   - The scope is narrow and clearly defined (e.g., modifying 1-2 files)
-   - No architectural changes involved
-   - No new technologies, libraries, or dependencies
-   - Examples: documentation updates, config adjustments, simple bug fixes, minor text changes, straightforward additions to existing patterns
+1. **Analyze requirement complexity**: Read BRIEF.md content and assess whether the requirement is simple enough to skip research. **Simple** = ALL of: narrow scope (≤2 files), no architectural changes, no new dependencies. Examples: doc updates, config changes, simple fixes.
 
 2. **Based on complexity assessment**:
    - **If the requirement appears simple**: Use `AskUserQuestion` to ask the user:
@@ -86,13 +82,11 @@ If `workflow_type: quick`:
 
 **Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 2.
 
-Before proceeding to draft the plan, check if there are any uncertain or ambiguous items discovered during research (from discuss phase or step 1b). If there are:
+Check for uncertain items from research. If any:
 
-1. List each uncertain item to the user.
-2. Ask the user to clarify each one, one at a time.
-3. Only proceed to drafting the plan after all uncertainties are resolved.
-
-This ensures that the triple confirmation below contains only concrete, well-defined content — no items should say "needs further research" or "to be determined".
+1. List them to the user.
+2. Clarify each one at a time.
+3. Proceed only after all resolved — no "needs further research" or "TBD" in the plan.
 
 ### 2. Draft the plan
 
@@ -103,11 +97,7 @@ Prepare a plan covering:
 - **Implementation steps**: Numbered, ordered steps
 - **Expected results**: What the end state looks like
 
-**Execution Order**: Implementation Steps use a multi-level list outline to express execution order:
-- **Ordered list** (1. 2. 3.) = sequential execution, items have dependencies
-- **Unordered list** (- - -) = parallel execution, items are independent
-
-Nesting is supported. For example:
+**Execution Order**: ordered list = sequential, unordered list = parallel. Nesting supported:
 1. Preparation step
 2. Parallel modifications:
    - Modify file A
@@ -115,16 +105,16 @@ Nesting is supported. For example:
    - Modify file C
 3. Final integration step
 
-When all steps are independent, use a single unordered list. When all steps are sequential, use a single ordered list. Only use mixed/nested lists when the execution order genuinely requires it — keep it simple.
+Use the simplest structure that matches actual dependencies.
 
-After the outline, provide a "## Step Details" section with detailed instructions for each step. The outline determines execution order; Step Details provides the implementation content for each step.
+After the outline, provide `## Step Details` with implementation content for each step.
 
-**IMPORTANT — Plan Detail Requirement**: Each implementation step MUST contain the specific content to be added or modified. Include:
-- The exact text/code to insert or change (use code blocks or quoted text)
-- The precise location in the file (which section, after which line/paragraph)
+**IMPORTANT — Plan Detail Requirement**: Each step MUST include:
+- Exact text/code to add or change (code blocks or quoted text)
+- Precise location (section, line/paragraph)
 - Before/after examples where applicable
 
-The plan must be detailed enough that the executor agent can follow it mechanically without making independent design decisions.
+The executor must be able to follow mechanically without design decisions.
 
 **Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<N>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
 
@@ -132,78 +122,43 @@ The plan must be detailed enough that the executor agent can follow it mechanica
 
 #### Confirmation 1: Requirement Understanding
 
-**IMPORTANT**: This step ONLY confirms whether the requirement understanding is correct. Do NOT discuss approach, method, or implementation details here. Those belong in Confirmation 2.
+**IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2.
 
-Present: "Based on the requirements, I understand you want: [concise summary]"
+Present: "I understand you want: [concise summary]"
 
-Use `AskUserQuestion` with:
-- header: "Requirements"
-- question: "Is my understanding of the requirements correct?"
-- options:
-  - "Correct" — "Understanding is accurate"
-  - "Not correct" — "Needs correction"
+`AskUserQuestion`: header "Requirements", question "Is my understanding correct?", options "Correct"/"Not correct".
 
-- If **Not correct**: Ask what you misunderstood, correct it, and re-ask Confirmation 1.
+If **Not correct**: ask what's wrong, correct, re-ask.
 
 #### Confirmation 2: Approach and Method
 
 Present the plan in TWO parts:
 
-**Part 1 — Outline**: Present as THREE clearly separated sections:
+**Part 1 — Outline** (3 sections):
 
-1. **Approach**: 1-2 sentences summarizing the strategy. This is prose, NOT a list.
+1. **Approach**: 1-2 sentences (prose, not list)
+2. **Files**: Bullet list of files to modify/create
+3. **Implementation Steps**: Pure list outline — short titles only, no descriptions/prose. Ordered = sequential, unordered = parallel.
 
-2. **Files**: Bullet list of files to modify/create.
+**Part 2 — Step Details**: Detailed instructions per step with exact changes, locations, before/after.
 
-3. **Implementation Steps**: A PURE multi-level list outline. Rules:
-   - Each list item is ONLY a short step title (e.g., "Modify authentication middleware")
-   - NO descriptions, explanations, or details in list items
-   - NO prose paragraphs mixed into the list
-   - Ordered list (1. 2. 3.) = sequential execution
-   - Unordered list (- - -) = parallel execution
-   - This section contains NOTHING except the list itself
+`AskUserQuestion`: header "Approach", question "Do you agree with this approach?", options "Agree"/"Disagree".
 
-**Part 2 — Step Details**: Then present detailed instructions for each step in the outline, with exact code/text changes, file locations, and before/after examples.
-
-Use `AskUserQuestion` with:
-- header: "Approach"
-- question: "Do you agree with this approach?"
-- options:
-  - "Agree" — "Approach looks good"
-  - "Disagree" — "Needs adjustment"
-
-- If **Disagree**: Ask what should change, revise the approach. Then check: does this change affect the requirement understanding confirmed in Confirmation 1? If yes, inform the user and re-ask Confirmation 1 first, then re-ask Confirmation 2. If no, re-ask Confirmation 2 only.
+If **Disagree**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2.
 
 #### Confirmation 3: Expected Results
 
-Present the expected results and success criteria as **two separate sections**:
+Present **two separate sections**: Expected Results (observable end state) and Success Criteria (verifiable conditions).
 
-- **Expected Results**: What the end state looks like after implementation (observable changes, behavior)
-- **Success Criteria**: Numbered, verifiable conditions to confirm correctness
+`AskUserQuestion`: header "Results", question "Are these the expected results?", options "Yes"/"No".
 
-Both are presented together for confirmation but clearly separated so the user can review each independently.
-
-Use `AskUserQuestion` with:
-- header: "Results"
-- question: "Are these the expected results you want?"
-- options:
-  - "Yes" — "Expected results are correct"
-  - "No" — "Needs revision"
-
-- If **No**: Ask what the expected results should be, revise. Then check: does this change affect the approach (Confirmation 2) or requirement understanding (Confirmation 1)? If yes, inform the user and re-ask the affected confirmations in order, then re-ask Confirmation 3. If no, re-ask Confirmation 3 only.
+If **No**: revise. If change affects Confirmation 2 or 1, re-ask affected confirmations in order first.
 
 ### 3b. Self-check: Requirements Coverage
 
-After all three confirmations pass, perform an automatic self-check before writing the plan:
+Self-check after all confirmations: for EACH original requirement, verify at least one criterion covers it. Direction: requirement → criterion (NOT reverse).
 
-1. Read the original requirements from REQUIREMENT.md (or BRIEF.md if quick workflow).
-2. For EACH original requirement, check whether there is at least one confirmed success criterion that covers it. The check direction is: requirement → criterion (NOT criterion → requirement).
-3. Do NOT check whether each criterion has a corresponding requirement — that is the wrong direction.
-4. If any requirement is missing a corresponding criterion:
-   - **Stop** and alert the user: "I found that the following requirements don't have corresponding success criteria: [list]"
-   - Ask the user to confirm whether to add criteria for the missing items or intentionally exclude them.
-   - Only proceed after the user confirms.
-4. If all requirements are covered, proceed to write the plan.
+If any lacks coverage: **stop**, alert user, ask whether to add or exclude. Proceed only after confirmation.
 
 ### 4. Write PLAN.md
 
@@ -249,23 +204,12 @@ If the file does not exist, create it:
 ```
 # Success Criteria
 
-Each criterion must be tagged with `[auto]` or `[manual]`:
+Tag each criterion `[auto]` or `[manual]`:
 
-**Use `[auto]` when the verifier can check it by:**
-- Reading file contents (checking if code/config contains expected content)
-- Running shell commands (tests, linters, build checks)
-- Searching with grep/glob (verifying patterns exist or don't exist)
-- Comparing file structures (checking files were created/modified)
+**`[auto]`**: verifier checks by reading files, running commands, grep/glob, comparing structures.
+**`[manual]`**: requires UI interaction, subjective judgment, external services, or real-time observation.
 
-**Use `[manual]` ONLY when verification genuinely requires:**
-- User interaction with a UI/application (e.g., "click button and verify behavior")
-- Subjective human judgment (e.g., "the error message is clear and helpful")
-- Access to external services the verifier cannot reach (e.g., "verify the deployment works")
-- Real-time observation (e.g., "watch the animation play smoothly")
-
-**Default to `[auto]`** — if unsure whether a criterion can be automated, prefer `[auto]`. The verifier has Read, Bash, Grep, and Glob tools and can verify most code-level checks automatically.
-
-Group criteria by type. Within each group, use unordered list if items are independent (can be verified in parallel), or ordered list if items have dependencies (must be verified sequentially).
+**Default to `[auto]`** — verifier has Read, Bash, Grep, Glob. Group by type; unordered = parallel, ordered = sequential.
 
 **[auto]**
 
@@ -282,12 +226,12 @@ Group criteria by type. Within each group, use unordered list if items are indep
 
 Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
 
-Tell the user the plan is confirmed. You MUST suggest next steps (do NOT skip this):
-- Run `/ca:execute` to implement the plan (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+Tell the user the plan is confirmed. Suggest next steps:
+- `/ca:execute` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Batch tip**: If you have multiple requirements to implement, you can plan them all first (using `/ca:quick` or `/ca:new` for each), then use `/ca:batch` to execute all confirmed plans sequentially.
+**Batch tip**: Plan multiple requirements first (`/ca:quick`/`/ca:new`), then `/ca:batch` to execute all.
 
-**Do NOT proceed to execution automatically.**
+**Do NOT auto-proceed.**

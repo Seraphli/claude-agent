@@ -10,18 +10,15 @@
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
 
-You are conducting a focused requirements discussion. Your goal is to understand **exactly** what the user wants before any code is written.
+Goal: understand **exactly** what the user wants before code is written.
 
 ### 1. Automated Research
 
-Before starting the discussion, perform an automatic 4-dimension research to gather context.
+Perform automatic research before the discussion.
 
 #### 1a. Resolve model for ca-researcher
 
-Read the model configuration from config (global then workspace override):
-1. Check for per-agent override: `ca-researcher_model` in config. If set, use that model.
-2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-researcher` in the corresponding profile column.
-3. The resolved model will be passed to the Task tool.
+Resolve model: `ca-researcher_model` override → `model_profile` (default: `balanced`) via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 #### 1a-pre. Determine requirement type
 
@@ -43,7 +40,7 @@ Look for keywords: "fix", "bug", "broken", "error", "regression" → bug fix; "a
 
 Present findings under "## Research Findings" with bug-specific subsections.
 
-**For new features**, use the Task tool to launch **4 ca-researcher agents in parallel** (in a single message), each with the resolved `model` parameter. Pass each agent:
+Launch **4 parallel ca-researcher agents** (single message), each with resolved model. Pass each:
 - The full content of BRIEF.md
 - The project root path
 - The content of `.ca/map.md` (if exists)
@@ -77,34 +74,21 @@ After all 4 agents complete, present a merged summary:
 
 ### 2. Start the discussion
 
-Read `.ca/workflows/<active_id>/BRIEF.md` if it exists. Use the brief as the starting point for the discussion — acknowledge what the user wants to do based on the brief.
-
-Also read `.ca/map.md` (if exists) to understand the project structure and inform the discussion.
-
-If the user also provided a task description with this command, incorporate it as well.
-
-If neither the brief nor a task description exists, ask what they want to accomplish.
+Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want.
 
 ### 3. Ask clarifying questions ONE AT A TIME
 
-Do NOT dump a list of questions. Ask the most important question first, wait for the answer, then ask the next based on their response. Focus on:
-
-- **Scope**: What exactly should change? What should NOT change?
-- **Behavior**: What should happen? What's the expected input/output?
-- **Constraints**: Any specific approaches to use or avoid?
-- **Success criteria**: How will we know it's done correctly?
-
-Keep asking until the requirements are clear. Typically 2-5 questions suffice.
+Ask ONE question at a time (most important first). Focus on: Scope, Behavior, Constraints, Success criteria. Typically 2-5 questions suffice.
 
 **IMPORTANT**: If the user indicates they don't understand your question, you MUST stop and explain or rephrase the current question. Do NOT move on to the next question until the current one is resolved. Follow the Discussion Completeness Rule in `_rules.md`.
 
-**When a question has clear, enumerable options** (e.g., choosing between approaches, selecting a strategy, yes/no decisions), use `AskUserQuestion` with appropriate options instead of plain text. Reserve plain text for open-ended questions that cannot be expressed as choices.
+Use `AskUserQuestion` for questions with clear options. Reserve plain text for open-ended questions.
 
-**Supplementary Research**: If during the discussion the user raises questions that require additional investigation, you can launch another ca-researcher agent with a targeted research prompt to gather the needed information. Present the findings to the user before continuing the discussion.
+**Supplementary Research**: Launch additional ca-researcher agents if the user raises questions needing investigation.
 
 ### 4. Present requirement summary
 
-When you have enough information, present a structured summary:
+Present a structured summary:
 
 ```
 ## Requirement Summary
@@ -136,12 +120,12 @@ Use `AskUserQuestion` with:
 1. ...
 2. ...
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user discussion is complete. You MUST suggest next steps (do NOT skip this):
-- Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user discussion is complete. Suggest next steps:
+- `/ca:plan` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
 - If **Needs changes**: Ask what needs to change, revise the summary, and ask for confirmation again.
 
-**Do NOT proceed to any next step automatically. Wait for the user to invoke the next command.**
+**Do NOT auto-proceed.**

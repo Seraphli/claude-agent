@@ -1,6 +1,6 @@
 # /ca:batch — Batch Execute Workflows
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 
@@ -52,8 +52,7 @@ If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workf
 If `execute_completed: true`: skip execution.
 
 #### 3c. Verify
-Execute `Skill(ca:verify)` for the current workflow.
-- The `batch_mode: true` flag tells verify to: skip manual criteria, skip user acceptance, and auto-update STATUS.md on success.
+Execute `Skill(ca:verify)`. `batch_mode: true` → skip manual criteria, skip user acceptance, auto-update STATUS.md.
 
 #### 3d. Handle results
 
@@ -85,18 +84,14 @@ Show counts: Passed / Failed / Total.
 
 #### 4b. Code independence analysis (for passed workflows)
 
-If 2+ passed workflows, compare changed file lists between each pair:
-- No overlapping files → **Independent**
-- Overlapping files → **Code overlap** (list overlapping files)
-
-Present the analysis.
+If 2+ passed: compare changed files between pairs. No overlap → Independent. Overlap → list files.
 
 #### 4c. Recommendations
-- **Independent passed**: "Run `/ca:switch <id>` then `/ca:finish` for each."
-- **Overlapping passed**: "Review overlapping files before finishing."
-- **Failed**: "Run `/ca:switch <id>` then `/ca:fix`."
+- **Independent**: `/ca:switch <id>` → `/ca:finish` each.
+- **Overlapping**: Review overlapping files first.
+- **Failed**: `/ca:switch <id>` → `/ca:fix`.
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
 ### 5. Restore active workflow
 

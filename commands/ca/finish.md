@@ -1,6 +1,6 @@
 # /ca:finish — Wrap Up Workflow
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 
@@ -14,14 +14,12 @@ Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for w
 
 ### 1. Bump version
 
-Read `package.json` and determine the version bump type based on the workflow's changes:
-- Read `.ca/workflows/<active_id>/REQUIREMENT.md` (or BRIEF.md) and the relevant PLAN.md to understand the nature of changes.
-- Determine bump type:
-  - Breaking changes → major bump (X.0.0)
-  - New feature (`feat`) → minor bump (x.Y.0)
-  - Bug fix, refactor, docs, chore → patch bump (x.y.Z)
-- Update the `version` field in `package.json`.
-- Also update `~/.claude/ca/version` with the new version number.
+Read `package.json` and REQUIREMENT.md/BRIEF.md + PLAN.md. Determine bump type:
+- Breaking → major (X.0.0)
+- Feature → minor (x.Y.0)
+- Fix/refactor/docs/chore → patch (x.y.Z)
+
+Update `version` in `package.json` and `~/.claude/ca/version`.
 
 ### 2. Gitignore Check
 
@@ -31,15 +29,13 @@ Define the CA gitignore patterns:
 - `.ca/` pattern: `.ca/`
 - `.claude/rules/ca*` pattern: `.claude/rules/ca*`
 
-Determine which patterns to check based on `track_ca_files`:
-- `none`: ALL patterns should be IN `.gitignore` (ensure exclusion)
-- `all`: ALL patterns should NOT be in `.gitignore` (ensure tracking)
-- `.ca/`: `.ca/` should NOT be in `.gitignore`; `.claude/rules/ca*` should be in `.gitignore`
-- `.claude/rules/ca*`: `.claude/rules/ca*` should NOT be in `.gitignore`; `.ca/` should be in `.gitignore`
+Based on `track_ca_files`:
+- `none`: both patterns should be IN `.gitignore`
+- `all`: neither should be in `.gitignore`
+- `.ca/`: `.ca/` tracked, `.claude/rules/ca*` ignored
+- `.claude/rules/ca*`: reverse
 
-Check if `.gitignore` exists in project root. If not, and patterns need to be added, it will be created.
-
-Read `.gitignore` (if exists) and check for each pattern.
+Read `.gitignore` (create if needed). Check patterns.
 
 For patterns that should be in `.gitignore` but are missing:
 - Use `AskUserQuestion`:
@@ -79,21 +75,12 @@ Use `AskUserQuestion` with:
     - <detail 2: what was changed and why>
     - ...
     ```
-    Where `<type>` is one of: feat, fix, refactor, docs, chore, test.
-    The body MUST contain a bulleted list describing each significant change made in this workflow cycle. Reference the PLAN.md implementation steps and SUMMARY.md to generate comprehensive details. Never omit the body.
-  - **Display to the user before asking for confirmation**:
-    - The full proposed commit message
-    - The complete list of files that will be committed
-  - Use `AskUserQuestion` with:
-    - header: "Message"
-    - question: "Confirm this commit message?"
-    - options:
-      - "Confirm" — "Use this message"
-      - "Edit" — "I want to change the message"
-      - "Skip" — "Don't commit"
-    - If **Edit**: Let the user provide a new message.
-    - If **Confirm**: Stage the relevant files and commit (do NOT use `git add -A`; add specific files).
-    - If **Skip**: Skip committing.
+    `<type>`: feat, fix, refactor, docs, chore, test. Body MUST list each significant change (reference PLAN.md and SUMMARY.md). Never omit the body.
+  - Show the proposed commit message and file list.
+  - `AskUserQuestion`: header "Message", question "Confirm this commit message?", options "Confirm"/"Edit"/"Skip".
+    - **Edit**: Let user provide new message.
+    - **Confirm**: Stage specific files and commit (no `git add -A`).
+    - **Skip**: Skip committing.
 
 ### 4. Update todo
 

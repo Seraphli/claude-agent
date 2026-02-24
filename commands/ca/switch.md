@@ -1,6 +1,6 @@
 # /ca:switch — Switch Active Workflow
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 
@@ -46,4 +46,4 @@ Write the selected workflow ID to `.ca/active.md`.
 
 Tell the user the active workflow has been switched. Show the new active workflow's status and suggest the next command.
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

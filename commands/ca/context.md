@@ -14,7 +14,7 @@ If the files are empty or don't exist, tell the user there's no saved context ye
 
 ### 2. Show loaded files in current context
 
-Check your own context window to determine which files are currently loaded. Do NOT use Glob or Read tools to check the disk — instead, inspect what you can actually "see" in your current conversation context.
+Inspect your own context window for loaded files. Do NOT use tools to check disk.
 
 For each of the following categories, report whether the file's content is present in your context and show a brief summary if loaded:
 

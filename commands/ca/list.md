@@ -1,6 +1,6 @@
 # /ca:list — List All Workflows
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Behavior
 
@@ -36,4 +36,4 @@ Display:
 
 Suggest relevant next commands (e.g., `/ca:batch` if any are plan_confirmed, `/ca:switch` to change active).
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

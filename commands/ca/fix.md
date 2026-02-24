@@ -69,12 +69,12 @@ Update STATUS.md with:
 
 ### 7. Confirm
 
-Tell the user the fix round has been set up. You MUST suggest next steps (do NOT skip this):
+Tell the user the fix round has been set up. Suggest next steps:
 - Fix round N has been started
 - Issues have been recorded in `rounds/<N>/ISSUES.md`
-- Run `/ca:plan` to create a fix plan (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+- `/ca:plan` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Do NOT proceed to plan automatically.**
+**Do NOT auto-proceed.**

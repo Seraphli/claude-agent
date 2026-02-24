@@ -1,6 +1,6 @@
 # /ca:new — Start a New Requirement
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings and to check if global config exists.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Behavior
 
@@ -127,10 +127,10 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 **CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
-Tell the user the new requirement has been created. Show the brief and the workflow ID. You MUST suggest next steps (do NOT skip this):
-- Run `/ca:discuss` to discuss and refine the requirements (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+Tell the user the new requirement has been created. Show the brief and the workflow ID. Suggest next steps:
+- `/ca:discuss` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Do NOT proceed to discuss automatically. Wait for the user to invoke the next command.**
+**Do NOT auto-proceed.**

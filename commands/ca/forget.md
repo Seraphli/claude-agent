@@ -21,7 +21,7 @@ Use `AskUserQuestion` with:
 
 Based on the user's choice:
 - **Project**: Read `.claude/rules/ca-context.md` and display its contents.
-- **Global**: Read `~/.claude/rules/ca-context.md` and display its contents. If the file doesn't exist, tell the user there is no global context and stop.
+- **Global**: Read `~/.claude/rules/ca-context.md` and display. If missing, tell user and stop.
 
 ### 3. Identify what to remove
 

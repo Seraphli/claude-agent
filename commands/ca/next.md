@@ -1,6 +1,6 @@
 # /ca:next — Execute Next Workflow Step
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 

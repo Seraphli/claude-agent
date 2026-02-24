@@ -12,15 +12,7 @@ If `.ca/workflows/<active_id>/STATUS.md` doesn't exist, tell the user to run `/c
 
 ### 3. Read and display status
 
-Read `.ca/workflows/<active_id>/STATUS.md` and display the current workflow state in a clear format.
-
-Display the active workflow ID at the top of the status output.
-
-Show:
-- Current step in the workflow
-- Which steps are completed
-- Which steps are pending
-- What the next recommended action is
+Read STATUS.md and display: active workflow ID, current step, completed/pending steps, recommended next action.
 
 ### 4. Show available files
 
@@ -34,4 +26,4 @@ Check which of these files exist and show their status:
 
 Based on the current state, suggest the logical next command to run.
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

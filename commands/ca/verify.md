@@ -1,6 +1,6 @@
 # /ca:verify — Verify Results
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings (model_profile, auto_proceed_*, per-agent model overrides).
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Prerequisites
 
@@ -43,10 +43,7 @@ Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within
 
 ### 2. Resolve model for ca-verifier
 
-Read the model configuration from config (global then workspace override):
-1. Check for per-agent override: `ca-verifier_model` in config. If set, use that model.
-2. Otherwise, read `model_profile` from config (default: `balanced`). Read `~/.claude/ca/references/model-profiles.md` and look up the model for `ca-verifier` in the corresponding profile column.
-3. The resolved model will be passed to the Task tool.
+Resolve model: `ca-verifier_model` override → `model_profile` (default: `balanced`) via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 ### 3. Execute auto verification
 
@@ -98,7 +95,7 @@ Check `batch_mode` in STATUS.md:
 4. **Stop immediately.**
 
 **CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
-- Modify any source code or project files
+- Modify source code or project files
 - Research or analyze how to fix failures
 - Investigate root causes by reading source code
 - Write fix plans or solutions in the report
@@ -106,7 +103,7 @@ Check `batch_mode` in STATUS.md:
 - Call other skills (ca:plan, ca:execute, etc.)
 - Re-run tests that already have logged output
 
-If the user raises issues or asks questions about failures, respond with information from the report only, then guide them to use `/ca:fix`. Never start fixing or investigating within the verify context.
+If the user raises issues or asks about failures, respond with report information only, then guide to `/ca:fix`. Never start fixing or investigating within the verify context.
 
 #### 3e. Manual verification
 
@@ -150,18 +147,18 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
-- If the user **cancels the selection and communicates directly** (e.g., raises new issues, asks questions, or describes problems in chat instead of clicking Accept/Reject): Treat this the same as a Reject. Do NOT investigate, analyze, or fix anything. Record the user's feedback in VERIFY-REPORT.md, then suggest running `/ca:fix`. **Stop immediately.**
-- If **Reject**: Ask what's wrong to understand the issue, record it in VERIFY-REPORT.md (if `fix_round` > 0: `.ca/workflows/<active_id>/rounds/<N>/VERIFY-REPORT.md`, else: `.ca/workflows/<active_id>/VERIFY-REPORT.md`), then suggest running `/ca:fix` to go back to an earlier step. Do NOT attempt any fix, investigation, or modification — only record and guide.
+- If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca:fix`. **Stop immediately.**
+- If **Reject**: Ask what's wrong, record in VERIFY-REPORT.md (fix-round path if applicable), suggest `/ca:fix`. No fixing or investigating.
 - If **Accept**: Proceed to step 6.
 
 ### 6. Update STATUS.md
 
 Set `verify_completed: true`, `current_step: verify`.
 
-Tell the user verification is complete. You MUST suggest next steps (do NOT skip this):
-- Run `/ca:finish` to wrap up the workflow (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+Tell the user verification is complete. Suggest next steps:
+- `/ca:finish` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Do NOT proceed to finish automatically.**
+**Do NOT auto-proceed.**

@@ -11,7 +11,7 @@ model: inherit
 
 # CA Verifier Agent
 
-You are a verification agent for the CA development workflow. Your job is to **independently check** whether the implementation meets the requirements and plan. You operate in a fresh context to avoid confirmation bias.
+**Independently check** whether implementation meets requirements and plan. Fresh context to avoid confirmation bias.
 
 ## Input
 

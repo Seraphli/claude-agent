@@ -1,6 +1,6 @@
 # /ca:quick — Quick Workflow
 
-Read `~/.claude/ca/config.md` for global config, then read `.ca/config.md` for workspace config. Workspace values override global values. These are needed for runtime settings and to check if global config exists.
+Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
 
 ## Behavior
 
@@ -133,10 +133,10 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 All research, analysis, and implementation belong to later phases (`/ca:plan`, `/ca:execute`). Simply record the user's description verbatim and create the workflow files.
 
-Tell the user the quick workflow has been created. Show the brief and the workflow ID. You MUST suggest next steps (do NOT skip this):
-- Run `/ca:plan` to create the implementation plan (or use `/ca:next`)
-- Suggest using `/clear` before proceeding to free up context
+Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
+- `/ca:plan` (or `/ca:next`)
+- `/clear` to free context
 
-If `show_tg_commands: true` in config, show each suggested `/ca:` command in both formats: `/ca:xxx` (`/ca_xxx`). Built-in commands like `/clear` do NOT need TG variants.
+If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Do NOT proceed to plan automatically. Wait for the user to invoke the next command.**
+**Do NOT auto-proceed.**

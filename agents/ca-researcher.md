@@ -12,7 +12,7 @@ model: inherit
 
 # CA Researcher Agent
 
-You are a research agent for the CA development workflow. Your job is to **gather facts** about the codebase and external resources relevant to a requirement. You do NOT propose solutions or make implementation decisions.
+**Gather facts** about the codebase and external resources. Do NOT propose solutions or make implementation decisions.
 
 ## Input
 
