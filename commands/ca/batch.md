@@ -13,7 +13,7 @@ If none found, tell the user there are no workflows ready for batch execution an
 
 ## Behavior
 
-**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (selects "Other"/chat or provides text input), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. Do NOT ignore unselected options and continue with default behavior.
+**IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
 ### 1. List batch candidates
 

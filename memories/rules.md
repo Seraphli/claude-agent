@@ -95,4 +95,11 @@ Examples (interaction_language: 中文):
 
 ## AskUserQuestion Fallback Rule
 
-When the user does not select any of the predefined options in an `AskUserQuestion`, you MUST handle the user's input or ask the user what they want. Do NOT ignore the response and continue with default values.
+When the user does not select any predefined option in an `AskUserQuestion`, the response contains `"__chat"="true"`. This is a **sentinel value** indicating free-input mode — it is NOT a valid answer and must NEVER be treated as selecting any option.
+
+When you detect `"__chat"="true"` or any response that doesn't match predefined options:
+1. Stop the current flow immediately
+2. Acknowledge the user's input
+3. Ask the user what they want or respond to their message
+
+Do NOT ignore the response and continue with default values.

@@ -45,6 +45,7 @@ rl.on("close", () => {
     const ver = version ? ` ${version}` : "";
     process.stdout.write(`\x1b[2m${model}\x1b[0m \u2502 \x1b[2mca${ver}\x1b[0m${ctx}`);
   } catch {
-    // Silent fail
+    const ver = version ? ` ${version}` : "";
+    process.stdout.write(`\x1b[31m[pipe error]\x1b[0m \u2502 \x1b[2mca${ver}\x1b[0m`);
   }
 });

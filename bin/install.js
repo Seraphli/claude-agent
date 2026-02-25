@@ -159,13 +159,26 @@ if (fs.existsSync(oldGlobalErrors) && !fs.existsSync(newGlobalErrors)) {
 fs.writeFileSync(path.join(caConfigDir, "version"), pkg.version);
 console.log(`  ${green}✓${reset} Wrote version (${pkg.version})`);
 
-// Register statusline in settings.json
+// Register statusline in settings.json (smart merge)
 let settings = {};
 if (fs.existsSync(settingsPath)) {
   settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
 }
 const hookPath = path.join(targetHooksDir, hookFile);
-settings.statusLine = { type: "command", command: `node "${hookPath}"` };
+const caCmd = `node "${hookPath}"`;
+
+if (settings.statusLine?.command) {
+  if (settings.statusLine.command.includes("ca-statusline")) {
+    settings.statusLine.command = settings.statusLine.command.replace(
+      /node\s+"[^"]*ca-statusline\.js"/,
+      caCmd
+    );
+  } else {
+    settings.statusLine.command = `${settings.statusLine.command} | ${caCmd}`;
+  }
+} else {
+  settings.statusLine = { type: "command", command: caCmd };
+}
 
 // Add Read permissions for CA config files
 if (!settings.permissions) settings.permissions = {};

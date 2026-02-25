@@ -52,9 +52,20 @@ if (fs.existsSync(referencesDir)) {
 if (fs.existsSync(settingsPath)) {
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
   if (settings.statusLine?.command?.includes("ca-statusline")) {
-    delete settings.statusLine;
+    const cmd = settings.statusLine.command;
+    const cleaned = cmd
+      .replace(/\s*\|\s*node\s+"[^"]*ca-statusline\.js"/, "")
+      .replace(/node\s+"[^"]*ca-statusline\.js"\s*\|\s*/, "")
+      .replace(/^node\s+"[^"]*ca-statusline\.js"$/, "")
+      .trim();
+    if (cleaned) {
+      settings.statusLine.command = cleaned;
+      console.log("Removed CA from statusline pipe");
+    } else {
+      delete settings.statusLine;
+      console.log("Removed statusline from settings.json");
+    }
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-    console.log("Removed statusline from settings.json");
   }
 }
 
