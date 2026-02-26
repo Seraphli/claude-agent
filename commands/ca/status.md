@@ -1,5 +1,7 @@
 # /ca:status — Show Workflow Status
 
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+
 ## Steps
 
 ### 1. Read active workflow ID
@@ -13,6 +15,10 @@ If `.ca/workflows/<active_id>/STATUS.md` doesn't exist, tell the user to run `/c
 ### 3. Read and display status
 
 Read STATUS.md and display: active workflow ID, current step, completed/pending steps, recommended next action.
+
+If STATUS.md contains `branch_name`:
+- Display: Branch: `<branch_name>` (base: `<base_branch>`)
+- Run `git branch --show-current` and compare with `branch_name`. If mismatch, show warning: "⚠ Current git branch does not match workflow branch".
 
 ### 4. Show available files
 

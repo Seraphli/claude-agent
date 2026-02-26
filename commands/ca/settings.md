@@ -1,6 +1,6 @@
 # /ca:settings — Configure Settings
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Auto-trigger Mode
 
@@ -95,6 +95,24 @@ Options: `true`, `false`.
 
 Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca:plan` → `/ca_plan`).
 
+#### `use_branches` — Git branch per workflow
+
+Options: `true`, `false`.
+
+Default: `true`. When `true`, each workflow creates a dedicated git branch (`ca/<workflow-id>`). Execute auto-commits on the branch, finish merges back to the base branch.
+
+#### `merge_strategy` — Merge strategy for finish
+
+Options: `squash`, `merge`.
+
+Default: `squash`. `squash` compresses all branch commits into one on the base branch. `merge` preserves full commit history.
+
+#### `auto_delete_branch` — Auto-delete branch after merge
+
+Options: `true`, `false`.
+
+Default: `true`. Automatically delete the workflow branch after successful merge. When `false`, keep the branch.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -114,9 +132,12 @@ auto_proceed_to_verify: <value>
 max_concurrency: <value>
 track_ca_files: <value>
 show_tg_commands: <value>
+use_branches: <value>
+merge_strategy: <value>
+auto_delete_branch: <value>
 ```
 
-Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (`false`, `4`, `none`).
+Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (false, 4, none, true for use_branches/auto_delete_branch, squash for merge_strategy).
 
 ### 5. Sync rules file
 

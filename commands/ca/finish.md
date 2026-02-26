@@ -1,6 +1,6 @@
 # /ca:finish — Wrap Up Workflow
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 
@@ -14,16 +14,21 @@ Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override)
 
 ### 1. Bump version
 
-Read `package.json` and REQUIREMENT.md/BRIEF.md + PLAN.md. Determine bump type:
+Read REQUIREMENT.md/BRIEF.md + PLAN.md. Determine bump type:
 - Breaking → major (X.0.0)
 - Feature → minor (x.Y.0)
 - Fix/refactor/docs/chore → patch (x.y.Z)
 
-Update `version` in `package.json` and `~/.claude/ca/version`.
+Find the project's version location. Search in order:
+1. Known version files: `package.json`, `pyproject.toml`, `Cargo.toml`, `version.txt`, `VERSION`
+2. If none found, use Grep to search for version patterns in source code (e.g., `Version = "`, `VERSION = "`, `const version`, `var version`, `__version__`)
+3. If still not found, ask the user where the version is defined
+
+Update the version at the found location. If multiple locations exist (e.g., `package.json` + `package-lock.json`), update all of them.
 
 ### 2. Gitignore Check
 
-Read `track_ca_files` from config (default: `none`).
+Read `track_ca_files` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
 
 Define the CA gitignore patterns:
 - `.ca/` pattern: `.ca/`
@@ -55,32 +60,45 @@ For patterns that should NOT be in `.gitignore` but are present:
     - "No, skip" — "Leave .gitignore as is"
 - If **Yes, remove**: Remove matching lines from `.gitignore`.
 
-### 3. Git Commit
+### 3. Git commit and merge
 
-Use `AskUserQuestion` with:
-- header: "Commit"
-- question: "Would you like to commit these changes?"
-- options:
-  - "Yes, commit" — "Commit the changes"
-  - "No, skip" — "Skip committing"
+Read from config (`.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`):
+- `use_branches`
+- `merge_strategy`
+- `auto_delete_branch`
 
-- If **No, skip**: Tell the user the workflow is complete without committing. Proceed to step 4.
-- If **Yes, commit**:
-  - Run `git diff --stat` and `git status` to gather file information.
-  - Propose a commit message following this format:
-    ```
-    <type>: <concise title (under 72 chars)>
+Read STATUS.md for `branch_name` and `base_branch`.
 
-    - <detail 1: what was changed and why>
-    - <detail 2: what was changed and why>
-    - ...
-    ```
-    `<type>`: feat, fix, refactor, docs, chore, test. Body MUST list each significant change (reference PLAN.md and SUMMARY.md). Never omit the body.
-  - Show the proposed commit message and file list.
-  - `AskUserQuestion`: header "Message", question "Confirm this commit message?", options "Confirm"/"Edit"/"Skip".
-    - **Edit**: Let user provide new message.
-    - **Confirm**: Stage specific files and commit (no `git add -A`).
-    - **Skip**: Skip committing.
+**If `use_branches` is `true` AND `branch_name` exists** (branch mode):
+
+#### 3a. Ensure branch changes are committed
+1. `git status --porcelain` — check for uncommitted changes. If no changes, skip to 3b.
+2. `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
+3. If yes:
+   - Run `git diff --stat` and `git status` to gather info.
+   - Generate commit message: `<type>: <concise title>` with body listing each change (reference PLAN.md and SUMMARY.md).
+   - Show the diff summary and commit message to the user. `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
+   - If **Revise**: let user edit the message, re-confirm.
+   - Stage specific files and commit (no `git add -A`).
+4. If no: proceed to step 3b.
+
+#### 3b. Merge to base branch
+1. Switch to base branch: `git checkout <base_branch>`.
+2. Based on `merge_strategy`:
+   - `squash`: Run `git merge --squash <branch_name>`. Then generate a summary commit message from PLAN.md + SUMMARY.md (format: `<type>: <concise title>` with body). Run `git commit` with the generated message.
+   - `merge`: Run `git merge <branch_name> --no-ff -m "<message>"` with generated message.
+3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 3c or later steps.
+
+#### 3c. Delete branch
+1. If `auto_delete_branch` is `true`: Run `git branch -d <branch_name>`. Inform user branch was deleted.
+2. If `auto_delete_branch` is `false`: Keep branch, inform user.
+
+**If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):
+
+Use original commit logic:
+- `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
+- If yes: `git diff --stat`, generate message, confirm with user, stage specific files, commit.
+- If no: proceed to step 4.
 
 ### 4. Update todo
 

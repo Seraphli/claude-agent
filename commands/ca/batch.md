@@ -1,6 +1,6 @@
 # /ca:batch — Batch Execute Workflows
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 
@@ -42,10 +42,13 @@ Initialize a results list to track each workflow's outcome.
 
 For each workflow in order:
 
-#### 3a. Set active and create checkpoint
+#### 3a. Set active and prepare
 1. Write the workflow ID to `.ca/active.md` (set as active).
 2. Write `batch_mode: true` to the workflow's STATUS.md.
-3. Create a git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>` on the current HEAD.
+3. Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+   Read STATUS.md for `branch_name`.
+4. **If branch mode** (`branch_name` exists): `git checkout <branch_name>`.
+5. **If non-branch mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
 
 #### 3b. Execute (if needed)
 If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workflow.
@@ -57,19 +60,13 @@ Execute `Skill(ca:verify)`. `batch_mode: true` → skip manual criteria, skip us
 #### 3d. Handle results
 
 **If verify succeeds** (verify_completed: true):
-1. Stage changed files and commit: generate a commit message based on PLAN.md and SUMMARY.md, using format `<type>: <title>` with body details.
-2. Record the commit hash and changed file list for this workflow.
-3. Remove `batch_mode` from STATUS.md.
-4. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
-5. Record success in results list.
+1. **If branch mode**: Execute auto-commit already handled by execute step 7b. No additional commit needed. Remove `batch_mode` from STATUS.md. Record success.
+2. **If non-branch mode**: Stage changed files and commit (generate message from PLAN.md/SUMMARY.md). Remove `batch_mode`. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`. Record success.
 
 **If verify fails**:
-1. Roll back: `git reset --hard ca-batch-checkpoint-<workflow_id>`.
-2. Clean up tag: `git tag -d ca-batch-checkpoint-<workflow_id>`.
-3. Reset STATUS.md: `plan_confirmed: true`, `execute_completed: false`, `verify_completed: false`.
-4. Remove `batch_mode` from STATUS.md.
-5. Record failure reason in results list.
-6. Continue to next workflow.
+1. **If branch mode**: `git checkout <base_branch>` (switch back to base). Reset STATUS.md flags. Remove `batch_mode`. Record failure. Branch retains its state for later fix.
+2. **If non-branch mode**: `git reset --hard ca-batch-checkpoint-<workflow_id>`. Clean up tag. Reset STATUS.md. Remove `batch_mode`. Record failure.
+3. Continue to next workflow.
 
 ### 4. Post-batch analysis
 
@@ -90,6 +87,7 @@ If 2+ passed: compare changed files between pairs. No overlap → Independent. O
 - **Independent**: `/ca:switch <id>` → `/ca:finish` each.
 - **Overlapping**: Review overlapping files first.
 - **Failed**: `/ca:switch <id>` → `/ca:fix`.
+- **Branch mode passed**: `/ca:switch <id>` → `/ca:finish` to merge each workflow branch.
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
@@ -98,3 +96,4 @@ If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/cl
 After all workflows are processed:
 - If there are remaining unfinished workflows in `.ca/workflows/`, set `active.md` to one of them.
 - If no workflows remain, delete `.ca/active.md`.
+- **If branch mode**: switch back to the base branch of the first workflow (or `main` if unavailable) so the working tree is in a clean known state.

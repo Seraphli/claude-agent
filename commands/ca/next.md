@@ -1,6 +1,6 @@
 # /ca:next — Execute Next Workflow Step
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 

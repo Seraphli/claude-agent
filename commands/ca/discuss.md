@@ -1,5 +1,7 @@
 # /ca:discuss — Discuss Requirements
 
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+
 ## Prerequisites
 
 1. Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
@@ -18,7 +20,9 @@ Perform automatic research before the discussion.
 
 #### 1a. Resolve model for ca-researcher
 
-Resolve model: `ca-researcher_model` override → `model_profile` (default: `balanced`) via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `model_profile` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `ca-researcher_model` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Resolve model: `ca-researcher_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 #### 1a-pre. Determine requirement type
 

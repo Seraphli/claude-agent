@@ -1,6 +1,6 @@
 # /ca:verify — Verify Results
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 
@@ -43,7 +43,9 @@ Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within
 
 ### 2. Resolve model for ca-verifier
 
-Resolve model: `ca-verifier_model` override → `model_profile` (default: `balanced`) via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `model_profile` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `ca-verifier_model` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Resolve model: `ca-verifier_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 ### 3. Execute auto verification
 
@@ -59,7 +61,7 @@ Launch a single `ca-verifier` agent with all `[auto]` criteria. The agent verifi
 
 #### 3c. Parallel verification (optional)
 
-Read `max_concurrency` from config (default: `4`). If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch (or all groups if within limit), launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
+Read `max_concurrency` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`. If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch (or all groups if within limit), launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
 - Its assigned criteria
 - All context files (REQUIREMENT.md/BRIEF.md, PLAN.md, SUMMARY.md)
 - The project root path

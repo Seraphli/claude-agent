@@ -1,6 +1,6 @@
 # /ca:switch — Switch Active Workflow
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 
@@ -47,3 +47,18 @@ Write the selected workflow ID to `.ca/active.md`.
 Tell the user the active workflow has been switched. Show the new active workflow's status and suggest the next command.
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
+
+### 4b. Switch git branch (if enabled)
+
+Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read the **target** workflow's STATUS.md for `branch_name`.
+
+If `use_branches` is `true` AND target workflow has `branch_name`:
+1. Check uncommitted changes: `git status --porcelain`. If not clean:
+   - `AskUserQuestion`: header "Git", question "Uncommitted changes detected. Stash before switching branch?", options:
+     - "Stash" — "Stash and switch"
+     - "Cancel" — "Cancel switch"
+   - If **Stash**: `git stash`.
+   - If **Cancel**: Revert `.ca/active.md` to previous workflow ID. Stop.
+2. Switch branch: `git checkout <branch_name>`.
+3. Tell the user the git branch has been switched.

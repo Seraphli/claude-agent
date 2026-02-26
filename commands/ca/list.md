@@ -1,6 +1,6 @@
 # /ca:list — List All Workflows
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Behavior
 
@@ -18,12 +18,14 @@ Read `.ca/active.md` to identify the currently active workflow.
 
 Present a table with all workflows:
 
-| | ID | Type | Step | Status Flags | Brief |
-|---|-----|------|------|-------------|-------|
-| → | feature-x | standard | plan | ✅init ✅discuss ⬜plan | Add feature X... |
-| | fix-bug | quick | execute | ✅init ✅discuss ✅plan ✅execute ⬜verify | Fix login bug... |
+| | ID | Type | Step | Branch | Status Flags | Brief |
+|---|-----|------|------|--------|-------------|-------|
+| → | feature-x | standard | plan | ca/feature-x | ✅init ✅discuss ⬜plan | Add feature X... |
+| | fix-bug | quick | execute | | ✅init ✅discuss ✅plan ✅execute ⬜verify | Fix login bug... |
 
 Use `→` to mark the active workflow.
+
+The Branch column is only shown when at least one workflow has a `branch_name` in its STATUS.md. If no workflows have a branch, omit the Branch column entirely.
 
 Show status flags as checkmarks (✅ completed, ⬜ pending).
 

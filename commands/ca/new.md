@@ -1,6 +1,6 @@
 # /ca:new — Start a New Requirement
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Behavior
 
@@ -122,6 +122,26 @@ verify_completed: false
 ```
 
 Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
+
+### 6b. Create git branch (if enabled)
+
+Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+
+If `use_branches` is `true`:
+1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, skip branch creation and do not add branch fields to STATUS.md.
+2. Record current branch: `git branch --show-current` → save as `base_branch`.
+3. Check uncommitted changes: `git status --porcelain`. If not clean:
+   - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+     - "Stash" — "Stash changes and create branch"
+     - "Skip branch" — "Don't create a branch for this workflow"
+   - If **Stash**: Run `git stash`.
+   - If **Skip branch**: Skip branch creation, do not add branch fields to STATUS.md. Continue to step 7.
+4. Create and switch to new branch: `git checkout -b ca/<workflow-id>`.
+5. Append to STATUS.md (after `verify_completed` line):
+   ```
+   branch_name: ca/<workflow-id>
+   base_branch: <base_branch>
+   ```
 
 ### 7. Confirm completion
 

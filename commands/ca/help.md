@@ -1,6 +1,6 @@
 # /ca:help — Command Reference
 
-Read `~/.claude/ca/config.md`. If missing, execute `Skill(ca:settings)` for initial setup, then continue.
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults). If all missing, execute `Skill(ca:settings)` for initial setup, then continue.
 
 Display all available CA commands in the user's preferred language:
 
@@ -14,16 +14,17 @@ Display all available CA commands in the user's preferred language:
 
 | Command | Description |
 |---------|-------------|
-| `/ca:new [description]` | Start a new requirement — creates `.ca/` directory, collects initial brief |
-| `/ca:quick [description]` | Quick workflow — skip discuss & research, go straight to plan |
+| `/ca:new [description]` | Start a new requirement — gather brief, create workflow + branch |
+| `/ca:quick [description]` | Quick workflow — brief + branch, skip discuss |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
 | `/ca:execute` | Execute the confirmed plan (uses ca-executor agent) |
-| `/ca:verify` | Self-check + user acceptance + git commit confirmation (uses ca-verifier agent) |
+| `/ca:verify` | Self-check + user acceptance (uses ca-verifier agent) |
+| `/ca:finish` | Wrap up workflow — version bump, merge branch, archive |
 | `/ca:next` | Auto-detect current step and execute the next one |
 | `/ca:switch` | Switch active workflow — select from available workflows |
 | `/ca:list` | List all workflows with status summary |
-| `/ca:batch` | Batch execute all plan-confirmed workflows (serial, with checkpoints) |
+| `/ca:batch` | Batch execute workflows — serial with branch/checkpoint mode |
 
 ## Context Management
 
@@ -53,20 +54,25 @@ Display all available CA commands in the user's preferred language:
 
 **Standard:**
 ```
-/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
+- `/ca:new` and `/ca:quick` create a workflow + dedicated branch
+- `/ca:execute` auto-commits changes on the branch
+- `/ca:verify` checks results on the branch
+- `/ca:finish` bumps version, merges branch, and archives the workflow
+
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 
 **Quick:**
 ```
-/ca:quick → /ca:plan → /ca:execute → /ca:verify
+/ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 
 **Multi-workflow:**
 ```
 /ca:new → /ca:discuss → /ca:plan   (repeat for multiple requirements)
-/ca:batch                            (batch execute all confirmed plans)
+/ca:batch                            (batch execute all confirmed plans, each on its branch)
 ```
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.

@@ -39,14 +39,16 @@ Two workflow modes are available:
 **Full workflow** — for requirements that need discussion:
 
 ```
-/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify
+/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 
 **Quick workflow** — for clear, simple changes:
 
 ```
-/ca:quick → /ca:plan → /ca:execute → /ca:verify
+/ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
+
+Each workflow optionally creates a dedicated git branch (`ca/<workflow-id>`) for isolated development.
 
 Use `/ca:next` at any point to automatically detect and run the next step.
 
@@ -57,6 +59,17 @@ Use `/ca:next` at any point to automatically detect and run the next step.
 /ca:switch                          (switch between workflows)
 /ca:batch                           (batch execute all confirmed plans)
 ```
+
+### Branch Management
+
+When `use_branches` is enabled (default), each workflow operates on a dedicated branch:
+
+- **Branch creation** — `/ca:new` or `/ca:quick` creates a `ca/<workflow-id>` branch from the current base branch
+- **Auto-commit** — after execution, changes are automatically committed to the workflow branch
+- **Finish** — `/ca:finish` squash-merges (or regular merge, based on `merge_strategy`) the workflow branch back to the base branch
+- **Cleanup** — the workflow branch is automatically deleted after merge when `auto_delete_branch` is true (default)
+
+This keeps your main branch clean and gives each requirement its own isolated history.
 
 ### 1. New Requirement — `/ca:new [description]`
 
@@ -78,11 +91,15 @@ If changes at a later step affect earlier confirmations, the system backtracks a
 
 ### 4. Execute — `/ca:execute`
 
-Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary.
+Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary. When branch management is enabled, changes are auto-committed to the workflow branch after execution.
 
 ### 5. Verify — `/ca:verify`
 
 Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails, asks you whether to auto-fix and retry (max 3 times) or stop for manual review. In batch mode, verification runs fully automated — skips manual criteria, user acceptance, and gitignore check; auto-commits on success; fails immediately without retry on failure. Manual criteria are confirmed with you one at a time. After acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
+
+### 6. Finish — `/ca:finish`
+
+Merges the workflow branch back to the base branch and cleans up. When `use_branches` is enabled, squash-merges (or regular merge based on `merge_strategy`) the `ca/<workflow-id>` branch into the base branch, then deletes the workflow branch if `auto_delete_branch` is true.
 
 ### Quick Mode — `/ca:quick [description]`
 
@@ -132,6 +149,9 @@ Additional settings:
 | `auto_proceed_to_verify` | Skip manual verify trigger after execution |
 | `max_concurrency` | Max parallel agents in execute/verify (default: `4`) |
 | `track_ca_files` | Version control for CA files: `none` (default), `all`, `.ca/`, or `.claude/rules/ca*` |
+| `use_branches` | Git branch per workflow: `true` (default) or `false` |
+| `merge_strategy` | How to merge workflow branch at finish: `squash` (default) or `merge` |
+| `auto_delete_branch` | Auto-delete workflow branch after merge: `true` (default) or `false` |
 
 Per-agent model overrides (e.g., `ca-verifier_model: opus`) are also supported.
 

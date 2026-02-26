@@ -1,6 +1,6 @@
 # /ca:execute — Execute Confirmed Plan
 
-Read `~/.claude/ca/config.md` (global) then `.ca/config.md` (workspace override).
+Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
 
 ## Prerequisites
 
@@ -28,7 +28,9 @@ If `.ca/map.md` missing and project is not empty: run `/ca:map` first. If empty 
 
 ### 2. Resolve model for ca-executor
 
-Resolve model: `ca-executor_model` override → `model_profile` (default: `balanced`) via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `model_profile` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `ca-executor_model` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Resolve model: `ca-executor_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 ### 3. Parse execution order
 
@@ -40,7 +42,7 @@ Launch a single `ca-executor` with step details inlined. Wait for completion bef
 
 ### 3b. Parallel execution
 
-Read `max_concurrency` from config (default: `4`). If items exceed limit, split into batches. Launch multiple `ca-executor` agents **in the same message**, each receiving:
+Read `max_concurrency` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`. If items exceed limit, split into batches. Launch multiple `ca-executor` agents **in the same message**, each receiving:
 - Step details inlined
 - REQUIREMENT.md/BRIEF.md content
 - Project root path
@@ -82,6 +84,18 @@ Set `execute_completed: true`, `current_step: execute`.
 
 If `.ca/map.md` exists: update to reflect changes, update date.
 If missing (empty project): create via `/ca:map`.
+
+### 7b. Auto-commit on branch (if enabled)
+
+Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read STATUS.md for `branch_name`.
+
+If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
+1. Verify current git branch matches `branch_name`: `git branch --show-current`. If mismatch, warn user and skip commit.
+2. Check for changes: `git status --porcelain`. If no changes, skip.
+3. Stage all changes: `git add -A`.
+4. Read BRIEF.md first line (after `# Brief`) for title.
+5. Commit: `git commit -m "wip: <brief title>"`.
 
 ### 8. Auto-proceed to verification
 
