@@ -1,12 +1,12 @@
 # /ca:execute — Execute Confirmed Plan
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Read `.ca/active.md` to get the active workflow ID. If it doesn't exist, tell the user to run `/ca:new` first and stop.
-2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-3. Read `.ca/workflows/<active_id>/STATUS.md` and verify `plan_confirmed: true`. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
+1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
+2. Verify `plan_confirmed: true` from the parsed JSON. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
 
 ## Behavior
 
@@ -28,8 +28,7 @@ If `.ca/map.md` missing and project is not empty: run `/ca:map` first. If empty 
 
 ### 2. Resolve model for ca-executor
 
-Read `model_profile` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
-Read `ca-executor_model` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `model_profile` and `ca-executor_model` from the config JSON already loaded.
 Resolve model: `ca-executor_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
 ### 3. Parse execution order
@@ -42,7 +41,7 @@ Launch a single `ca-executor` with step details inlined. Wait for completion bef
 
 ### 3b. Parallel execution
 
-Read `max_concurrency` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`. If items exceed limit, split into batches. Launch multiple `ca-executor` agents **in the same message**, each receiving:
+Read `max_concurrency` from the config JSON already loaded. If items exceed limit, split into batches. Launch multiple `ca-executor` agents **in the same message**, each receiving:
 - Step details inlined
 - REQUIREMENT.md/BRIEF.md content
 - Project root path
@@ -87,7 +86,7 @@ If missing (empty project): create via `/ca:map`.
 
 ### 7b. Auto-commit on branch (if enabled)
 
-Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `use_branches` from the config JSON already loaded.
 Read STATUS.md for `branch_name`.
 
 If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
@@ -101,7 +100,7 @@ If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
 
 If `batch_mode: true`: do NOT auto-proceed. Tell user execution is complete and stop.
 
-Otherwise check `auto_proceed_to_verify`:
+Otherwise check `auto_proceed_to_verify` from the config JSON:
 - `true`: Tell user complete, execute `Skill(ca:verify)`.
 - `false`/not set: Suggest next steps:
   - `/ca:verify` (or `/ca:next`)

@@ -1,6 +1,6 @@
 {
   "name": "claude-agent",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "User-controlled Claude Code development workflow system",
   "bin": {
     "claude-agent": "bin/install.js"
@@ -11,7 +11,8 @@
     "agents",
     "hooks",
     "memories",
-    "references"
+    "references",
+    "scripts"
   ],
   "scripts": {
     "install-ca": "node bin/install.js",

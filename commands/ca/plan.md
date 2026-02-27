@@ -1,12 +1,12 @@
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Read `.ca/active.md` to get the active workflow ID (`<active_id>`). If the file doesn't exist, tell the user to run `/ca:new` first and stop.
-2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-3. Read `.ca/workflows/<active_id>/STATUS.md` and check `workflow_type`. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
+2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
 ## Behavior
 

@@ -1,20 +1,17 @@
 # /ca:status — Show Workflow Status
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Steps
 
-### 1. Read active workflow ID
+### 1. Read active workflow status
 
-Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` doesn't exist, tell the user to run `/ca:new` first.
+Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+- If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 
-### 2. Check initialization
+### 2. Display status
 
-If `.ca/workflows/<active_id>/STATUS.md` doesn't exist, tell the user to run `/ca:new` first.
-
-### 3. Read and display status
-
-Read STATUS.md and display: active workflow ID, current step, completed/pending steps, recommended next action.
+Use the parsed JSON to display: active workflow ID, current step, completed/pending steps, recommended next action.
 
 If STATUS.md contains `branch_name`:
 - Display: Branch: `<branch_name>` (base: `<base_branch>`)

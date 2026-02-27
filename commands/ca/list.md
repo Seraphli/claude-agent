@@ -1,18 +1,15 @@
 # /ca:list — List All Workflows
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Behavior
 
 ### 1. Scan workflows
 
-Check if `.ca/workflows/` exists. If not, tell the user there are no active workflows.
+Run: `node ~/.claude/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array.
+If the array is empty, tell the user there are no active workflows.
 
-Scan `.ca/workflows/` for subdirectories. For each, read:
-- `STATUS.md` — workflow_type, current_step, all status flags
-- `BRIEF.md` — first line after `# Brief` for description
-
-Read `.ca/active.md` to identify the currently active workflow.
+The list includes `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields for each workflow. For full status flags (e.g., `plan_confirmed`, `execute_completed`), read the individual `STATUS.md` files directly.
 
 ### 2. Display summary table
 

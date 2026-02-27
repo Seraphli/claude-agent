@@ -1,12 +1,12 @@
 # /ca:finish — Wrap Up Workflow
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Read `.ca/active.md` to get the active workflow ID. If it doesn't exist, tell the user to run `/ca:new` first and stop.
-2. Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
-3. Read `.ca/workflows/<active_id>/STATUS.md` and verify `verify_completed: true`. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
+1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
+2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
 
 ## Behavior
 
@@ -28,7 +28,7 @@ Update the version at the found location. If multiple locations exist (e.g., `pa
 
 ### 2. Gitignore Check
 
-Read `track_ca_files` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `track_ca_files` from the config JSON already loaded.
 
 Define the CA gitignore patterns:
 - `.ca/` pattern: `.ca/`
@@ -62,7 +62,7 @@ For patterns that should NOT be in `.gitignore` but are present:
 
 ### 3. Git commit and merge
 
-Read from config (`.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`):
+Read from the config JSON already loaded:
 - `use_branches`
 - `merge_strategy`
 - `auto_delete_branch`

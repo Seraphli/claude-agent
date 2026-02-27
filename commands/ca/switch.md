@@ -1,6 +1,6 @@
 # /ca:switch — Switch Active Workflow
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
@@ -12,15 +12,7 @@ Check `.ca/workflows/` directory exists and contains at least one workflow. If n
 
 ### 1. List available workflows
 
-Scan `.ca/workflows/` for subdirectories. For each, read its `STATUS.md` to get:
-- `workflow_id`
-- `workflow_type` (standard/quick)
-- `current_step`
-- Key status flags
-
-Also read its `BRIEF.md` first line (after `# Brief`) for a short description.
-
-Read `.ca/active.md` to identify the currently active workflow.
+Run: `node ~/.claude/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array to get all workflows with their `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields.
 
 ### 2. Present workflow list
 
@@ -50,7 +42,7 @@ If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/cl
 
 ### 4b. Switch git branch (if enabled)
 
-Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `use_branches` from the config JSON already loaded.
 Read the **target** workflow's STATUS.md for `branch_name`.
 
 If `use_branches` is `true` AND target workflow has `branch_name`:

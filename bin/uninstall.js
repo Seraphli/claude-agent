@@ -48,6 +48,15 @@ if (fs.existsSync(referencesDir)) {
   console.log("References directory not found, skipping.");
 }
 
+// Remove scripts directory
+const scriptsDir = path.join(caConfigDir, "scripts");
+if (fs.existsSync(scriptsDir)) {
+  fs.rmSync(scriptsDir, { recursive: true });
+  console.log(`Removed ${scriptsDir}`);
+} else {
+  console.log("Scripts directory not found, skipping.");
+}
+
 // Deregister statusline from settings.json
 if (fs.existsSync(settingsPath)) {
   const settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"));

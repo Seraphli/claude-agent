@@ -1,6 +1,6 @@
 # /ca:quick — Quick Workflow
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Behavior
 
@@ -12,9 +12,9 @@ If `~/.claude/ca/config.md` does not exist, execute `Skill(ca:settings)` to trig
 
 ### 2. Check for existing workflows
 
-Read `.ca/active.md` (if exists) to get the currently active workflow ID.
+Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 3.
 
-If there is an active workflow, read `.ca/workflows/<active_id>/STATUS.md` and check if `verify_completed` is `false`.
+If successful, check if `verify_completed` is `false` in the parsed JSON.
 
 If there is an unfinished active workflow:
 - **Warn the user**: Tell them there is an unfinished workflow `<active_id>` in `.ca/workflows/`.
@@ -125,7 +125,7 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 ### 6b. Create git branch (if enabled)
 
-Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+Read `use_branches` from the config JSON already loaded.
 
 If `use_branches` is `true`:
 1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, skip branch creation and do not add branch fields to STATUS.md.

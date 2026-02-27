@@ -1,0 +1,40 @@
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+// Parse key: value lines from a markdown config file
+function parseConfigFile(filePath) {
+  if (!fs.existsSync(filePath)) return {};
+  const lines = fs.readFileSync(filePath, "utf8").split("\n");
+  const result = {};
+  for (const line of lines) {
+    // Skip comment and heading lines
+    if (line.startsWith("#") || line.startsWith("//")) continue;
+    const match = line.match(/^(\w[\w-]*\w?):\s*(.+)$/);
+    if (!match) continue;
+    const [, key, rawValue] = match;
+    const value = rawValue.trim();
+    if (value === "true") result[key] = true;
+    else if (value === "false") result[key] = false;
+    else if (/^\d+$/.test(value)) result[key] = Number(value);
+    else result[key] = value;
+  }
+  return result;
+}
+
+const args = process.argv.slice(2);
+const projectRootIdx = args.indexOf("--project-root");
+const projectRoot = projectRootIdx !== -1 ? args[projectRootIdx + 1] : process.cwd();
+
+const homeDir = os.homedir();
+const workspaceConfig = path.join(projectRoot, ".ca", "config.md");
+const globalConfig = path.join(homeDir, ".claude", "ca", "config.md");
+const defaultsConfig = path.join(homeDir, ".claude", "ca", "references", "config-defaults.md");
+
+const defaults = parseConfigFile(defaultsConfig);
+const global_ = parseConfigFile(globalConfig);
+const workspace = parseConfigFile(workspaceConfig);
+
+// Workspace > global > defaults priority
+const resolved = Object.assign({}, defaults, global_, workspace);
+process.stdout.write(JSON.stringify(resolved, null, 2) + "\n");

@@ -1,18 +1,17 @@
 # /ca:next — Execute Next Workflow Step
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-Read `.ca/active.md` to get the active workflow ID. If `.ca/active.md` does not exist, tell the user to run `/ca:new` first and stop.
-
-Check `.ca/workflows/<active_id>/STATUS.md` exists. If not, tell the user to run `/ca:new` first and stop.
+Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+- If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
 ### 1. Read current status
 
-Read `.ca/workflows/<active_id>/STATUS.md` and determine the current workflow state.
+Use the parsed JSON from the prerequisites to determine the current workflow state.
 
 ### 2. Determine and execute next step
 

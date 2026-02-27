@@ -120,6 +120,13 @@ syncDir(srcReferencesDir, targetReferencesDir);
 const refCount = fs.readdirSync(targetReferencesDir).filter((f) => f.endsWith(".md")).length;
 console.log(`  ${green}✓${reset} Installed ${refCount} references`);
 
+// Copy scripts
+const srcScriptsDir = path.join(srcDir, "scripts");
+const targetScriptsDir = path.join(caConfigDir, "scripts");
+syncDir(srcScriptsDir, targetScriptsDir);
+const scriptCount = fs.readdirSync(targetScriptsDir).filter((f) => f.endsWith(".js")).length;
+console.log(`  ${green}✓${reset} Installed ${scriptCount} scripts`);
+
 // Create rules directory and install rules files
 const rulesDir = path.join(homeDir, ".claude", "rules");
 fs.mkdirSync(rulesDir, { recursive: true });
@@ -186,7 +193,8 @@ if (!Array.isArray(settings.permissions.allow)) settings.permissions.allow = [];
 const readPermissions = [
   "Read(.ca/*)",
   "Read(.ca/**/*)",
-  "Read(~/.claude/ca/*)"
+  "Read(~/.claude/ca/*)",
+  `Bash(node "${path.join(caConfigDir, 'scripts')}"/*)`
 ];
 for (const perm of readPermissions) {
   if (!settings.permissions.allow.includes(perm)) {

@@ -1,13 +1,14 @@
 # /ca:batch — Batch Execute Workflows
 
-Read config (use Read tool, not search/glob): `.ca/config.md` (workspace) → `~/.claude/ca/config.md` (global) → `~/.claude/ca/references/config-defaults.md` (defaults).
+Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-Check `.ca/workflows/` exists. Scan for eligible workflows:
+Run: `node ~/.claude/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array to find eligible workflows:
 - `plan_confirmed: true` and `execute_completed: false` (needs execute + verify)
 - `execute_completed: true` and `verify_completed: false` (needs verify only)
 
+Note: the list command returns summary fields only. Read each eligible workflow's STATUS.md directly for full field values when needed.
 Already completed workflows (`verify_completed: true`) are skipped.
 If none found, tell the user there are no workflows ready for batch execution and stop.
 
@@ -45,7 +46,7 @@ For each workflow in order:
 #### 3a. Set active and prepare
 1. Write the workflow ID to `.ca/active.md` (set as active).
 2. Write `batch_mode: true` to the workflow's STATUS.md.
-3. Read `use_branches` from config: `.ca/config.md` → `~/.claude/ca/config.md` → `~/.claude/ca/references/config-defaults.md`.
+3. Read `use_branches` from the config JSON already loaded.
    Read STATUS.md for `branch_name`.
 4. **If branch mode** (`branch_name` exists): `git checkout <branch_name>`.
 5. **If non-branch mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
