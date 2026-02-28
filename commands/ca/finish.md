@@ -12,21 +12,7 @@ Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
-### 1. Bump version
-
-Read REQUIREMENT.md/BRIEF.md + PLAN.md. Determine bump type:
-- Breaking → major (X.0.0)
-- Feature → minor (x.Y.0)
-- Fix/refactor/docs/chore → patch (x.y.Z)
-
-Find the project's version location. Search in order:
-1. Known version files: `package.json`, `pyproject.toml`, `Cargo.toml`, `version.txt`, `VERSION`
-2. If none found, use Grep to search for version patterns in source code (e.g., `Version = "`, `VERSION = "`, `const version`, `var version`, `__version__`)
-3. If still not found, ask the user where the version is defined
-
-Update the version at the found location. If multiple locations exist (e.g., `package.json` + `package-lock.json`), update all of them.
-
-### 2. Gitignore Check
+### 1. Gitignore Check
 
 Read `track_ca_files` from the config JSON already loaded.
 
@@ -60,7 +46,32 @@ For patterns that should NOT be in `.gitignore` but are present:
     - "No, skip" — "Leave .gitignore as is"
 - If **Yes, remove**: Remove matching lines from `.gitignore`.
 
-### 3. Git commit and merge
+### 2. Git commit and merge
+
+**Conventional Commit format** (https://www.conventionalcommits.org/):
+
+```
+<type>[(<scope>)][!]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`, `ci`, `build`, `revert`.
+
+- `!` after type/scope indicates a breaking change.
+- `BREAKING CHANGE:` in footer also indicates a breaking change.
+
+**Semver version bump** (https://semver.org/) — derived from the confirmed commit type:
+- `feat!` or `BREAKING CHANGE:` footer → major (X.0.0)
+- `feat` → minor (x.Y.0)
+- All other types (`fix`, `refactor`, `docs`, `chore`, `perf`, `test`, `style`, `ci`, `build`) → patch (x.y.Z)
+
+Find the project's version location. Search in order:
+1. Known version files: `package.json`, `pyproject.toml`, `Cargo.toml`, `version.txt`, `VERSION`
+2. If none found, use Grep to search for version patterns in source code
+3. If still not found, ask the user where the version is defined
 
 Read from the config JSON already loaded:
 - `use_branches`
@@ -71,8 +82,8 @@ Read STATUS.md for `branch_name` and `base_branch`.
 
 **If `use_branches` is `true` AND `branch_name` exists** (branch mode):
 
-#### 3a. Ensure branch changes are committed
-1. `git status --porcelain` — check for uncommitted changes. If no changes, skip to 3b.
+#### 2a. Ensure branch changes are committed
+1. `git status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
 2. `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
 3. If yes:
    - Run `git diff --stat` and `git status` to gather info.
@@ -80,16 +91,36 @@ Read STATUS.md for `branch_name` and `base_branch`.
    - Show the diff summary and commit message to the user. `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
    - If **Revise**: let user edit the message, re-confirm.
    - Stage specific files and commit (no `git add -A`).
-4. If no: proceed to step 3b.
+4. If no: proceed to step 2b.
 
-#### 3b. Merge to base branch
+#### 2b. Merge to base branch
 1. Switch to base branch: `git checkout <base_branch>`.
 2. Based on `merge_strategy`:
-   - `squash`: Run `git merge --squash <branch_name>`. Then generate a summary commit message from PLAN.md + SUMMARY.md (format: `<type>: <concise title>` with body). Run `git commit` with the generated message.
-   - `merge`: Run `git merge <branch_name> --no-ff -m "<message>"` with generated message.
-3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 3c or later steps.
+   - `squash`: Run `git merge --squash <branch_name>`. Then:
+     1. Generate a commit message from PLAN.md + SUMMARY.md following conventional commit format.
+     2. Derive the semver bump type from the commit type. Calculate the new version number.
+     3. Show both to the user:
+        ```
+        Commit message:
+        <type>[(<scope>)][!]: <description>
 
-#### 3c. Delete branch
+        <body>
+
+        Version bump: <old> → <new> (<bump type>)
+        ```
+     4. `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+        - If **Revise**: let user edit the message and/or version bump, re-confirm.
+     5. After confirmation: bump the version in the project files, then stage all changes and run `git commit` with the confirmed message.
+   - `merge`:
+     1. Generate a merge commit message following conventional commit format.
+     2. Derive the semver bump type. Calculate the new version number.
+     3. Show both to the user (same format as squash).
+     4. `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+        - If **Revise**: let user edit, re-confirm.
+     5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
+3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
+
+#### 2c. Delete branch
 1. If `auto_delete_branch` is `true`: Run `git branch -d <branch_name>`. Inform user branch was deleted.
 2. If `auto_delete_branch` is `false`: Keep branch, inform user.
 
@@ -97,10 +128,25 @@ Read STATUS.md for `branch_name` and `base_branch`.
 
 Use original commit logic:
 - `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
-- If yes: `git diff --stat`, generate message, confirm with user, stage specific files, commit.
-- If no: proceed to step 4.
+- If yes:
+  1. `git diff --stat` to gather info.
+  2. Generate a commit message following conventional commit format.
+  3. Derive the semver bump type. Calculate the new version number.
+  4. Show both to the user:
+     ```
+     Commit message:
+     <type>[(<scope>)][!]: <description>
 
-### 4. Update todo
+     <body>
+
+     Version bump: <old> → <new> (<bump type>)
+     ```
+  5. `AskUserQuestion`: header "Commit", question "Confirm the commit and version bump?", options "Confirm"/"Revise".
+     - If **Revise**: let user edit the message and/or version bump, re-confirm.
+  6. After confirmation: bump the version in the project files, stage specific files, commit with the confirmed message.
+- If no: proceed to step 3.
+
+### 3. Update todo
 
 Read `.ca/workflows/<active_id>/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
 If it does:
@@ -112,7 +158,7 @@ If it does:
   e. Move the completed todo item to the `# Archive` section at the bottom of the file.
   f. Save the updated `.ca/todos.md`.
 
-### 5. Archive and cleanup
+### 4. Archive and cleanup
 
 1. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
 2. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md, VERIFY-REPORT.md, rounds/ directory if exists, and any other files).
