@@ -14,66 +14,78 @@ Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <
 
 Goal: understand **exactly** what the user wants before code is written.
 
-### 1. Automated Research
-
-Perform automatic research before the discussion.
+### 1. Adaptive Research
 
 #### 1a. Resolve model for ca-researcher
 
 Read `model_profile` and `ca-researcher_model` from the config JSON already loaded.
 Resolve model: `ca-researcher_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
 
-#### 1a-pre. Determine requirement type
+#### 1b. Assess requirement and decide approach
 
-Analyze BRIEF.md content to determine the requirement type:
-- **New feature**: Adding functionality, enhancing, refactoring, documentation
-- **Bug fix**: Fixing broken behavior, resolving errors, regressions
+Read BRIEF.md and `.ca/map.md` (if exists). Assess two things:
 
-Look for keywords: "fix", "bug", "broken", "error", "regression" → bug fix; "add", "new", "implement", "enhance" → feature.
+1. **Requirement clarity**: Is the requirement description clear enough to determine what to research? Or is it too vague to even know where to start?
+2. **Approach confidence**: Based on your current knowledge, do you already have a rough idea of how to implement this?
 
-#### 1b. Launch researchers
+Based on your assessment, follow ONE of these paths:
 
-**If new feature** (default): Launch 4 parallel ca-researcher agents as currently defined (Stack, Features, Architecture, Pitfalls).
+**Path A — Requirement is vague** (unclear scope, ambiguous goals, not enough detail to determine research directions):
+- Ask 1-3 focused preliminary questions to clarify the requirement scope. Use `AskUserQuestion` where appropriate.
+- After the user's answers provide enough clarity, proceed to step 1c.
 
-**If bug fix**:
-1. Parse bug descriptions from BRIEF.md. Identify each distinct bug/issue.
-2. **Single bug**: Launch 1 ca-researcher with prompt: "Research the root cause of this bug: <description>. Examine relevant code, trace the issue, and report findings."
-3. **Multiple bugs**: Launch multiple ca-researcher agents in parallel (one per bug, up to `max_concurrency`), each with a focused root-cause prompt.
-4. Skip the 4-dimension agents.
+**Path B — Requirement is clear but approach is uncertain** (you know what the user wants, but don't know how to achieve it):
+- Proceed directly to step 1c.
 
-Present findings under "## Research Findings" with bug-specific subsections.
+**Path C — Requirement is clear and approach is roughly known** (you have a reasonable idea of what to do):
+- Present your preliminary approach briefly (2-3 sentences describing what you'd do).
+- Proceed to step 1c (where the user can choose to skip research).
 
-Launch **4 parallel ca-researcher agents** (single message), each with resolved model. Pass each:
+#### 1c. Research confirmation
+
+Based on your understanding of the requirement, propose research directions. The goal is to fill knowledge gaps needed to form a solid plan.
+
+**For new features**: You MAY use the 4 standard dimensions (Stack, Features, Architecture, Pitfalls) as a starting template. However, you SHOULD also consider whether task-specific directions would be more useful, and you MAY replace or supplement the standard dimensions.
+
+**For all other types** (bug fix, refactoring, docs, creative, etc.): Generate 2-4 task-specific research directions based on what you actually need to learn for THIS requirement. Do NOT use fixed templates. Examples:
+- "Investigate the authentication flow in module X to understand current behavior"
+- "Check how the config system resolves values across tiers"
+- "Research common plot structures for mystery novels"
+
+Present the research directions to the user, along with context:
+- If Path C (approach known): mention that you already have a rough approach and research may not be essential, but these directions could help confirm or refine it.
+- If Path A/B: explain what you're uncertain about and why these directions would help.
+
+Use `AskUserQuestion`:
+- header: "Research"
+- question: "Here are the research directions I'd suggest. How would you like to proceed?"
+- options:
+  - "Run all (<N>)" — "Research all <N> proposed directions"
+  - "Select directions" — "Choose which directions to research"
+  - "Skip research" — "Skip research, go straight to discussion"
+
+**If Run all**: Proceed to step 1d with all directions.
+**If Skip research**: Skip steps 1d and 1e. Proceed to step 2.
+**If Select directions**: Use `AskUserQuestion` with `multiSelect: true`:
+  - header: "Directions"
+  - question: "Select which directions to research:"
+  - options: (the proposed directions, max 4)
+  - If user selects none (Other with skip intent): treat as Skip research.
+  - Otherwise: proceed to step 1d with selected directions only.
+
+#### 1d. Launch researchers
+
+Launch ca-researcher agents **only for the directions confirmed by the user**. Use resolved model from step 1a. Pass each agent:
 - The full content of BRIEF.md
 - The project root path
 - The content of `.ca/map.md` (if exists)
-- A specific research dimension:
+- The specific research prompt for each direction
 
-**Agent 1 — Stack**: "Research the technology stack relevant to this requirement. Identify frameworks, libraries, dependencies, and technical constraints that apply."
+Launch in parallel (up to `max_concurrency`).
 
-**Agent 2 — Features**: "Research existing features and code related to this requirement. Find relevant files, functions, patterns, and current behavior."
+#### 1e. Present research findings
 
-**Agent 3 — Architecture**: "Research the architecture relevant to this requirement. Analyze module structure, data flow, integration points, and dependencies between components."
-
-**Agent 4 — Pitfalls**: "Research potential risks and pitfalls for this requirement. Check error history (`.claude/rules/ca-errors.md`), known issues, and common mistakes in similar changes."
-
-#### 1c. Present research findings
-
-After all 4 agents complete, present a merged summary:
-
-## Research Findings
-
-### Stack
-<findings from Agent 1>
-
-### Features
-<findings from Agent 2>
-
-### Architecture
-<findings from Agent 3>
-
-### Pitfalls
-<findings from Agent 4>
+After all agents complete, present a merged summary organized by research direction.
 
 ### 2. Start the discussion
 
@@ -87,7 +99,7 @@ Ask ONE question at a time (most important first). Focus on: Scope, Behavior, Co
 
 Use `AskUserQuestion` for questions with clear options. Reserve plain text for open-ended questions.
 
-**Supplementary Research**: Launch additional ca-researcher agents if the user raises questions needing investigation.
+**Supplementary Research**: During discussion, if new uncertainties emerge that need investigation, propose additional research directions to the user and launch ca-researcher agents after confirmation. Research is not limited to step 1 — it can happen at any point during discussion when knowledge gaps are identified.
 
 ### 4. Present requirement summary
 

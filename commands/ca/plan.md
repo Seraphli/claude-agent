@@ -48,33 +48,42 @@ If `workflow_type: standard`, skip this step (research was already done in discu
 
 If `workflow_type: quick`:
 
-1. **Analyze requirement complexity**: Read BRIEF.md content and assess whether the requirement is simple enough to skip research. **Simple** = ALL of: narrow scope (≤2 files), no architectural changes, no new dependencies. Examples: doc updates, config changes, simple fixes.
+#### 1b-i. Assess requirement and approach
 
-2. **Based on complexity assessment**:
-   - **If the requirement appears simple**: Use `AskUserQuestion` to ask the user:
-     - header: "Research"
-     - question: "This requirement appears simple enough to skip the 4-dimension research. Skip research and go straight to planning?"
-     - options:
-       - "Skip research" — "Go directly to planning"
-       - "Run research" — "Execute 4-dimension research first"
-     - If **Skip research**: Skip the rest of step 1b AND skip step 1c entirely. Proceed directly to step 2 (Draft the plan).
-     - If **Run research**: Continue with step 3 below.
-   - **If the requirement is complex**: Proceed directly with step 3 below (no need to ask).
+Read BRIEF.md and `.ca/map.md` (if exists). Assess:
 
-3. **Determine requirement type and execute research**:
-   1. **Analyze BRIEF.md content** to determine requirement type:
-      - Look for keywords: "fix", "bug", "broken", "error", "regression" → **bug fix**
-      - Look for keywords: "add", "new", "implement", "enhance" → **new feature**
-   2. **Based on requirement type**:
-      - **New feature**: Execute 4-dimension research (Stack, Features, Architecture, Pitfalls):
-        1. Resolve model for ca-researcher (same logic as discuss).
-        2. Launch 4 parallel ca-researcher agents with BRIEF.md content, project root, and map.
-        3. Present merged research findings to the user.
-      - **Bug fix**: Execute focused root-cause research:
-        1. Parse bug descriptions from BRIEF.md.
-        2. Resolve model for ca-researcher.
-        3. Launch 1 ca-researcher agent per bug (up to max_concurrency) with prompt: "Investigate the root cause of this bug: <bug>. Read relevant source code, trace the problem, report findings with file/line references."
-        4. Present findings to the user.
+1. **Requirement clarity**: Is it clear enough to determine research directions?
+2. **Approach confidence**: Do you already have a rough idea of how to implement this?
+
+**If requirement is vague**: Ask 1-3 focused preliminary questions to clarify scope before proposing research directions.
+
+#### 1b-ii. Research confirmation
+
+Based on your understanding, propose research directions:
+
+**For new features**: You MAY use the 4 standard dimensions (Stack, Features, Architecture, Pitfalls) as a starting template, or generate task-specific directions, or a mix of both.
+
+**For all other types**: Generate 2-4 task-specific research directions based on what you need to learn for this specific requirement. No fixed templates.
+
+Present directions to the user with context:
+- If approach is already clear: mention this, suggest research may not be essential but could help confirm.
+- If uncertain: explain what you need to learn and why.
+
+Use `AskUserQuestion`:
+- header: "Research"
+- question: "Here are the research directions I'd suggest. How would you like to proceed?"
+- options:
+  - "Run all (<N>)" — "Research all <N> proposed directions"
+  - "Select directions" — "Choose which directions to research"
+  - "Skip research" — "Go straight to planning"
+
+**If Run all**: Proceed to launch all.
+**If Skip research**: Skip rest of 1b AND 1c. Go to step 2 (Draft the plan).
+**If Select directions**: `AskUserQuestion` with `multiSelect: true`, header "Directions", question "Select which directions to research:", options = proposed directions. If none selected, treat as skip.
+
+#### 1b-iii. Launch and present
+
+Resolve model for ca-researcher (same logic as discuss). Launch agents only for confirmed directions, each with BRIEF.md content, project root, map, and direction-specific prompt. Launch in parallel (up to `max_concurrency`). Present findings to user.
 
 **IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
 
