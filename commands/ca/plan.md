@@ -131,7 +131,7 @@ The executor must be able to follow mechanically without design decisions.
 
 #### Confirmation 1: Requirement Understanding
 
-**IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2.
+**IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2a/2b.
 
 Present: "I understand you want: [concise summary]"
 
@@ -139,21 +139,30 @@ Present: "I understand you want: [concise summary]"
 
 If **Not correct**: ask what's wrong, correct, re-ask.
 
-#### Confirmation 2: Approach and Method
+#### Confirmation 2a: Rough Plan
 
-Present the plan in TWO parts:
-
-**Part 1 — Outline** (3 sections):
+Present a rough plan with 3 sections:
 
 1. **Approach**: 1-2 sentences (prose, not list)
-2. **Files**: Bullet list of files to modify/create
-3. **Implementation Steps**: Pure list outline — short titles only, no descriptions/prose. Ordered = sequential, unordered = parallel.
+2. **Files**: Bullet list of files to modify/create, with a brief note on what changes for each file
+3. **Expected Effect**: What the end result looks like — describe the observable behavior or output after implementation
 
-**Part 2 — Step Details**: Detailed instructions per step with exact changes, locations, before/after.
+`AskUserQuestion`: header "Rough Plan", question "Is this rough plan feasible?", options "Feasible"/"Not feasible".
 
-`AskUserQuestion`: header "Approach", question "Do you agree with this approach?", options "Agree"/"Disagree".
+If **Not feasible**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2a.
 
-If **Disagree**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2.
+#### Confirmation 2b: Detailed Plan
+
+Only generate detailed plan AFTER Confirmation 2a passes.
+
+Present:
+
+1. **Implementation Steps**: Pure list outline — short titles only, no descriptions/prose. Ordered = sequential, unordered = parallel.
+2. **Step Details**: Detailed instructions per step with exact changes, locations, before/after.
+
+`AskUserQuestion`: header "Detailed Plan", question "Do you agree with this detailed plan?", options "Agree"/"Disagree".
+
+If **Disagree**: ask what to change, revise. If change affects Confirmation 2a or 1, re-ask affected confirmations in order first.
 
 #### Confirmation 3: Expected Results
 
@@ -161,7 +170,7 @@ Present **two separate sections**: Expected Results (observable end state) and S
 
 `AskUserQuestion`: header "Results", question "Are these the expected results?", options "Yes"/"No".
 
-If **No**: revise. If change affects Confirmation 2 or 1, re-ask affected confirmations in order first.
+If **No**: revise. If change affects Confirmation 2b, 2a, or 1, re-ask affected confirmations in order first.
 
 ### 3b. Self-check: Requirements Coverage
 
@@ -234,6 +243,7 @@ Tag each criterion `[auto]` or `[manual]`:
 ### 5. Update STATUS.md
 
 Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
+Also set `status_note` to a context-aware summary, e.g.: "Plan confirmed. Ready for execution." (fix mode: "Fix round N plan confirmed. Ready for execution.")
 
 Tell the user the plan is confirmed. Suggest next steps:
 - `/ca:execute` (or `/ca:next`)

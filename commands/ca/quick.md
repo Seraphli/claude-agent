@@ -26,7 +26,7 @@ If there is an unfinished active workflow:
     - "Keep and start new" — "Keep existing workflow, create a new one alongside it"
     - "Archive and start new" — "Archive existing workflow to history, then create new"
     - "Continue current" — "Continue the existing workflow instead"
-- If **Keep and start new**: Leave the existing workflow in `workflows/`, continue to create new.
+- If **Keep and start new**: Read the existing workflow's STATUS.md, then append `status_note: Switched away during <current_step> phase.` to it. Leave the existing workflow in `workflows/`, continue to create new.
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
 - If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:fix` to go back.
 
@@ -127,20 +127,30 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 Read `use_branches` from the config JSON already loaded.
 
+1. Check uncommitted changes: `git status --porcelain`. If not clean:
+   - If `use_branches` is `true`:
+     - Record current branch: `git branch --show-current` → save as `base_branch`.
+     - If `base_branch` starts with `ca/` (workflow branch): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+       - "Commit" — "Commit changes to current branch before proceeding"
+       - "Skip branch" — "Don't create a branch for this workflow"
+     - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - If **Skip branch**: Skip branch creation, do not add branch fields to STATUS.md. Continue to step 7.
+   - If `use_branches` is `false`:
+     - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+       - "Commit" — "Commit changes before starting workflow"
+       - "Ignore" — "Continue without handling uncommitted changes"
+     - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - If **Ignore**: Continue to step 7.
+
 If `use_branches` is `true`:
 1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, skip branch creation and do not add branch fields to STATUS.md.
-2. Record current branch: `git branch --show-current` → save as `base_branch`.
-3. Check uncommitted changes: `git status --porcelain`. If not clean:
-   - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
-     - "Stash" — "Stash changes and create branch"
-     - "Skip branch" — "Don't create a branch for this workflow"
-   - If **Stash**: Run `git stash`.
-   - If **Skip branch**: Skip branch creation, do not add branch fields to STATUS.md. Continue to step 7.
-4. Create and switch to new branch: `git checkout -b ca/<workflow-id>`.
-5. Append to STATUS.md (after `verify_completed` line):
+2. Switch to main branch: `git checkout main`.
+3. Create and switch to new branch: `git checkout -b ca/<workflow-id>`.
+4. Append to STATUS.md (after `verify_completed` line):
    ```
    branch_name: ca/<workflow-id>
-   base_branch: <base_branch>
+   base_branch: main
    ```
 
 ### 7. Confirm completion
@@ -152,6 +162,8 @@ If `use_branches` is `true`:
 - Execute any part of the requirement task
 
 All research, analysis, and implementation belong to later phases (`/ca:plan`, `/ca:execute`). Simply record the user's description verbatim and create the workflow files.
+
+Also set `status_note: Quick workflow created. Ready for planning.` in this workflow's STATUS.md (append the line after the last existing line).
 
 Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
 - `/ca:plan` (or `/ca:next`)

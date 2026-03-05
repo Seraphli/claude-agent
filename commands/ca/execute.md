@@ -79,6 +79,8 @@ Display to the user:
 
 Set `execute_completed: true`, `current_step: execute`.
 
+Also set `status_note` to a context-aware summary of what was executed, e.g.: "Executed: <brief description of changes made>. Ready for verification."
+
 ### 7. Update codebase map
 
 If `.ca/map.md` exists: update to reflect changes, update date.

@@ -135,7 +135,7 @@ Use `AskUserQuestion` with:
 1. ...
 2. ...
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Tell the user discussion is complete. Suggest next steps:
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Also set `status_note` to a context-aware summary, e.g.: "Requirements discussed and confirmed. Ready for planning." Tell the user discussion is complete. Suggest next steps:
 - `/ca:plan` (or `/ca:next`)
 - `/clear` to free context
 

@@ -45,7 +45,7 @@ For each workflow in order:
 
 #### 3a. Set active and prepare
 1. Write the workflow ID to `.ca/active.md` (set as active).
-2. Write `batch_mode: true` to the workflow's STATUS.md.
+2. Write `batch_mode: true` to the workflow's STATUS.md. Also set `status_note` for the workflow being processed.
 3. Read `use_branches` from the config JSON already loaded.
    Read STATUS.md for `branch_name`.
 4. **If branch mode** (`branch_name` exists): `git checkout <branch_name>`.

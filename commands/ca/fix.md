@@ -69,6 +69,8 @@ Update STATUS.md with:
 - `verify_completed: false`
 - `current_step: fix`
 
+Also set `status_note`, e.g.: "Fix round N started. Issues: <brief issue list>. Ready for planning."
+
 ### 7. Confirm
 
 Tell the user the fix round has been set up. Suggest next steps:

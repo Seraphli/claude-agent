@@ -14,12 +14,12 @@ Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <
 
 **CRITICAL — Verify is READ-ONLY**: Throughout the ENTIRE verify command lifecycle, you MUST NEVER:
 - Modify any source code or project files
-- Research or analyze how to fix failures
-- Investigate root causes by reading source code
-- Write fix plans or solutions
+- Write fix plans, solutions, or suggestions for how to fix failures
 - Call other skills (ca:plan, ca:execute, etc.)
 
-This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user raises issues, reports problems, or asks questions at ANY point during verification, respond with information from the verification context only, then guide them to use `/ca:fix`. Never start fixing or investigating.
+You CAN and SHOULD read source code to understand the current state, verify criteria, and answer user questions about the implementation. The restriction is on WRITING changes, not on READING code.
+
+This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca:fix` for actual fixes.
 
 You are the verification orchestrator. You delegate the actual verification to the `ca-verifier` agent running in a **fresh context** to avoid confirmation bias.
 
@@ -93,18 +93,19 @@ Check `batch_mode` in STATUS.md:
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
 2. Report the failures to the user (show the report summary).
 3. Suggest the user run `/ca:fix` to go back to a previous step and fix the issues.
-4. **Stop immediately.**
+4. Set `status_note` in STATUS.md, e.g.: "Verification failed: <brief failure summary>. Needs fix round."
+5. **Stop immediately.**
 
 **CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
 - Modify source code or project files
-- Research or analyze how to fix failures
-- Investigate root causes by reading source code
-- Write fix plans or solutions in the report
+- Write fix plans, solutions, or suggestions in the report
 - Reset STATUS.md or modify PLAN.md
 - Call other skills (ca:plan, ca:execute, etc.)
 - Re-run tests that already have logged output
 
-If the user raises issues or asks about failures, respond with report information only, then guide to `/ca:fix`. Never start fixing or investigating within the verify context.
+You CAN read source code to understand the current state and explain issues to the user. The prohibition is on modifying code and proposing fixes, not on reading and understanding.
+
+If the user raises issues or asks about failures, you may read code and explain the situation, but guide to `/ca:fix` for actual fixes. Never modify code within the verify context.
 
 #### 3e. Manual verification
 
@@ -155,6 +156,8 @@ Use `AskUserQuestion` with:
 ### 6. Update STATUS.md
 
 Set `verify_completed: true`, `current_step: verify`.
+
+Also set `status_note`, e.g.: "Verification passed. Ready for finish."
 
 Tell the user verification is complete. Suggest next steps:
 - `/ca:finish` (or `/ca:next`)

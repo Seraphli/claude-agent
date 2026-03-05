@@ -146,6 +146,12 @@ Use original commit logic:
   6. After confirmation: bump the version in the project files, stage specific files, commit with the confirmed message.
 - If no: proceed to step 3.
 
+#### 2d. Write status_note
+
+After the commit/merge step completes (regardless of branch/non-branch mode), update STATUS.md:
+- Set `status_note` to a summary of what was committed, e.g.: "Workflow finished. Committed as: <type>: <description>. Version bumped to <version>."
+- If user skipped the commit: set `status_note` to "Workflow finished. No commit made. Archived to history."
+
 ### 3. Update todo
 
 Read `.ca/workflows/<active_id>/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
