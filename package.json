@@ -1,6 +1,6 @@
 {
   "name": "claude-agent",
-  "version": "2.5.3",
+  "version": "2.6.0",
   "description": "User-controlled Claude Code development workflow system",
   "bin": {
     "claude-agent": "bin/install.js"
@@ -16,7 +16,9 @@
   ],
   "scripts": {
     "install-ca": "node bin/install.js",
-    "uninstall-ca": "node bin/uninstall.js"
+    "uninstall-ca": "node bin/uninstall.js",
+    "test": "bash tests/e2e.sh",
+    "test:phase": "bash tests/e2e.sh --phase"
   },
   "license": "MIT"
 }

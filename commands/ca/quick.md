@@ -1,18 +1,14 @@
 # /ca:quick — Quick Workflow
 
-Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Behavior
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
-### 1. Check for global config
+### 1. Check for existing workflows
 
-If `~/.claude/ca/config.md` does not exist, execute `Skill(ca:settings)` to trigger the settings command in auto-trigger mode for initial setup. After settings completes, continue with the steps below.
-
-### 2. Check for existing workflows
-
-Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 3.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 2.
 
 If successful, check if `verify_completed` is `false` in the parsed JSON.
 
@@ -30,7 +26,7 @@ If there is an unfinished active workflow:
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
 - If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:fix` to go back.
 
-### 3. Create directory structure
+### 2. Create directory structure
 
 Create the following directories and files if they don't exist:
 
@@ -41,7 +37,7 @@ Create the following directories and files if they don't exist:
   history/
 ```
 
-### 3b. Generate workflow ID
+### 2b. Generate workflow ID
 
 Generate a workflow ID from the user's description:
 - Convert to lowercase English slug (letters, numbers, hyphens only)
@@ -53,7 +49,9 @@ Generate a workflow ID from the user's description:
 
 Create the workflow directory: `.ca/workflows/<id>/`
 
-### 4. Collect initial requirement description and link to todo
+### 3. Collect initial requirement description and link to todo
+
+**You MUST always use AskUserQuestion in this step. NEVER skip the AskUserQuestion call.**
 
 **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
 
@@ -63,31 +61,31 @@ Create the workflow directory: `.ca/workflows/<id>/`
 
 1. Read `.ca/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
 2. Analyze the user's description and see if it matches any existing todo item.
-3. If a match is found, use `AskUserQuestion` with:
+3. If a match is found, **MANDATORY**: use `AskUserQuestion` with:
    - header: "Link Todo"
    - question: "I found a matching todo: <todo text>. Link this requirement to it?"
    - options:
      - "Yes, link" — "Link to this todo"
      - "No, skip" — "Don't link"
-   - If **Yes, link**: Save the todo text for linking in step 5.
+   - If **Yes, link**: Save the todo text for linking in step 4.
    - If **No, skip**: Continue without linking.
-4. If no match is found, use `AskUserQuestion` with:
+4. If no match is found, **MANDATORY**: use `AskUserQuestion` with:
    - header: "Add Todo"
    - question: "This requirement doesn't match any existing todo. Add it as a new todo item?"
    - options:
      - "Yes, add" — "Add to todo list"
      - "No, skip" — "Don't add"
-   - If **Yes, add**: Append to `.ca/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 5.
+   - If **Yes, add**: Append to `.ca/todos.md` with format `- [ ] <user's description>` and `> Added: YYYY-MM-DD` (use today's date). Save the todo text for linking in step 4.
    - If **No, skip**: Continue without linking.
 
 **If the user did NOT provide a description**:
 1. Read `.ca/todos.md` and find all uncompleted todo items.
 2. Analyze and present them to the user: **"Here are your current todos. Which one would you like to work on? (Or describe a new requirement)"**
    - Show each uncompleted todo with a number.
-3. If the user selects a todo, use that as the requirement description and save it for linking in step 5.
+3. If the user selects a todo, use that as the requirement description and save it for linking in step 4.
 4. If the user provides a new description instead, use it and proceed to match/add logic as above.
 
-### 5. Write BRIEF.md
+### 4. Write BRIEF.md
 
 Write `.ca/workflows/<id>/BRIEF.md` with:
 
@@ -101,9 +99,9 @@ linked_todo: <todo text if linked, otherwise omit this line>
 
 **IMPORTANT**: The `linked_todo` value must be the **exact original text** from `todos.md`. Do NOT modify, abbreviate, rephrase, or summarize the todo text. Copy it verbatim.
 
-Include `linked_todo` if the user chose "Yes, link" or "Yes, add" in step 4. Omit this line only if the user chose "No, skip" or no todo interaction occurred.
+Include `linked_todo` if the user chose "Yes, link" or "Yes, add" in step 3. Omit this line only if the user chose "No, skip" or no todo interaction occurred.
 
-### 6. Initialize STATUS.md
+### 5. Initialize STATUS.md
 
 Write `.ca/workflows/<id>/STATUS.md` with:
 
@@ -123,7 +121,7 @@ verify_completed: false
 
 Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
 
-### 6b. Create git branch (if enabled)
+### 5b. Create git branch (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
 
@@ -153,7 +151,7 @@ If `use_branches` is `true`:
    base_branch: main
    ```
 
-### 7. Confirm completion
+### 6. Confirm completion
 
 **CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, active.md) and records the user's requirement description. You MUST NOT:
 - Read source code files or project files (other than todos.md and workflow management files)

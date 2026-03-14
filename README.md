@@ -211,6 +211,41 @@ CA installs a status bar hook that displays:
 - "ca" + version number
 - Context window usage bar
 
+## Testing
+
+### Prerequisites
+
+- `tmux` — used to run Claude in a detached terminal session
+- `claude` CLI — must support `--model` and `--dangerously-skip-permissions` flags
+- `jq` — used for JSON parsing in helper scripts
+- `node` — used for CA install and status scripts
+
+### Run all tests
+
+```bash
+npm test
+```
+
+### Run a single phase
+
+```bash
+npm run test:phase -- 1
+```
+
+Replace `1` with `2` or `3` to run a specific phase.
+
+### Test architecture
+
+Tests are organized into three phases under `tests/phases/`:
+
+| Phase | Script | Description |
+|-------|--------|-------------|
+| 1 | `phase1_quick.sh` | Quick workflow: `/ca:quick` → `/ca:plan` → `/ca:execute` → `/ca:verify` → `/ca:finish` |
+| 2 | `phase2_standard.sh` | Standard workflow: `/ca:new` → `/ca:discuss` → `/ca:plan` → `/ca:execute` → `/ca:verify` → `/ca:finish` |
+| 3 | `phase3_helpers.sh` | Helper commands: `/ca:todo`, `/ca:todos`, `/ca:map`, `/ca:status`, `/ca:list` |
+
+Shared infrastructure lives in `tests/e2e_common.sh` (setup, tmux helpers, assertions, result recording). Each phase runs in a fully isolated temp directory with its own `HOME` override so tests never affect your real Claude config.
+
 ## License
 
 MIT

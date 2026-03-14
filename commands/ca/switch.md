@@ -1,6 +1,6 @@
 # /ca:switch — Switch Active Workflow
 
-Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ Check `.ca/workflows/` directory exists and contains at least one workflow. If n
 
 ### 1. List available workflows
 
-Run: `node ~/.claude/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array to get all workflows with their `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array to get all workflows with their `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields.
 
 ### 2. Present workflow list
 

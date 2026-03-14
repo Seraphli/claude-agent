@@ -1,10 +1,10 @@
 # /ca:finish — Wrap Up Workflow
 
-Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
 
@@ -27,6 +27,8 @@ Based on `track_ca_files`:
 - `.claude/rules/ca*`: reverse
 
 Read `.gitignore` (create if needed). Check patterns.
+
+**CRITICAL — Pattern-by-Pattern Verification**: You MUST check EACH pattern individually against the `.gitignore` file content. For `track_ca_files: none`, verify that BOTH `.ca/` AND `.claude/rules/ca*` are present as separate lines. Do NOT assume that `.claude/` covers `.claude/rules/ca*`. A parent directory entry like `.claude/` in .gitignore is NOT equivalent to the specific pattern `.claude/rules/ca*`. Report any missing pattern.
 
 For patterns that should be in `.gitignore` but are missing:
 - Use `AskUserQuestion`:
@@ -84,11 +86,11 @@ Read STATUS.md for `branch_name` and `base_branch`.
 
 #### 2a. Ensure branch changes are committed
 1. `git status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
-2. `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
+2. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
 3. If yes:
    - Run `git diff --stat` and `git status` to gather info.
    - Generate commit message: `<type>: <concise title>` with body listing each change (reference PLAN.md and SUMMARY.md).
-   - Show the diff summary and commit message to the user. `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
+   - Show the diff summary and commit message to the user. **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
    - If **Revise**: let user edit the message, re-confirm.
    - Stage specific files and commit (no `git add -A`).
 4. If no: proceed to step 2b.
@@ -108,14 +110,14 @@ Read STATUS.md for `branch_name` and `base_branch`.
 
         Version bump: <old> → <new> (<bump type>)
         ```
-     4. `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
         - If **Revise**: let user edit the message and/or version bump, re-confirm.
      5. After confirmation: bump the version in the project files, then stage all changes and run `git commit` with the confirmed message.
    - `merge`:
      1. Generate a merge commit message following conventional commit format.
      2. Derive the semver bump type. Calculate the new version number.
      3. Show both to the user (same format as squash).
-     4. `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
         - If **Revise**: let user edit, re-confirm.
      5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
 3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
@@ -127,7 +129,7 @@ Read STATUS.md for `branch_name` and `base_branch`.
 **If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):
 
 Use original commit logic:
-- `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
+- **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
 - If yes:
   1. `git diff --stat` to gather info.
   2. Generate a commit message following conventional commit format.
@@ -141,7 +143,7 @@ Use original commit logic:
 
      Version bump: <old> → <new> (<bump type>)
      ```
-  5. `AskUserQuestion`: header "Commit", question "Confirm the commit and version bump?", options "Confirm"/"Revise".
+  5. **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Confirm the commit and version bump?", options "Confirm"/"Revise".
      - If **Revise**: let user edit the message and/or version bump, re-confirm.
   6. After confirmation: bump the version in the project files, stage specific files, commit with the confirmed message.
 - If no: proceed to step 3.

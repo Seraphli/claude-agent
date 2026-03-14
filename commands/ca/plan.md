@@ -1,10 +1,10 @@
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)
 
-Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
@@ -147,6 +147,8 @@ Present a rough plan with 3 sections:
 2. **Files**: Bullet list of files to modify/create, with a brief note on what changes for each file
 3. **Expected Effect**: What the end result looks like — describe the observable behavior or output after implementation
 
+**CRITICAL**: The `header` parameter MUST be exactly `"Rough Plan"`. Do NOT use alternative headers like "Approach", "Plan Overview", etc.
+
 `AskUserQuestion`: header "Rough Plan", question "Is this rough plan feasible?", options "Feasible"/"Not feasible".
 
 If **Not feasible**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2a.
@@ -159,6 +161,8 @@ Present:
 
 1. **Implementation Steps**: Pure list outline — short titles only, no descriptions/prose. Ordered = sequential, unordered = parallel.
 2. **Step Details**: Detailed instructions per step with exact changes, locations, before/after.
+
+**CRITICAL**: The `header` parameter MUST be exactly `"Detailed Plan"`. Do NOT use alternative headers like "Implementation", "Plan Details", etc.
 
 `AskUserQuestion`: header "Detailed Plan", question "Do you agree with this detailed plan?", options "Agree"/"Disagree".
 

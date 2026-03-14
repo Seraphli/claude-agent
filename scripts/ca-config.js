@@ -26,10 +26,10 @@ const args = process.argv.slice(2);
 const projectRootIdx = args.indexOf("--project-root");
 const projectRoot = projectRootIdx !== -1 ? args[projectRootIdx + 1] : process.cwd();
 
-const homeDir = os.homedir();
+const claudeDir = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
 const workspaceConfig = path.join(projectRoot, ".ca", "config.md");
-const globalConfig = path.join(homeDir, ".claude", "ca", "config.md");
-const defaultsConfig = path.join(homeDir, ".claude", "ca", "references", "config-defaults.md");
+const globalConfig = path.join(claudeDir, "ca", "config.md");
+const defaultsConfig = path.join(claudeDir, "ca", "references", "config-defaults.md");
 
 const defaults = parseConfigFile(defaultsConfig);
 const global_ = parseConfigFile(globalConfig);

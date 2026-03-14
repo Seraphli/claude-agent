@@ -1,10 +1,10 @@
 # /ca:verify — Verify Results
 
-Read config by running: `node ~/.claude/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Run: `node ~/.claude/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
@@ -113,7 +113,10 @@ If `batch_mode: true` in STATUS.md: skip manual verification entirely and procee
 
 Present all `[manual]` criteria to the user one at a time. For each:
 - Describe what needs to be verified
-- Use `AskUserQuestion` to ask the user to confirm PASS or FAIL
+- Use `AskUserQuestion` to ask the user to confirm PASS or FAIL:
+  - **CRITICAL**: header MUST be exactly `"Manual"`
+  - question: describe the criterion and ask for PASS/FAIL confirmation
+  - options: "Pass" / "Fail"
 - Record the result
 
 After all manual criteria are verified, proceed to step 4.
