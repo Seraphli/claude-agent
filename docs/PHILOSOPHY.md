@@ -36,7 +36,7 @@ discuss → research → plan → execute → verify
 
 You can't skip ahead. You can't execute without a confirmed plan. You can't verify without an execution. Each step produces a concrete artifact (REQUIREMENT.md, PLAN.md, etc.) that serves as a contract between you and the AI.
 
-If something goes wrong, `/ca:fix` lets you roll back to any step. The artifacts from previous attempts are preserved for reference.
+If verification fails, issues are automatically recorded and the workflow returns to the planning step. The artifacts from previous attempts are preserved in rounds/ directories for reference.
 
 ### Isolation prevents contamination
 

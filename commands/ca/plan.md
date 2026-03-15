@@ -32,13 +32,21 @@ If `fix_round` == 0, skip this step.
 
 If `fix_round` > 0 (fix round N):
 1. Parse issues from `rounds/<N>/ISSUES.md`.
-2. Resolve model for ca-researcher.
-3. For each issue, launch a ca-researcher agent with:
+2. Read `ca-researcher_model` from the config JSON already loaded. This is the resolved model name (opus/sonnet/haiku).
+3. Present the issues to the user and propose research directions for each.
+4. Use `AskUserQuestion`:
+   - header: "Research"
+   - question: "Research these issues before planning the fix?"
+   - options:
+     - "Run all" — "Research all issues"
+     - "Skip research" — "Go straight to planning"
+5. **If Run all**: For each issue, launch a ca-researcher agent (model from config JSON) with:
    - The issue description, project root path, map content
    - Prompt: "Investigate the root cause of this issue: <issue>. Read relevant source code, trace the problem, report findings with file/line references."
-4. Multiple independent issues → parallel researchers (up to `max_concurrency`).
-5. Present findings to the user.
-6. Skip step 1b, proceed to step 1c.
+   - Multiple independent issues → parallel researchers (up to `max_concurrency`).
+6. **If Skip research**: Skip to step 1c.
+7. Present findings to the user.
+8. Skip step 1b, proceed to step 1c.
 
 ### 1b. Research (quick workflow only)
 
@@ -83,7 +91,7 @@ Use `AskUserQuestion`:
 
 #### 1b-iii. Launch and present
 
-Resolve model for ca-researcher (same logic as discuss). Launch agents only for confirmed directions, each with BRIEF.md content, project root, map, and direction-specific prompt. Launch in parallel (up to `max_concurrency`). Present findings to user.
+Read `ca-researcher_model` from the config JSON already loaded. Launch agents only for confirmed directions, each with BRIEF.md content, project root, map, and direction-specific prompt. Pass the resolved model to each agent. Launch in parallel (up to `max_concurrency`). Present findings to user.
 
 **IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
 
@@ -96,6 +104,13 @@ Check for uncertain items from research. If any:
 1. List them to the user.
 2. Clarify each one at a time.
 3. Proceed only after all resolved — no "needs further research" or "TBD" in the plan.
+
+**CRITICAL — Pre-plan Requirement**: Before entering the triple confirmation flow, you MUST have already:
+1. Completed ALL research (steps 1a/1b)
+2. Read ALL relevant source files referenced in REQUIREMENT.md/BRIEF.md
+3. Prepared the COMPLETE detailed plan internally (including exact code changes)
+
+Confirmation 2a and 2b are presentations of an ALREADY-COMPLETED plan. Do NOT defer file reading or plan design to after Confirmation 2a.
 
 ### 2. Draft the plan
 
@@ -141,10 +156,14 @@ If **Not correct**: ask what's wrong, correct, re-ask.
 
 #### Confirmation 2a: Rough Plan
 
+**CRITICAL — Flow Order**: The rough plan is a CODE-FREE summary of the detailed plan you have ALREADY prepared internally. You must have read all files and designed the full solution before presenting this. Do NOT present a rough plan first and then start reading files.
+
 Present a rough plan with 3 sections:
 
-1. **Approach**: 1-2 sentences (prose, not list)
-2. **Files**: Bullet list of files to modify/create, with a brief note on what changes for each file
+1. **Approach**: 1-2 sentences describing the overall strategy (prose, not list)
+2. **Files**: Bullet list of files to modify/create. For each file, describe the SPECIFIC changes in natural language (what will be added/removed/changed and where). Do NOT just restate requirements — describe the actual implementation changes. Do NOT include code blocks.
+   - Example good: "`ca-config.js` — 在 resolved 对象构建后增加模型解析逻辑：内嵌 profile 表，遍历三个 agent 检查 override，无 override 则从 profile 查默认值填入"
+   - Example bad: "`ca-config.js` — 添加模型解析功能"
 3. **Expected Effect**: What the end result looks like — describe the observable behavior or output after implementation
 
 **CRITICAL**: The `header` parameter MUST be exactly `"Rough Plan"`. Do NOT use alternative headers like "Approach", "Plan Overview", etc.

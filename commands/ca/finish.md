@@ -156,7 +156,7 @@ After the commit/merge step completes (regardless of branch/non-branch mode), up
 
 ### 3. Update todo
 
-Read `.ca/workflows/<active_id>/BRIEF.md` and check if it contains a `linked_todo: <todo text>` line.
+**CRITICAL — You MUST actually read the file**: Use the Read tool to read `.ca/workflows/<active_id>/BRIEF.md` NOW. Do NOT skip this step or assume you already know the contents. Parse the file content and check if it contains a `linked_todo: <todo text>` line. There may be multiple `linked_todo:` lines — process ALL of them.
 If it does:
   **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
   a. Read `.ca/todos.md`.

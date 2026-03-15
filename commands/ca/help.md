@@ -46,7 +46,6 @@ Display all available CA commands in the user's preferred language:
 | Command | Description |
 |---------|-------------|
 | `/ca:status` | Show current workflow status |
-| `/ca:fix [step]` | Roll back to a previous step |
 | `/ca:map` | Scan project structure and generate/update `.ca/map.md` |
 | `/ca:help` | Show this reference |
 
@@ -58,7 +57,7 @@ Display all available CA commands in the user's preferred language:
 ```
 - `/ca:new` and `/ca:quick` create a workflow + dedicated branch
 - `/ca:execute` auto-commits changes on the branch
-- `/ca:verify` checks results on the branch
+- `/ca:verify` checks results on the branch (if verify fails, issues are recorded and workflow returns to plan)
 - `/ca:finish` bumps version, merges branch, and archives the workflow
 
 **Or use `/ca:next` repeatedly to auto-advance through each step.**

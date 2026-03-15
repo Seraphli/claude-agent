@@ -18,8 +18,7 @@ Goal: understand **exactly** what the user wants before code is written.
 
 #### 1a. Resolve model for ca-researcher
 
-Read `model_profile` and `ca-researcher_model` from the config JSON already loaded.
-Resolve model: `ca-researcher_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `ca-researcher_model` from the config JSON already loaded. This is the already-resolved model name (opus/sonnet/haiku). Pass to agents launched in step 1d.
 
 #### 1b. Assess requirement and decide approach
 

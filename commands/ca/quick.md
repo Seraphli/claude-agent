@@ -24,7 +24,7 @@ If there is an unfinished active workflow:
     - "Continue current" — "Continue the existing workflow instead"
 - If **Keep and start new**: Read the existing workflow's STATUS.md, then append `status_note: Switched away during <current_step> phase.` to it. Leave the existing workflow in `workflows/`, continue to create new.
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
-- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:fix` to go back.
+- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:plan` to continue planning.
 
 ### 2. Create directory structure
 

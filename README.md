@@ -114,7 +114,6 @@ Skips the discuss phase. Creates a brief and goes straight to planning. For simp
 | `/ca:map` | Scan and record project structure |
 | `/ca:settings` | Configure language, model, and auto-proceed settings |
 | `/ca:status` | Show current workflow state |
-| `/ca:fix [step]` | Roll back to a previous step |
 | `/ca:switch` | Switch active workflow |
 | `/ca:list` | List all workflows with status summary |
 | `/ca:batch` | Batch execute all plan-confirmed workflows |

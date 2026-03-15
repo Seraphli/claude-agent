@@ -37,4 +37,19 @@ const workspace = parseConfigFile(workspaceConfig);
 
 // Workspace > global > defaults priority
 const resolved = Object.assign({}, defaults, global_, workspace);
+
+// Model resolution: embed profile table, resolve per-agent model names
+const PROFILES = {
+  quality: { "ca-executor": "opus", "ca-researcher": "opus", "ca-verifier": "sonnet" },
+  balanced: { "ca-executor": "sonnet", "ca-researcher": "sonnet", "ca-verifier": "sonnet" },
+  budget: { "ca-executor": "sonnet", "ca-researcher": "haiku", "ca-verifier": "haiku" },
+};
+const profile = PROFILES[resolved.model_profile] || PROFILES.balanced;
+for (const agent of ["ca-executor", "ca-researcher", "ca-verifier"]) {
+  const key = `${agent}_model`;
+  if (!resolved[key]) {
+    resolved[key] = profile[agent];
+  }
+}
+
 process.stdout.write(JSON.stringify(resolved, null, 2) + "\n");

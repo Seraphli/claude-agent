@@ -21,6 +21,13 @@ rl.on("close", () => {
     const model = data.model?.display_name || "Claude";
     const dir = data.workspace?.current_dir || process.cwd();
     const remaining = data.context_window?.remaining_percentage;
+    const ctxSize = data.context_window?.context_window_size;
+    let sizeLabel = "";
+    if (ctxSize) {
+      sizeLabel = ctxSize >= 1000000
+        ? ` ${Math.round(ctxSize / 1000000)}M`
+        : ` ${Math.round(ctxSize / 1000)}K`;
+    }
 
     let ctx = "";
     if (remaining != null) {
@@ -32,13 +39,13 @@ rl.on("close", () => {
       const bar = "\u2588".repeat(filled) + "\u2591".repeat(10 - filled);
 
       if (used < 63) {
-        ctx = ` \x1b[32m${bar} ${used}%\x1b[0m`;
+        ctx = ` \x1b[32m${bar} ${used}%${sizeLabel}\x1b[0m`;
       } else if (used < 81) {
-        ctx = ` \x1b[33m${bar} ${used}%\x1b[0m`;
+        ctx = ` \x1b[33m${bar} ${used}%${sizeLabel}\x1b[0m`;
       } else if (used < 95) {
-        ctx = ` \x1b[38;5;208m${bar} ${used}%\x1b[0m`;
+        ctx = ` \x1b[38;5;208m${bar} ${used}%${sizeLabel}\x1b[0m`;
       } else {
-        ctx = ` \x1b[5;31m${bar} ${used}%\x1b[0m`;
+        ctx = ` \x1b[5;31m${bar} ${used}%${sizeLabel}\x1b[0m`;
       }
     }
 

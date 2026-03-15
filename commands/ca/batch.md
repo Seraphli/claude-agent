@@ -87,7 +87,7 @@ If 2+ passed: compare changed files between pairs. No overlap → Independent. O
 #### 4c. Recommendations
 - **Independent**: `/ca:switch <id>` → `/ca:finish` each.
 - **Overlapping**: Review overlapping files first.
-- **Failed**: `/ca:switch <id>` → `/ca:fix`.
+- **Failed**: `/ca:switch <id>` → `/ca:plan`.
 - **Branch mode passed**: `/ca:switch <id>` → `/ca:finish` to merge each workflow branch.
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

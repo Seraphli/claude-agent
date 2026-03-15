@@ -28,8 +28,7 @@ If `.ca/map.md` missing and project is not empty: run `/ca:map` first. If empty 
 
 ### 2. Resolve model for ca-executor
 
-Read `model_profile` and `ca-executor_model` from the config JSON already loaded.
-Resolve model: `ca-executor_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `ca-executor_model` from the config JSON already loaded. This is the already-resolved model name (opus/sonnet/haiku). Pass to Task tool.
 
 ### 3. Parse execution order
 

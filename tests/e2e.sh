@@ -2,8 +2,8 @@
 # e2e.sh — Main E2E test orchestrator for claude-agent
 #
 # Usage:
-#   bash tests/e2e.sh            — Run all phases (1, 2, 3)
-#   bash tests/e2e.sh --phase N  — Run only phase N (1, 2, or 3)
+#   bash tests/e2e.sh            — Run all phases (1, 2, 3, 4, 5)
+#   bash tests/e2e.sh --phase N  — Run only phase N (1, 2, 3, 4, or 5)
 #
 # Requires: tmux, claude CLI, jq, node
 
@@ -95,20 +95,23 @@ run_phase_1=false
 run_phase_2=false
 run_phase_3=false
 run_phase_4=false
+run_phase_5=false
 
 if [ -z "${PHASE_FILTER}" ]; then
     run_phase_1=true
     run_phase_2=true
     run_phase_3=true
     run_phase_4=true
+    run_phase_5=true
 else
     case "${PHASE_FILTER}" in
         1) run_phase_1=true ;;
         2) run_phase_2=true ;;
         3) run_phase_3=true ;;
         4) run_phase_4=true ;;
+        5) run_phase_5=true ;;
         *)
-            echo "Invalid phase: ${PHASE_FILTER}. Must be 1, 2, 3, or 4."
+            echo "Invalid phase: ${PHASE_FILTER}. Must be 1, 2, 3, 4, or 5."
             exit 1
             ;;
     esac
@@ -129,6 +132,10 @@ fi
 
 if [ "${run_phase_4}" = true ]; then
     run_phase 4 "${CA_REPO_ROOT}/tests/phases/phase4_i18n.sh" "i18n (Chinese)"
+fi
+
+if [ "${run_phase_5}" = true ]; then
+    run_phase 5 "${CA_REPO_ROOT}/tests/phases/phase5_verify_fail.sh" "Verify Failure Flow"
 fi
 
 # --- Final Aggregated Summary ---

@@ -19,7 +19,7 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 You CAN and SHOULD read source code to understand the current state, verify criteria, and answer user questions about the implementation. The restriction is on WRITING changes, not on READING code.
 
-This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca:fix` for actual fixes.
+This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca:plan` for actual fixes.
 
 You are the verification orchestrator. You delegate the actual verification to the `ca-verifier` agent running in a **fresh context** to avoid confirmation bias.
 
@@ -43,8 +43,7 @@ Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within
 
 ### 2. Resolve model for ca-verifier
 
-Read `model_profile` and `ca-verifier_model` from the config JSON already loaded.
-Resolve model: `ca-verifier_model` override → `model_profile` via `~/.claude/ca/references/model-profiles.md`. Pass to Task tool.
+Read `ca-verifier_model` from the config JSON already loaded. This is the already-resolved model name (opus/sonnet/haiku). Pass to Task tool.
 
 ### 3. Execute auto verification
 
@@ -84,17 +83,36 @@ Check `batch_mode` in STATUS.md:
 - The batch orchestrator (batch.md) will handle rollback and continue to the next workflow.
 
 **If `batch_mode` is false or not set (normal mode)**:
-1. **Write VERIFY-REPORT.md**:
-   - If `fix_round` > 0: write to `.ca/workflows/<active_id>/rounds/<N>/VERIFY-REPORT.md`
-   - If `fix_round` == 0: write to `.ca/workflows/<active_id>/VERIFY-REPORT.md`
+1. **Determine fix round**: Read `fix_round` from STATUS.md (default: 0). Set N = fix_round + 1.
+2. **Create round directory**: Create `.ca/workflows/<active_id>/rounds/<N>/`.
+3. **Write ISSUES.md**: Write `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`:
+   ```markdown
+   # Issues (Round N)
+
+   ## From Verification Report
+   <failed criteria with details>
+
+   ## Additional User Feedback
+   None
+   ```
+4. **Write VERIFY-REPORT.md**:
+   - If N == 1 (first fix round): write to `.ca/workflows/<active_id>/VERIFY-REPORT.md`
+   - If N > 1: write to `.ca/workflows/<active_id>/rounds/<N-1>/VERIFY-REPORT.md`
    The report MUST contain:
    - Which criteria failed and what the failure details are
    - References to any verifier output/log files
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
-2. Report the failures to the user (show the report summary).
-3. Suggest the user run `/ca:fix` to go back to a previous step and fix the issues.
-4. Set `status_note` in STATUS.md, e.g.: "Verification failed: <brief failure summary>. Needs fix round."
-5. **Stop immediately.**
+5. **Update STATUS.md**:
+   - `fix_round: <N>`
+   - `plan_completed: false`
+   - `plan_confirmed: false`
+   - `execute_completed: false`
+   - `verify_completed: false`
+   - `current_step: verify`
+   - `status_note: Verification failed (round N): <brief failure summary>. Ready for fix planning.`
+6. Report the failures to the user (show the report summary).
+7. Suggest the user run `/ca:plan` (or `/ca:next`) to plan the fix.
+8. **Stop immediately.**
 
 **CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
 - Modify source code or project files
@@ -105,7 +123,7 @@ Check `batch_mode` in STATUS.md:
 
 You CAN read source code to understand the current state and explain issues to the user. The prohibition is on modifying code and proposing fixes, not on reading and understanding.
 
-If the user raises issues or asks about failures, you may read code and explain the situation, but guide to `/ca:fix` for actual fixes. Never modify code within the verify context.
+If the user raises issues or asks about failures, you may read code and explain the situation, but guide to `/ca:plan` for actual fixes. Never modify code within the verify context.
 
 #### 3e. Manual verification
 
@@ -141,6 +159,8 @@ Display the report with auto and manual sections:
 ### Overall: PASS/FAIL
 ```
 
+**CRITICAL — Verify is READ-ONLY (Reminder)**: Even at the final acceptance step, you MUST NOT modify any source code, write fix plans, or call other skills. If the user rejects, record the issues and direct to `/ca:plan`. Do NOT attempt to fix anything.
+
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
 If `batch_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed directly to step 6 (Update STATUS.md).
@@ -152,8 +172,8 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
-- If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca:fix`. **Stop immediately.**
-- If **Reject**: Ask what's wrong, record in VERIFY-REPORT.md (fix-round path if applicable), suggest `/ca:fix`. No fixing or investigating.
+- If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca:plan`. **Stop immediately.**
+- If **Reject**: Ask what's wrong, record in VERIFY-REPORT.md (fix-round path if applicable), suggest `/ca:plan`. No fixing or investigating.
 - If **Accept**: Proceed to step 6.
 
 ### 6. Update STATUS.md
