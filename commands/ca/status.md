@@ -4,18 +4,18 @@ description: Shows current workflow status including step progress and branch in
 disable-model-invocation: true
 ---
 
-# /ca-status — Show Workflow Status
+# /ca:status — Show Workflow Status
 
 **CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Steps
 
 ### 1. Read active workflow status
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-- If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+- If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 
 ### 2. Display status
 

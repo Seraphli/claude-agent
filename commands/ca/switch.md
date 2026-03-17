@@ -4,15 +4,15 @@ description: Switches the active workflow and optionally the git branch. Use whe
 disable-model-invocation: true
 ---
 
-# /ca-switch — Switch Active Workflow
+# /ca:switch — Switch Active Workflow
 
 **CRITICAL — Code Modification Policy**: This command only switches workflow state and git branches. Do NOT modify source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-Check `.ca/workflows/` directory exists and contains at least one workflow. If not, tell the user to run `/ca-new` first and stop.
+Check `.ca/workflows/` directory exists and contains at least one workflow. If not, tell the user to run `/ca:new` first and stop.
 
 ## Behavior
 
@@ -20,7 +20,7 @@ Check `.ca/workflows/` directory exists and contains at least one workflow. If n
 
 ### 1. List available workflows
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array to get all workflows with their `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js list --project-root <project-root>`. Parse the JSON array to get all workflows with their `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields.
 
 ### 2. Present workflow list
 

@@ -3,17 +3,17 @@ name: ca-discuss
 description: Researches and discusses requirements through adaptive Q&A. Use when requirements need clarification before planning.
 disable-model-invocation: true
 ---
-# /ca-discuss — Discuss Requirements
+# /ca:discuss — Discuss Requirements
 
 **CRITICAL — Code Modification Policy**: This command is for research and discussion ONLY. Do NOT modify any source code or project files.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
-2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca-plan`." **Stop immediately.**
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
+2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
 
 ## Behavior
 
@@ -144,7 +144,7 @@ Use `AskUserQuestion` with:
 2. ...
 ```
 Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Also set `status_note` to a context-aware summary, e.g.: "Requirements discussed and confirmed. Ready for planning." Tell the user discussion is complete. Suggest next steps:
-- `/ca-plan` (or `/ca-next`)
+- `/ca:plan` (or `/ca:next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

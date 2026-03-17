@@ -4,7 +4,7 @@ description: Removes information from persistent context. Use when user wants to
 disable-model-invocation: true
 ---
 
-# /ca-forget — Remove from Persistent Context
+# /ca:forget — Remove from Persistent Context
 
 **CRITICAL — Code Modification Policy**: This command only modifies ca-context.md files. Do NOT modify source code.
 
@@ -22,18 +22,18 @@ Use `AskUserQuestion` with:
 - header: "Level"
 - question: "Remove from global or project context?"
 - options:
-  - "Project" — "Remove from .claude/rules/ca-context.md"
-  - "Global" — "Remove from ~/.claude/rules/ca-context.md"
+  - "Project" — "Remove from .claude/rules/ca:context.md"
+  - "Global" — "Remove from ~/.claude/rules/ca:context.md"
 
 ### 2. Read current context
 
 Based on the user's choice:
-- **Project**: Read `.claude/rules/ca-context.md` and display its contents.
-- **Global**: Read `~/.claude/rules/ca-context.md` and display. If missing, tell user and stop.
+- **Project**: Read `.claude/rules/ca:context.md` and display its contents.
+- **Global**: Read `~/.claude/rules/ca:context.md` and display. If missing, tell user and stop.
 
 ### 3. Identify what to remove
 
-The user's message after `/ca-forget` describes what to remove. Match it against existing entries.
+The user's message after `/ca:forget` describes what to remove. Match it against existing entries.
 
 If the match is ambiguous, show the matching entries and ask the user to confirm which one(s) to remove.
 

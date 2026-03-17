@@ -4,11 +4,11 @@ description: Configures CA settings including language, model profile, and concu
 disable-model-invocation: true
 ---
 
-# /ca-settings — Configure Settings
+# /ca:settings — Configure Settings
 
 **CRITICAL — Code Modification Policy**: This command only modifies CA config files, not source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Auto-trigger Mode
 
@@ -72,13 +72,13 @@ Per-agent overrides take priority over the profile setting.
 
 Options: `true`, `false`.
 
-Default: `false`. When `true`, research will skip user confirmation of findings and automatically proceed to plan, without requiring the user to manually confirm or run `/ca-plan`.
+Default: `false`. When `true`, research will skip user confirmation of findings and automatically proceed to plan, without requiring the user to manually confirm or run `/ca:plan`.
 
 #### `auto_proceed_to_verify` — Auto-proceed from execute to verify
 
 Options: `true`, `false`.
 
-Default: `false`. When `true`, execute will automatically invoke verify after execution is complete, without requiring the user to manually run `/ca-verify`.
+Default: `false`. When `true`, execute will automatically invoke verify after execution is complete, without requiring the user to manually run `/ca:verify`.
 
 #### `max_concurrency` — Maximum concurrent agents
 
@@ -101,7 +101,7 @@ Finish command checks `.gitignore` accordingly.
 
 Options: `true`, `false`.
 
-Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca-plan` → `/ca_plan`).
+Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca:plan` → `/ca_plan`).
 
 #### `use_branches` — Git branch per workflow
 
@@ -152,8 +152,8 @@ Omit: inherited workspace settings, empty per-agent overrides, and settings at d
 After writing the config, generate the corresponding rules file from the language settings:
 
 Based on the save location:
-- **Global**: Write `~/.claude/rules/ca-settings.md`
-- **Workspace**: Write `.claude/rules/ca-settings.md`
+- **Global**: Write `~/.claude/rules/ca:settings.md`
+- **Workspace**: Write `.claude/rules/ca:settings.md`
 
 The rules file format:
 ```

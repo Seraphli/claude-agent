@@ -4,7 +4,7 @@ description: Shows and manages error lessons from project and global levels. Use
 disable-model-invocation: true
 ---
 
-# /ca-errors — Show Error Lessons
+# /ca:errors — Show Error Lessons
 
 **CRITICAL — Code Modification Policy**: This command reads ca-errors.md files. May modify them when removing entries. Do NOT modify source code.
 
@@ -19,8 +19,8 @@ No prerequisites.
 ### 1. Read error files
 
 Read both:
-- `.claude/rules/ca-errors.md` (project-level errors)
-- `~/.claude/rules/ca-errors.md` (global-level errors)
+- `.claude/rules/ca:errors.md` (project-level errors)
+- `~/.claude/rules/ca:errors.md` (global-level errors)
 
 If neither exists or both are empty, tell the user there are no recorded error lessons.
 

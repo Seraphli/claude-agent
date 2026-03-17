@@ -4,7 +4,7 @@ description: Saves information to persistent context at project or global level.
 disable-model-invocation: true
 ---
 
-# /ca-remember — Save to Persistent Context
+# /ca:remember — Save to Persistent Context
 
 **CRITICAL — Code Modification Policy**: This command only writes to ca-context.md files. Do NOT modify source code.
 
@@ -28,19 +28,19 @@ Use `AskUserQuestion` with:
 - header: "Level"
 - question: "Save to global or project context?"
 - options:
-  - "Project" — "Save to .claude/rules/ca-context.md (this project only)"
-  - "Global" — "Save to ~/.claude/rules/ca-context.md (all projects)"
+  - "Project" — "Save to .claude/rules/ca:context.md (this project only)"
+  - "Global" — "Save to ~/.claude/rules/ca:context.md (all projects)"
 
 ### 3. Append to context file
 
 **IMPORTANT**: Preserve the user's exact input verbatim. Do NOT rephrase, summarize, or rewrite.
 
 Based on the user's choice:
-- **Project**: Read `.claude/rules/ca-context.md`, then append the new information as a bullet point with a timestamp:
+- **Project**: Read `.claude/rules/ca:context.md`, then append the new information as a bullet point with a timestamp:
   ```
   - [YYYY-MM-DD] <information>
   ```
-- **Global**: Read `~/.claude/rules/ca-context.md` (create if it doesn't exist), then append in the same format.
+- **Global**: Read `~/.claude/rules/ca:context.md` (create if it doesn't exist), then append in the same format.
 
 ### 4. Confirm
 

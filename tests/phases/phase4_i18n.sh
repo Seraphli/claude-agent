@@ -48,10 +48,10 @@ sleep 5
 pane_log "startup"
 
 # ---------------------------------------------------------------------------
-# Step 1: /ca-quick
+# Step 1: /ca:quick
 # ---------------------------------------------------------------------------
 
-inject_command "/ca-quick add a greet(name) function to utils.js that returns 'Hello, name!'"
+inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!'"
 wait_for_ask 300
 assert_ask_header "添加待办|Add Todo" "quick: todo prompt (中文)"
 sleep 1
@@ -67,10 +67,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 2: /ca-plan
+# Step 2: /ca:plan
 # ---------------------------------------------------------------------------
 
-inject_command "/ca-plan"
+inject_command "/ca:plan"
 
 # Research is optional — model may skip directly to Requirements
 wait_for_ask 300
@@ -105,20 +105,20 @@ pane_log "plan-done"
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 3: /ca-execute
+# Step 3: /ca:execute
 # ---------------------------------------------------------------------------
 
-inject_command "/ca-execute"
+inject_command "/ca:execute"
 wait_for_stop 600
 pane_log "execute-done"
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 4: /ca-verify
+# Step 4: /ca:verify
 # ---------------------------------------------------------------------------
 
-inject_command "/ca-verify"
+inject_command "/ca:verify"
 wait_for_ask 600
 assert_ask_header "结果|Results" "verify: Results prompt (中文)"
 sleep 1
@@ -129,10 +129,10 @@ pane_log "verify-done"
 assert_status_field "verify_completed" "true" "verify: verify_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 5: /ca-finish
+# Step 5: /ca:finish
 # ---------------------------------------------------------------------------
 
-inject_command "/ca-finish"
+inject_command "/ca:finish"
 
 wait_for_ask 120
 assert_ask_header "提交|Commit" "finish: Commit prompt (中文)"

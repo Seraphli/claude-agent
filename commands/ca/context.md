@@ -4,7 +4,7 @@ description: Shows persistent context and loaded files in current session. Use w
 disable-model-invocation: true
 ---
 
-# /ca-context — Show Persistent Context
+# /ca:context — Show Persistent Context
 
 **CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
@@ -16,9 +16,9 @@ No prerequisites.
 
 ### 1. Show persistent context
 
-Read and display the contents of `.claude/rules/ca-context.md` (project context) and `~/.claude/rules/ca-context.md` (global context).
+Read and display the contents of `.claude/rules/ca:context.md` (project context) and `~/.claude/rules/ca:context.md` (global context).
 
-If the files are empty or don't exist, tell the user there's no saved context yet and suggest using `/ca-remember <info>` to add some.
+If the files are empty or don't exist, tell the user there's no saved context yet and suggest using `/ca:remember <info>` to add some.
 
 ### 2. Show loaded files in current context
 
@@ -27,13 +27,13 @@ Inspect your own context window for loaded files. Do NOT use tools to check disk
 For each of the following categories, report whether the file's content is present in your context and show a brief summary if loaded:
 
 **Auto-loaded via rules/ system** (loaded into context automatically by Claude Code if the file exists on disk):
-- `~/.claude/rules/ca-rules.md` — shared rules
-- `~/.claude/rules/ca-settings.md` — global language settings
-- `~/.claude/rules/ca-context.md` — global persistent context
-- `~/.claude/rules/ca-errors.md` — global error lessons
-- `.claude/rules/ca-settings.md` — project language settings
-- `.claude/rules/ca-context.md` — project persistent context
-- `.claude/rules/ca-errors.md` — project error lessons
+- `~/.claude/rules/ca:rules.md` — shared rules
+- `~/.claude/rules/ca:settings.md` — global language settings
+- `~/.claude/rules/ca:context.md` — global persistent context
+- `~/.claude/rules/ca:errors.md` — global error lessons
+- `.claude/rules/ca:settings.md` — project language settings
+- `.claude/rules/ca:context.md` — project persistent context
+- `.claude/rules/ca:errors.md` — project error lessons
 
 **Runtime config** (loaded only when a workflow command explicitly reads them):
 - `~/.claude/ca/config.md` — global config

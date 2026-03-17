@@ -7,7 +7,7 @@
   },
   "files": [
     "bin",
-    "skills",
+    "commands",
     "agents",
     "hooks",
     "memories",

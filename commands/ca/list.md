@@ -4,17 +4,17 @@ description: Lists all active workflows with status flags and branch info. Use w
 disable-model-invocation: true
 ---
 
-# /ca-list — List All Workflows
+# /ca:list — List All Workflows
 
 **CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Behavior
 
 ### 1. Scan workflows
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. Parse the JSON array.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js list --project-root <project-root>`. Parse the JSON array.
 If the array is empty, tell the user there are no active workflows.
 
 The list includes `workflow_id`, `workflow_type`, `current_step`, `brief`, and `active` fields for each workflow. For full status flags (e.g., `plan_confirmed`, `execute_completed`), read the individual `STATUS.md` files directly.
@@ -41,6 +41,6 @@ Display:
 - Plan confirmed (ready for batch): N
 - In progress: N
 
-Suggest relevant next commands (e.g., `/ca-batch` if any are plan_confirmed, `/ca-switch` to change active).
+Suggest relevant next commands (e.g., `/ca:batch` if any are plan_confirmed, `/ca:switch` to change active).
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

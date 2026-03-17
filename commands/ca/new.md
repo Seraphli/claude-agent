@@ -1,13 +1,14 @@
 ---
-name: ca-quick
-description: Creates a streamlined workflow skipping the discuss phase. Use when user says "quick", "快速", or has a simple, well-understood requirement.
+name: ca-new
+description: Creates a new requirement workflow with brief and git branch. Use when user says "new requirement", "新需求", or wants to start a new task.
 disable-model-invocation: true
 ---
-# /ca-quick — Quick Workflow
+
+# /ca:new — Start a New Requirement
 
 **CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, active.md). Do NOT read, analyze, or modify source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Behavior
 
@@ -15,7 +16,7 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 ### 1. Check for existing workflows
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 2.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 2.
 
 If successful, check if `verify_completed` is `false` in the parsed JSON.
 
@@ -31,7 +32,7 @@ If there is an unfinished active workflow:
     - "Continue current" — "Continue the existing workflow instead"
 - If **Keep and start new**: Read the existing workflow's STATUS.md, then append `status_note: Switched away during <current_step> phase.` to it. Leave the existing workflow in `workflows/`, continue to create new.
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
-- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca-plan` to continue planning.
+- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:plan` to continue planning.
 
 ### 2. Create directory structure
 
@@ -116,10 +117,10 @@ Write `.ca/workflows/<id>/STATUS.md` with:
 # Workflow Status
 
 workflow_id: <id>
-workflow_type: quick
-current_step: quick
+workflow_type: standard
+current_step: new
 init_completed: true
-discuss_completed: true
+discuss_completed: false
 plan_completed: false
 plan_confirmed: false
 execute_completed: false
@@ -160,18 +161,12 @@ If `use_branches` is `true`:
 
 ### 6. Confirm completion
 
-**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, active.md) and records the user's requirement description. You MUST NOT:
-- Read source code files or project files (other than todos.md and workflow management files)
-- Analyze, summarize, or research the codebase
-- Generate any content beyond what the user provided
-- Execute any part of the requirement task
+**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
-All research, analysis, and implementation belong to later phases (`/ca-plan`, `/ca-execute`). Simply record the user's description verbatim and create the workflow files.
+Also set `status_note: Workflow created. Ready for discussion.` in this workflow's STATUS.md (append the line after the last existing line).
 
-Also set `status_note: Quick workflow created. Ready for planning.` in this workflow's STATUS.md (append the line after the last existing line).
-
-Tell the user the quick workflow has been created. Show the brief and the workflow ID. Suggest next steps:
-- `/ca-plan` (or `/ca-next`)
+Tell the user the new requirement has been created. Show the brief and the workflow ID. Suggest next steps:
+- `/ca:discuss` (or `/ca:next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

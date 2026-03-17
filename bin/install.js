@@ -8,7 +8,7 @@ const homeIdx = args.indexOf("--home");
 const homeDir = homeIdx !== -1 ? args[homeIdx + 1] : require("os").homedir();
 const customHome = homeIdx !== -1;
 const srcDir = path.resolve(__dirname, "..");
-const targetSkillsDir = path.join(homeDir, ".claude", "skills");
+const targetCommandsDir = path.join(homeDir, ".claude", "commands", "ca");
 const targetAgentsDir = path.join(homeDir, ".claude", "agents");
 const targetHooksDir = path.join(homeDir, ".claude", "hooks");
 const caConfigDir = path.join(homeDir, ".claude", "ca");
@@ -74,20 +74,6 @@ function syncAgents(src, dest) {
   }
 }
 
-function syncSkills(src, dest) {
-  fs.mkdirSync(dest, { recursive: true });
-  const srcDirs = fs.readdirSync(src).filter(f => f.startsWith("ca-") && fs.statSync(path.join(src, f)).isDirectory());
-  const destDirs = fs.existsSync(dest) ? fs.readdirSync(dest).filter(f => f.startsWith("ca-")) : [];
-  for (const d of destDirs) {
-    if (!srcDirs.includes(d)) {
-      fs.rmSync(path.join(dest, d), { recursive: true });
-    }
-  }
-  for (const d of srcDirs) {
-    copyDir(path.join(src, d), path.join(dest, d));
-  }
-}
-
 function generateSettingsRules(configContent) {
   const lines = configContent.split("\n");
   const rules = ["# CA Settings Rules\n"];
@@ -106,18 +92,21 @@ function generateSettingsRules(configContent) {
   return rules.join("\n") + "\n";
 }
 
-// Remove old commands/ca/ directory (migration from v2 to v3)
-const oldCommandsDir = path.join(homeDir, ".claude", "commands", "ca");
-if (fs.existsSync(oldCommandsDir)) {
-  fs.rmSync(oldCommandsDir, { recursive: true });
-  console.log(`  ${green}✓${reset} Removed old commands/ca/ directory`);
+// Remove old skills/ca-* directories (migration cleanup)
+const oldSkillsDir = path.join(homeDir, ".claude", "skills");
+if (fs.existsSync(oldSkillsDir)) {
+  for (const entry of fs.readdirSync(oldSkillsDir)) {
+    if (entry.startsWith("ca-")) {
+      fs.rmSync(path.join(oldSkillsDir, entry), { recursive: true });
+    }
+  }
 }
 
-// Copy skills
-const srcSkillsDir = path.join(srcDir, "skills");
-syncSkills(srcSkillsDir, targetSkillsDir);
-const skillDirs = fs.readdirSync(srcSkillsDir).filter(f => f.startsWith("ca-"));
-console.log(`  ${green}✓${reset} Installed ${skillDirs.length} skills`);
+// Copy commands
+const srcCommandsDir = path.join(srcDir, "commands", "ca");
+syncDir(srcCommandsDir, targetCommandsDir);
+const commandCount = fs.readdirSync(targetCommandsDir).filter((f) => f.endsWith(".md")).length;
+console.log(`  ${green}✓${reset} Installed ${commandCount} commands`);
 
 // Copy agents
 const srcAgentsDir = path.join(srcDir, "agents");
@@ -234,5 +223,5 @@ if (!customHome) {
 }
 
 if (!customHome) {
-  console.log(`\n  ${green}Done!${reset} Launch Claude Code and run ${cyan}/ca-help${reset}.\n`);
+  console.log(`\n  ${green}Done!${reset} Launch Claude Code and run ${cyan}/ca:help${reset}.\n`);
 }
