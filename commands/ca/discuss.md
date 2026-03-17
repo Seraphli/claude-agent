@@ -96,19 +96,65 @@ After all agents complete, present a merged summary organized by research direct
 
 Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want.
 
-### 3. Ask clarifying questions ONE AT A TIME
+### 3. Systematic dimension scan
 
-Ask ONE question at a time (most important first). Focus on: Scope, Behavior, Constraints, Success criteria. Typically 2-5 questions suffice.
+After research findings are available (or after step 2 if research was skipped), scan the requirement against all relevant dimensions.
+
+**Standard workflow (workflow_type: standard) — 10 dimensions:**
+
+| # | Dimension | Focus |
+|---|-----------|-------|
+| 1 | Functional Scope & Behavior | What exactly should happen? Inputs, outputs, expected behavior |
+| 2 | Domain & Data Model | Entities, data structures, relationships, formats |
+| 3 | Interaction & UX Flow | User interaction paths, UI/CLI flow, feedback |
+| 4 | Non-Functional Quality | Performance, security, reliability, readability |
+| 5 | Integration & Dependencies | External systems, APIs, libraries, file dependencies |
+| 6 | Edge Cases & Error Handling | Boundary conditions, failure modes, error recovery |
+| 7 | Constraints & Tradeoffs | Technical limits, backward compatibility, acceptable compromises |
+| 8 | Terminology & Consistency | Naming conventions, style consistency with existing content |
+| 9 | Completion Signals | How to verify "done"? Measurable acceptance criteria |
+| 10 | Misc & Ambiguity Scan | Vague adjectives ("appropriate", "reasonable"), TODO placeholders |
+
+**Write workflow (workflow_type: write) — 6 dimensions:**
+
+| # | Dimension | Focus |
+|---|-----------|-------|
+| 1 | Scope & Goal | What to write/modify? Core objective |
+| 2 | Audience & Tone | Target reader, style, formality level |
+| 3 | Structure & Flow | Outline, section organization, logical progression |
+| 4 | Research & References | Sources, citations, background material needed |
+| 5 | Terminology & Consistency | Term usage, consistency with existing content |
+| 6 | Constraints | Length limits, format requirements, platform rules |
+
+For each dimension, assess:
+- **Clear**: requirement already covers this sufficiently
+- **Partial**: some information exists but gaps remain
+- **Missing**: no information about this dimension
+
+Present the assessment as a table to the user:
+```
+| Dimension | Status | Note |
+|-----------|--------|------|
+| Functional Scope & Behavior | Clear | ... |
+| Domain & Data Model | Partial | Need to clarify X |
+| ... | ... | ... |
+```
+
+### 4. Ask clarifying questions ONE AT A TIME
+
+Generate questions ONLY from dimensions marked Partial or Missing. Sort by Impact × Uncertainty (highest first). Ask ONE question at a time. Typically 2-5 questions suffice.
 
 **IMPORTANT**: If the user indicates they don't understand your question, you MUST stop and explain or rephrase the current question. Do NOT move on to the next question until the current one is resolved. Follow the Discussion Completeness Rule in `_rules.md`.
 
-Use `AskUserQuestion` for questions with clear options. Reserve plain text for open-ended questions.
+Use `AskUserQuestion` for questions with clear options. For questions with clear options, add a recommended option: place `(Recommended)` at the end of the suggested option label.
+
+Reserve plain text for open-ended questions.
 
 **Supplementary Research**: During discussion, if new uncertainties emerge that need investigation, propose additional research directions to the user and launch ca-researcher agents after confirmation. Use the resolved model from step 1a when launching agents. Research is not limited to step 1 — it can happen at any point during discussion when knowledge gaps are identified.
 
 **IMPORTANT**: Research MUST use `ca-researcher` agents (via the Agent tool with subagent_type ca-researcher). Do NOT use Explore agents, claude-code-guide, or general-purpose agents as a substitute for ca-researcher during any research phase in this command.
 
-### 4. Present requirement summary
+### 5. Present requirement summary
 
 Present a structured summary:
 
@@ -126,7 +172,7 @@ Present a structured summary:
 - Out of scope: ...
 ```
 
-### 5. MANDATORY CONFIRMATION
+### 6. MANDATORY CONFIRMATION
 
 Use `AskUserQuestion` with:
 - header: "Requirements"

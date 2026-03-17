@@ -74,11 +74,20 @@ Read BRIEF.md and `.ca/map.md` (if exists). Assess:
 
 #### 1b-ii. Research confirmation
 
-Based on your understanding, propose research directions:
+Based on your understanding, scan the requirement against the 6 quick dimensions and propose research directions from dimensions that are Partial or Missing:
 
-**For new features**: You MAY use the 4 standard dimensions (Stack, Features, Architecture, Pitfalls) as a starting template, or generate task-specific directions, or a mix of both.
+**Quick workflow — 6 dimensions:**
 
-**For all other types**: Generate 2-4 task-specific research directions based on what you need to learn for this specific requirement. No fixed templates.
+| # | Dimension | Focus |
+|---|-----------|-------|
+| 1 | Functional Scope & Behavior | What exactly should happen? |
+| 2 | Edge Cases & Error Handling | Boundary conditions, failure modes |
+| 3 | Constraints & Tradeoffs | Technical limits, backward compatibility |
+| 4 | Integration & Dependencies | External systems, file dependencies |
+| 5 | Completion Signals | How to verify "done"? |
+| 6 | Terminology & Consistency | Naming conventions, style consistency |
+
+For each dimension, assess Clear / Partial / Missing. Propose research directions only for Partial/Missing dimensions.
 
 Present directions to the user with context:
 - If approach is already clear: mention this, suggest research may not be essential but could help confirm.
@@ -189,6 +198,24 @@ Present:
 2. **Step Details**: Detailed instructions per step with exact changes, locations, before/after.
 
 **CRITICAL**: The `header` parameter MUST be exactly `"Detailed Plan"`. Do NOT use alternative headers like "Implementation", "Plan Details", etc.
+
+**CRITICAL — No Conditional Descriptions in Step Details**: Every step MUST contain definitive instructions based on code you have ALREADY read. The following patterns are FORBIDDEN in Step Details:
+
+- "Check if X exists, if so do A, otherwise do B"
+- "If the code already has X, skip this step"
+- "Verify whether X is present, then..."
+- "Depending on the current state of..."
+- "May need to..." / "Might require..."
+
+These patterns mean the Pre-plan Requirement was not fulfilled — you have NOT read the actual code.
+
+**Negative example** (FORBIDDEN):
+> Check if `finish.md` has a gitignore section. If it does, add the filter before the existing check. If not, create the section from scratch.
+
+**Positive example** (CORRECT):
+> In `finish.md`, before line 36 (`Read .gitignore (create if needed)`), insert the following pre-check block: [exact content here]
+
+**Self-check — Mechanical Executability**: After writing all Step Details, review each step: "Can the executor follow this mechanically without reading additional code or making any judgment?" If any step requires the executor to investigate, decide, or check conditions, rewrite that step with definitive instructions before presenting to the user.
 
 `AskUserQuestion`: header "Detailed Plan", question "Do you agree with this detailed plan?", options "Agree"/"Disagree".
 

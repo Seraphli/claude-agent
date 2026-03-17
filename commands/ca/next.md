@@ -37,6 +37,13 @@ Based on the status flags and `workflow_type`, determine the next step and execu
 - If `execute_completed: true` and `verify_completed: false` → Execute `Skill(ca:verify)`
 - If `verify_completed: true` → Execute `Skill(ca:finish)`
 
+**For `workflow_type: write`:**
+- If `init_completed: true` and `discuss_completed: false` → Execute `Skill(ca:discuss)`
+- If `discuss_completed: true` and `plan_completed: false` → Execute `Skill(ca:plan)`
+- If `plan_confirmed: true` and `execute_completed: false` → Execute `Skill(ca:execute)`
+- If `execute_completed: true` and `verify_completed: false` → Execute `Skill(ca:verify)`
+- If `verify_completed: true` → Execute `Skill(ca:finish)`
+
 ### 3. Edge cases
 
 - If no STATUS.md exists, tell the user to run `/ca:new` first.

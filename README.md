@@ -34,7 +34,7 @@ Removes commands, agents, and hooks from `~/.claude/`. Project `.ca/` directorie
 
 ## Workflow
 
-Two workflow modes are available:
+Three workflow modes are available:
 
 **Full workflow** — for requirements that need discussion:
 
@@ -46,6 +46,12 @@ Two workflow modes are available:
 
 ```
 /ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+```
+
+**Write workflow** — for creative writing and document tasks:
+
+```
+/ca:write → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 
 Each workflow optionally creates a dedicated git branch (`ca/<workflow-id>`) for isolated development.
@@ -77,7 +83,7 @@ Creates a workflow in `.ca/workflows/<id>/`. If an unfinished workflow exists, o
 
 ### 2. Discuss — `/ca:discuss`
 
-Starts with automated 4-dimension research (Stack, Features, Architecture, Pitfalls) using parallel researcher agents, then clarifies your requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
+Starts with adaptive research using parallel researcher agents, then performs a systematic dimension scan (10 dimensions for standard, 6 for write workflows) to identify gaps, and clarifies requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
 
 ### 3. Plan — `/ca:plan`
 
@@ -103,13 +109,14 @@ Merges the workflow branch back to the base branch and cleans up. When `use_bran
 
 ### Quick Mode — `/ca:quick [description]`
 
-Skips the discuss phase. Creates a brief and goes straight to planning. For simple requirements, the system offers to skip the 4-dimension research; for complex ones, research runs automatically. Best for small, well-understood changes.
+Skips the discuss phase. Creates a brief and goes straight to planning. Research directions are based on 6 quick dimensions; simple requirements can skip research. Best for small, well-understood changes.
 
 ## Other Commands
 
 | Command | Description |
 |---------|-------------|
 | `/ca:quick [desc]` | Start a quick workflow (skip discuss) |
+| `/ca:write [desc]` | Start a writing workflow (writing-specific dimensions) |
 | `/ca:next` | Auto-detect and run the next workflow step |
 | `/ca:map` | Scan and record project structure |
 | `/ca:settings` | Configure language, model, and auto-proceed settings |

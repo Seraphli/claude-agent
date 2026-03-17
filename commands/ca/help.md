@@ -22,6 +22,7 @@ Display all available CA commands in the user's preferred language:
 |---------|-------------|
 | `/ca:new [description]` | Start a new requirement — gather brief, create workflow + branch |
 | `/ca:quick [description]` | Quick workflow — brief + branch, skip discuss |
+| `/ca:write [description]` | Writing workflow — brief + branch, writing-specific discuss dimensions |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
 | `/ca:execute` | Execute the confirmed plan (uses ca-executor agent) |
@@ -72,6 +73,12 @@ Display all available CA commands in the user's preferred language:
 **Quick:**
 ```
 /ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+```
+**Or use `/ca:next` repeatedly to auto-advance through each step.**
+
+**Write:**
+```
+/ca:write → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 

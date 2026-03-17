@@ -23,6 +23,10 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:
 
 Read `track_ca_files` from the config JSON already loaded.
 
+**Pre-check — Are CA files in uncommitted changes?**
+
+Run `git status --porcelain` and check if any file paths match `.ca/` or `.claude/rules/ca`. If NO CA-related files are in the uncommitted changes, **skip the entire Gitignore Check** and proceed to step 2. Only continue with pattern checking if CA-related files are actually present.
+
 Define the CA gitignore patterns:
 - `.ca/` pattern: `.ca/`
 - `.claude/rules/ca*` pattern: `.claude/rules/ca*`
@@ -97,7 +101,17 @@ Read STATUS.md for `branch_name` and `base_branch`.
 3. If yes:
    - Run `git diff --stat` and `git status` to gather info.
    - Generate commit message: `<type>: <concise title>` with body listing each change (reference PLAN.md and SUMMARY.md).
-   - Show the diff summary and commit message to the user. **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
+   - **CRITICAL — Show full file list**: Display the complete `git diff --stat` output (every file line, NOT just the summary line "N files changed") AND the commit message to the user:
+     ```
+     Files to commit:
+     <full git diff --stat output, every line>
+
+     Commit message:
+     <type>: <concise title>
+
+     <body>
+     ```
+   **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
    - If **Revise**: let user edit the message, re-confirm.
    - Stage specific files and commit (no `git add -A`).
 4. If no: proceed to step 2b.
@@ -108,8 +122,11 @@ Read STATUS.md for `branch_name` and `base_branch`.
    - `squash`: Run `git merge --squash <branch_name>`. Then:
      1. Generate a commit message from PLAN.md + SUMMARY.md following conventional commit format.
      2. Derive the semver bump type from the commit type. Calculate the new version number.
-     3. Show both to the user:
+     3. Run `git diff --stat` to get the file list. Show to the user:
         ```
+        Files to merge:
+        <full git diff --stat output, every line>
+
         Commit message:
         <type>[(<scope>)][!]: <description>
 
@@ -123,7 +140,18 @@ Read STATUS.md for `branch_name` and `base_branch`.
    - `merge`:
      1. Generate a merge commit message following conventional commit format.
      2. Derive the semver bump type. Calculate the new version number.
-     3. Show both to the user (same format as squash).
+     3. Run `git diff --stat` to get the file list. Show to the user:
+        ```
+        Files to merge:
+        <full git diff --stat output, every line>
+
+        Commit message:
+        <type>[(<scope>)][!]: <description>
+
+        <body>
+
+        Version bump: <old> → <new> (<bump type>)
+        ```
      4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
         - If **Revise**: let user edit, re-confirm.
      5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
@@ -143,8 +171,11 @@ Use original commit logic:
   1. `git diff --stat` to gather info.
   2. Generate a commit message following conventional commit format.
   3. Derive the semver bump type. Calculate the new version number.
-  4. Show both to the user:
+  4. **CRITICAL — Show full file list**: Display the complete `git diff --stat` output AND the commit message:
      ```
+     Files to commit:
+     <full git diff --stat output, every line>
+
      Commit message:
      <type>[(<scope>)][!]: <description>
 
