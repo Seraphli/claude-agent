@@ -1,10 +1,18 @@
-# /ca:switch — Switch Active Workflow
+---
+name: ca-switch
+description: Switches the active workflow and optionally the git branch. Use when working with multiple workflows.
+disable-model-invocation: true
+---
+
+# /ca-switch — Switch Active Workflow
+
+**CRITICAL — Code Modification Policy**: This command only switches workflow state and git branches. Do NOT modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
-Check `.ca/workflows/` directory exists and contains at least one workflow. If not, tell the user to run `/ca:new` first and stop.
+Check `.ca/workflows/` directory exists and contains at least one workflow. If not, tell the user to run `/ca-new` first and stop.
 
 ## Behavior
 

@@ -1,12 +1,19 @@
-# /ca:discuss — Discuss Requirements
+---
+name: ca-discuss
+description: Researches and discusses requirements through adaptive Q&A. Use when requirements need clarification before planning.
+disable-model-invocation: true
+---
+# /ca-discuss — Discuss Requirements
+
+**CRITICAL — Code Modification Policy**: This command is for research and discussion ONLY. Do NOT modify any source code or project files.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca:plan`." **Stop immediately.**
+   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, tell the user: "This is a quick workflow. The discuss step is skipped. Please proceed with `/ca-plan`." **Stop immediately.**
 
 ## Behavior
 
@@ -98,7 +105,9 @@ Ask ONE question at a time (most important first). Focus on: Scope, Behavior, Co
 
 Use `AskUserQuestion` for questions with clear options. Reserve plain text for open-ended questions.
 
-**Supplementary Research**: During discussion, if new uncertainties emerge that need investigation, propose additional research directions to the user and launch ca-researcher agents after confirmation. Research is not limited to step 1 — it can happen at any point during discussion when knowledge gaps are identified.
+**Supplementary Research**: During discussion, if new uncertainties emerge that need investigation, propose additional research directions to the user and launch ca-researcher agents after confirmation. Use the resolved model from step 1a when launching agents. Research is not limited to step 1 — it can happen at any point during discussion when knowledge gaps are identified.
+
+**IMPORTANT**: Research MUST use `ca-researcher` agents (via the Agent tool with subagent_type ca-researcher). Do NOT use Explore agents, claude-code-guide, or general-purpose agents as a substitute for ca-researcher during any research phase in this command.
 
 ### 4. Present requirement summary
 
@@ -135,7 +144,7 @@ Use `AskUserQuestion` with:
 2. ...
 ```
 Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Also set `status_note` to a context-aware summary, e.g.: "Requirements discussed and confirmed. Ready for planning." Tell the user discussion is complete. Suggest next steps:
-- `/ca:plan` (or `/ca:next`)
+- `/ca-plan` (or `/ca-next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

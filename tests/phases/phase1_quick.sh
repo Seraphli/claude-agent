@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # phase1_quick.sh — E2E test for the quick workflow: quick → plan → execute → verify → finish
 #
-# Tests the full lifecycle of a /ca:quick workflow on a minimal Node.js fixture project.
+# Tests the full lifecycle of a /ca-quick workflow on a minimal Node.js fixture project.
 # Each phase injects the slash command, waits for Claude to finish, then asserts file state.
 #
 # Usage:
@@ -59,10 +59,10 @@ sleep 5
 pane_log "startup"
 
 # ---------------------------------------------------------------------------
-# Step 1: /ca:quick — create workflow, expect "Add Todo" prompt
+# Step 1: /ca-quick — create workflow, expect "Add Todo" prompt
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!'"
+inject_command "/ca-quick add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
 wait_for_ask 300
 assert_ask_header "Add Todo" "quick: Add Todo prompt"
 sleep 1
@@ -82,10 +82,10 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 2: /ca:plan — generate PLAN.md and CRITERIA.md
+# Step 2: /ca-plan — generate PLAN.md and CRITERIA.md
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:plan"
+inject_command "/ca-plan"
 
 # Expect: Research confirmation (optional — model may skip directly to Requirements)
 wait_for_ask 300
@@ -135,10 +135,10 @@ fi
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 3: /ca:execute — run executor agent, produce SUMMARY.md
+# Step 3: /ca-execute — run executor agent, produce SUMMARY.md
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:execute"
+inject_command "/ca-execute"
 wait_for_stop 600
 pane_log "execute-done"
 
@@ -153,10 +153,10 @@ fi
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 4: /ca:verify — run verifier agent, produce VERIFY-REPORT.md
+# Step 4: /ca-verify — run verifier agent, produce VERIFY-REPORT.md
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:verify"
+inject_command "/ca-verify"
 
 # Expect: Results acceptance prompt
 wait_for_ask 600
@@ -180,10 +180,10 @@ fi
 assert_status_field "verify_completed" "true" "verify: verify_completed=true"
 
 # ---------------------------------------------------------------------------
-# Step 5: /ca:finish — archive workflow to .ca/history/
+# Step 5: /ca-finish — archive workflow to .ca/history/
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:finish"
+inject_command "/ca-finish"
 
 # Expect: Commit prompt
 wait_for_ask 120

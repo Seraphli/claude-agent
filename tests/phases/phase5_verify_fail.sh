@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # phase5_verify_fail.sh — E2E test for verify failure flow
 #
-# Tests that when /ca:verify finds unmet criteria, it creates ISSUES.md,
+# Tests that when /ca-verify finds unmet criteria, it creates ISSUES.md,
 # sets fix_round=1, and resets plan_completed=false for a re-plan cycle.
 #
 # Unlike other phases, this test manually creates a workflow in "execute completed"
@@ -114,7 +114,7 @@ EOF
 echo "[setup] workflow files created at ${WORKFLOW_DIR}"
 
 # ---------------------------------------------------------------------------
-# Start Claude and run /ca:verify
+# Start Claude and run /ca-verify
 # ---------------------------------------------------------------------------
 
 start_claude
@@ -123,10 +123,10 @@ sleep 5
 pane_log "startup"
 
 # ---------------------------------------------------------------------------
-# /ca:verify — expect it to detect failure and create ISSUES.md
+# /ca-verify — expect it to detect failure and create ISSUES.md
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:verify"
+inject_command "/ca-verify"
 wait_for_stop 600
 pane_log "verify-done"
 

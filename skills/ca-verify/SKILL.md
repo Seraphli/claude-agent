@@ -1,12 +1,20 @@
-# /ca:verify — Verify Results
+---
+name: ca-verify
+description: Independently verifies implementation against success criteria using verifier agents. Use when execution is complete.
+disable-model-invocation: true
+---
+
+# /ca-verify — Verify Results
+
+**CRITICAL — Code Modification Policy**: Verify is READ-ONLY. Do NOT modify any source code or project files.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
+   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca-execute` first. **Stop immediately.**
 
 ## Behavior
 
@@ -15,11 +23,11 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 **CRITICAL — Verify is READ-ONLY**: Throughout the ENTIRE verify command lifecycle, you MUST NEVER:
 - Modify any source code or project files
 - Write fix plans, solutions, or suggestions for how to fix failures
-- Call other skills (ca:plan, ca:execute, etc.)
+- Call other skills (ca-plan, ca-execute, etc.)
 
 You CAN and SHOULD read source code to understand the current state, verify criteria, and answer user questions about the implementation. The restriction is on WRITING changes, not on READING code.
 
-This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca:plan` for actual fixes.
+This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca-plan` for actual fixes.
 
 You are the verification orchestrator. You delegate the actual verification to the `ca-verifier` agent running in a **fresh context** to avoid confirmation bias.
 
@@ -102,28 +110,25 @@ Check `batch_mode` in STATUS.md:
    - Which criteria failed and what the failure details are
    - References to any verifier output/log files
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
-5. **Update STATUS.md**:
-   - `fix_round: <N>`
-   - `plan_completed: false`
-   - `plan_confirmed: false`
-   - `execute_completed: false`
-   - `verify_completed: false`
-   - `current_step: verify`
-   - `status_note: Verification failed (round N): <brief failure summary>. Ready for fix planning.`
+5. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
+   ```
+   node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
+   ```
+   Do NOT use Write or Edit tools to update STATUS.md — the script handles type coercion and field updates correctly. Using Write/Edit may silently fail to reset fields.
 6. Report the failures to the user (show the report summary).
-7. Suggest the user run `/ca:plan` (or `/ca:next`) to plan the fix.
+7. Suggest the user run `/ca-plan` (or `/ca-next`) to plan the fix.
 8. **Stop immediately.**
 
 **CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
 - Modify source code or project files
 - Write fix plans, solutions, or suggestions in the report
 - Reset STATUS.md or modify PLAN.md
-- Call other skills (ca:plan, ca:execute, etc.)
+- Call other skills (ca-plan, ca-execute, etc.)
 - Re-run tests that already have logged output
 
 You CAN read source code to understand the current state and explain issues to the user. The prohibition is on modifying code and proposing fixes, not on reading and understanding.
 
-If the user raises issues or asks about failures, you may read code and explain the situation, but guide to `/ca:plan` for actual fixes. Never modify code within the verify context.
+If the user raises issues or asks about failures, you may read code and explain the situation, but guide to `/ca-plan` for actual fixes. Never modify code within the verify context.
 
 #### 3e. Manual verification
 
@@ -159,7 +164,7 @@ Display the report with auto and manual sections:
 ### Overall: PASS/FAIL
 ```
 
-**CRITICAL — Verify is READ-ONLY (Reminder)**: Even at the final acceptance step, you MUST NOT modify any source code, write fix plans, or call other skills. If the user rejects, record the issues and direct to `/ca:plan`. Do NOT attempt to fix anything.
+**CRITICAL — Verify is READ-ONLY (Reminder)**: Even at the final acceptance step, you MUST NOT modify any source code, write fix plans, or call other skills. If the user rejects, record the issues and direct to `/ca-plan`. Do NOT attempt to fix anything.
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
@@ -172,8 +177,31 @@ Use `AskUserQuestion` with:
   - "Accept" — "Results are satisfactory"
   - "Reject" — "Results need work"
 
-- If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca:plan`. **Stop immediately.**
-- If **Reject**: Ask what's wrong, record in VERIFY-REPORT.md (fix-round path if applicable), suggest `/ca:plan`. No fixing or investigating.
+- If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca-plan`. **Stop immediately.**
+- If **Reject**:
+  1. Ask what's wrong.
+  2. **Determine fix round**: Read `fix_round` from STATUS.md (default: 0). Set N = fix_round + 1.
+  3. **Create round directory**: Create `.ca/workflows/<active_id>/rounds/<N>/`.
+  4. **Write ISSUES.md**: Write `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`:
+     ```markdown
+     # Issues (Round N)
+
+     ## From User Feedback
+     <user's rejection feedback>
+
+     ## From Verification Report
+     <any failed criteria from the report above, if applicable>
+     ```
+  5. **Write VERIFY-REPORT.md**:
+     - If N == 1: write to `.ca/workflows/<active_id>/VERIFY-REPORT.md`
+     - If N > 1: write to `.ca/workflows/<active_id>/rounds/<N-1>/VERIFY-REPORT.md`
+  6. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
+     ```
+     node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=User rejected results (round N): <brief feedback>. Ready for fix planning."
+     ```
+     Do NOT use Write or Edit tools to update STATUS.md.
+  7. Suggest `/ca-plan` (or `/ca-next`) for fix planning.
+  8. **Stop immediately.** Do NOT fix, investigate, or modify code.
 - If **Accept**: Proceed to step 6.
 
 ### 6. Update STATUS.md
@@ -183,7 +211,7 @@ Set `verify_completed: true`, `current_step: verify`.
 Also set `status_note`, e.g.: "Verification passed. Ready for finish."
 
 Tell the user verification is complete. Suggest next steps:
-- `/ca:finish` (or `/ca:next`)
+- `/ca-finish` (or `/ca-next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

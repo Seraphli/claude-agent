@@ -1,4 +1,11 @@
-# /ca:batch — Batch Execute Workflows
+---
+name: ca-batch
+description: Batch executes multiple confirmed workflows sequentially. Use when multiple plans are confirmed and ready.
+disable-model-invocation: true
+---
+# /ca-batch — Batch Execute Workflows
+
+**CRITICAL — Code Modification Policy**: This command orchestrates ca-execute and ca-verify skills. Does not modify code directly.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
@@ -52,11 +59,11 @@ For each workflow in order:
 5. **If non-branch mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
 
 #### 3b. Execute (if needed)
-If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workflow.
+If `execute_completed: false`: Execute `Skill(ca-execute)` for the current workflow.
 If `execute_completed: true`: skip execution.
 
 #### 3c. Verify
-Execute `Skill(ca:verify)`. `batch_mode: true` → skip manual criteria, skip user acceptance, auto-update STATUS.md.
+Execute `Skill(ca-verify)`. `batch_mode: true` → skip manual criteria, skip user acceptance, auto-update STATUS.md.
 
 #### 3d. Handle results
 
@@ -85,10 +92,10 @@ Show counts: Passed / Failed / Total.
 If 2+ passed: compare changed files between pairs. No overlap → Independent. Overlap → list files.
 
 #### 4c. Recommendations
-- **Independent**: `/ca:switch <id>` → `/ca:finish` each.
+- **Independent**: `/ca-switch <id>` → `/ca-finish` each.
 - **Overlapping**: Review overlapping files first.
-- **Failed**: `/ca:switch <id>` → `/ca:plan`.
-- **Branch mode passed**: `/ca:switch <id>` → `/ca:finish` to merge each workflow branch.
+- **Failed**: `/ca-switch <id>` → `/ca-plan`.
+- **Branch mode passed**: `/ca-switch <id>` → `/ca-finish` to merge each workflow branch.
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # phase2_standard.sh — E2E test for the standard workflow:
-#   /ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+#   /ca-new → /ca-discuss → /ca-plan → /ca-execute → /ca-verify → /ca-finish
 #
 # Each step injects the slash command and waits for event-driven signals
 # (AskUserQuestion or Stop) rather than polling for idle state.
@@ -57,10 +57,10 @@ sleep 5
 pane_log "startup"
 
 # ============================================================
-# Step 1: /ca:new — create a new standard workflow
+# Step 1: /ca-new — create a new standard workflow
 # ============================================================
 
-inject_command "/ca:new Add a hello command to utils.js. All success criteria must be auto-verifiable via bash commands"
+inject_command "/ca-new Add a hello command to utils.js. All success criteria must be auto-verifiable via bash commands"
 wait_for_ask 300
 assert_ask_header "Add Todo" "new: Add Todo prompt"
 sleep 1
@@ -82,10 +82,10 @@ else
 fi
 
 # ============================================================
-# Step 2: /ca:discuss — finalize requirements
+# Step 2: /ca-discuss — finalize requirements
 # ============================================================
 
-inject_command "/ca:discuss"
+inject_command "/ca-discuss"
 
 # discuss has variable clarifying questions before final "Requirements" confirmation
 for i in $(seq 1 10); do
@@ -98,7 +98,7 @@ for i in $(seq 1 10); do
     fi
     echo "[discuss] clarifying question ${i}: ${LAST_ASK_HEADER}"
     sleep 1
-    select_option 1
+    select_option_smart 1
 done
 
 wait_for_stop 300
@@ -116,10 +116,10 @@ fi
 assert_status_field "discuss_completed" "true" "discuss: discuss_completed=true"
 
 # ============================================================
-# Step 3: /ca:plan — create plan and criteria
+# Step 3: /ca-plan — create plan and criteria
 # ============================================================
 
-inject_command "/ca:plan"
+inject_command "/ca-plan"
 
 # Expect: Requirements confirmation
 wait_for_ask 300
@@ -162,10 +162,10 @@ fi
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 
 # ============================================================
-# Step 4: /ca:execute — run the plan
+# Step 4: /ca-execute — run the plan
 # ============================================================
 
-inject_command "/ca:execute"
+inject_command "/ca-execute"
 wait_for_stop 600
 pane_log "execute-done"
 
@@ -181,10 +181,10 @@ fi
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 
 # ============================================================
-# Step 5: /ca:verify — run verification
+# Step 5: /ca-verify — run verification
 # ============================================================
 
-inject_command "/ca:verify"
+inject_command "/ca-verify"
 wait_for_ask 600
 assert_ask_header "Results" "verify: Results prompt"
 sleep 1
@@ -205,10 +205,10 @@ fi
 assert_status_field "verify_completed" "true" "verify: verify_completed=true"
 
 # ============================================================
-# Step 6: /ca:finish — archive the workflow
+# Step 6: /ca-finish — archive the workflow
 # ============================================================
 
-inject_command "/ca:finish"
+inject_command "/ca-finish"
 
 # Expect: Commit prompt
 wait_for_ask 120

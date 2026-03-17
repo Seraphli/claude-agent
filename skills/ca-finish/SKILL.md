@@ -1,12 +1,20 @@
-# /ca:finish — Wrap Up Workflow
+---
+name: ca-finish
+description: Wraps up a workflow with version bump, branch merge, and archive. Use when verification has passed.
+disable-model-invocation: true
+---
+
+# /ca-finish — Wrap Up Workflow
+
+**CRITICAL — Code Modification Policy**: This command handles git operations only (commit, merge, archive). Do NOT modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
+   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca-verify` first. **Stop immediately.**
 
 ## Behavior
 
@@ -129,6 +137,8 @@ Read STATUS.md for `branch_name` and `base_branch`.
 **If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):
 
 Use original commit logic:
+**CRITICAL — Two-Step Confirmation Required**: The commit decision (header "Commit") and the commit message confirmation (header "Confirm") MUST be two separate AskUserQuestion calls. Do NOT combine them into a single question. Always ask "Commit" first, wait for response, then ask "Confirm".
+
 - **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
 - If yes:
   1. `git diff --stat` to gather info.

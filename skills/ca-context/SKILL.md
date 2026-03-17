@@ -1,4 +1,12 @@
-# /ca:context — Show Persistent Context
+---
+name: ca-context
+description: Shows persistent context and loaded files in current session. Use when checking what context is loaded.
+disable-model-invocation: true
+---
+
+# /ca-context — Show Persistent Context
+
+**CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
 ## Prerequisites
 
@@ -10,7 +18,7 @@ No prerequisites.
 
 Read and display the contents of `.claude/rules/ca-context.md` (project context) and `~/.claude/rules/ca-context.md` (global context).
 
-If the files are empty or don't exist, tell the user there's no saved context yet and suggest using `/ca:remember <info>` to add some.
+If the files are empty or don't exist, tell the user there's no saved context yet and suggest using `/ca-remember <info>` to add some.
 
 ### 2. Show loaded files in current context
 

@@ -24,7 +24,7 @@ Nothing gets written to disk until you've explicitly approved:
 - How it will be implemented
 - What the end result should look like
 
-This is the triple confirmation in `/ca:plan` — the system's core mechanism. It exists because the gap between "what you said" and "what the AI understood" is where most waste happens. Closing that gap before any code is written is cheaper than fixing it after.
+This is the triple confirmation in `/ca-plan` — the system's core mechanism. It exists because the gap between "what you said" and "what the AI understood" is where most waste happens. Closing that gap before any code is written is cheaper than fixing it after.
 
 ### Each step is a checkpoint
 

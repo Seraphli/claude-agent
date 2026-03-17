@@ -16,7 +16,7 @@ cd claude-agent
 npm run install-ca
 ```
 
-This syncs slash commands to `~/.claude/commands/ca/`, agents to `~/.claude/agents/`, scripts to `~/.claude/ca/scripts/`, references to `~/.claude/ca/references/`, and registers the statusline hook. Stale files removed from source are automatically cleaned up during install.
+This syncs skills to `~/.claude/skills/`, agents to `~/.claude/agents/`, scripts to `~/.claude/ca/scripts/`, references to `~/.claude/ca/references/`, and registers the statusline hook. Stale files removed from source are automatically cleaned up during install.
 
 ## Uninstall
 
@@ -39,47 +39,47 @@ Two workflow modes are available:
 **Full workflow** — for requirements that need discussion:
 
 ```
-/ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+/ca-new → /ca-discuss → /ca-plan → /ca-execute → /ca-verify → /ca-finish
 ```
 
 **Quick workflow** — for clear, simple changes:
 
 ```
-/ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+/ca-quick → /ca-plan → /ca-execute → /ca-verify → /ca-finish
 ```
 
 Each workflow optionally creates a dedicated git branch (`ca/<workflow-id>`) for isolated development.
 
-Use `/ca:next` at any point to automatically detect and run the next step.
+Use `/ca-next` at any point to automatically detect and run the next step.
 
 **Multi-workflow** — plan multiple requirements, then batch execute:
 
 ```
-/ca:new → /ca:discuss → /ca:plan   (repeat for each requirement)
-/ca:switch                          (switch between workflows)
-/ca:batch                           (batch execute all confirmed plans)
+/ca-new → /ca-discuss → /ca-plan   (repeat for each requirement)
+/ca-switch                          (switch between workflows)
+/ca-batch                           (batch execute all confirmed plans)
 ```
 
 ### Branch Management
 
 When `use_branches` is enabled (default), each workflow operates on a dedicated branch:
 
-- **Branch creation** — `/ca:new` or `/ca:quick` creates a `ca/<workflow-id>` branch from the current base branch
+- **Branch creation** — `/ca-new` or `/ca-quick` creates a `ca/<workflow-id>` branch from the current base branch
 - **Auto-commit** — after execution, changes are automatically committed to the workflow branch
-- **Finish** — `/ca:finish` squash-merges (or regular merge, based on `merge_strategy`) the workflow branch back to the base branch
+- **Finish** — `/ca-finish` squash-merges (or regular merge, based on `merge_strategy`) the workflow branch back to the base branch
 - **Cleanup** — the workflow branch is automatically deleted after merge when `auto_delete_branch` is true (default)
 
 This keeps your main branch clean and gives each requirement its own isolated history.
 
-### 1. New Requirement — `/ca:new [description]`
+### 1. New Requirement — `/ca-new [description]`
 
 Creates a workflow in `.ca/workflows/<id>/`. If an unfinished workflow exists, offers to keep it alongside the new one, archive it, or continue it. Collects an initial requirement brief. On first run, auto-configures language settings if no global config exists.
 
-### 2. Discuss — `/ca:discuss`
+### 2. Discuss — `/ca-discuss`
 
 Starts with automated 4-dimension research (Stack, Features, Architecture, Pitfalls) using parallel researcher agents, then clarifies your requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
 
-### 3. Plan — `/ca:plan`
+### 3. Plan — `/ca-plan`
 
 For quick workflows, assesses requirement complexity — simple requirements can skip research, complex ones get automated research. Clarifies any uncertain items before drafting. Proposes an implementation plan with **triple confirmation** and backtracking:
 
@@ -89,19 +89,19 @@ For quick workflows, assesses requirement complexity — simple requirements can
 
 If changes at a later step affect earlier confirmations, the system backtracks and re-confirms affected steps. Success criteria are tagged `[auto]` or `[manual]` for verification.
 
-### 4. Execute — `/ca:execute`
+### 4. Execute — `/ca-execute`
 
 Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary. When branch management is enabled, changes are auto-committed to the workflow branch after execution.
 
-### 5. Verify — `/ca:verify`
+### 5. Verify — `/ca-verify`
 
 Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails, asks you whether to auto-fix and retry (max 3 times) or stop for manual review. In batch mode, verification runs fully automated — skips manual criteria, user acceptance, and gitignore check; auto-commits on success; fails immediately without retry on failure. Manual criteria are confirmed with you one at a time. After acceptance, optionally creates a git commit (message confirmed by you). Archives the workflow cycle to `.ca/history/`.
 
-### 6. Finish — `/ca:finish`
+### 6. Finish — `/ca-finish`
 
 Merges the workflow branch back to the base branch and cleans up. When `use_branches` is enabled, squash-merges (or regular merge based on `merge_strategy`) the `ca/<workflow-id>` branch into the base branch, then deletes the workflow branch if `auto_delete_branch` is true.
 
-### Quick Mode — `/ca:quick [description]`
+### Quick Mode — `/ca-quick [description]`
 
 Skips the discuss phase. Creates a brief and goes straight to planning. For simple requirements, the system offers to skip the 4-dimension research; for complex ones, research runs automatically. Best for small, well-understood changes.
 
@@ -109,20 +109,21 @@ Skips the discuss phase. Creates a brief and goes straight to planning. For simp
 
 | Command | Description |
 |---------|-------------|
-| `/ca:quick [desc]` | Start a quick workflow (skip discuss) |
-| `/ca:next` | Auto-detect and run the next workflow step |
-| `/ca:map` | Scan and record project structure |
-| `/ca:settings` | Configure language, model, and auto-proceed settings |
-| `/ca:status` | Show current workflow state |
-| `/ca:switch` | Switch active workflow |
-| `/ca:list` | List all workflows with status summary |
-| `/ca:batch` | Batch execute all plan-confirmed workflows |
-| `/ca:remember <info>` | Save to persistent context (project or global) |
-| `/ca:context` | Show loaded context in current session |
-| `/ca:forget <info>` | Remove from persistent context |
-| `/ca:todo <item>` | Add a todo item |
-| `/ca:todos` | List all todos |
-| `/ca:help` | Show command reference |
+| `/ca-quick [desc]` | Start a quick workflow (skip discuss) |
+| `/ca-next` | Auto-detect and run the next workflow step |
+| `/ca-map` | Scan and record project structure |
+| `/ca-settings` | Configure language, model, and auto-proceed settings |
+| `/ca-status` | Show current workflow state |
+| `/ca-switch` | Switch active workflow |
+| `/ca-list` | List all workflows with status summary |
+| `/ca-batch` | Batch execute all plan-confirmed workflows |
+| `/ca-remember <info>` | Save to persistent context (project or global) |
+| `/ca-context` | Show loaded context in current session |
+| `/ca-forget <info>` | Remove from persistent context |
+| `/ca-todo <item>` | Add a todo item |
+| `/ca-todos` | List all todos |
+| `/ca-errors` | Show and manage error lessons |
+| `/ca-help` | Show command reference |
 
 ## Configuration
 
@@ -154,7 +155,7 @@ Additional settings:
 
 Per-agent model overrides (e.g., `ca-verifier_model: opus`) are also supported.
 
-Use `/ca:settings` to configure.
+Use `/ca-settings` to configure.
 
 ## Project Structure
 
@@ -165,7 +166,7 @@ Use `/ca:settings` to configure.
     version                      # Installed version number
     scripts/                     # Node.js scripts for deterministic operations
     references/                  # Reference files (model-profiles.md, etc.)
-  commands/ca/                   # Slash commands (installed by install-ca)
+  skills/                        # Skills (installed by install-ca)
   agents/                        # Agent definitions (installed by install-ca)
   rules/
     ca-rules.md                  # Shared rules (auto-loaded)
@@ -173,19 +174,19 @@ Use `/ca:settings` to configure.
     ca-context.md                # Global persistent context (auto-loaded)
     ca-errors.md                 # Global error lessons (auto-loaded)
 
-.ca/                             # Created per-project by /ca:new or /ca:quick
+.ca/                             # Created per-project by /ca-new or /ca-quick
   config.md                      # Workspace config (overrides global)
   todos.md                       # Todo list with archive
-  map.md                         # Codebase structure map (/ca:map)
+  map.md                         # Codebase structure map (/ca-map)
   active.md                      # Currently active workflow ID
   workflows/
     <workflow-id>/
       STATUS.md                  # Workflow state
       BRIEF.md                   # Initial requirement brief
-      REQUIREMENT.md             # Finalized requirement from /ca:discuss
-      PLAN.md                    # Confirmed plan from /ca:plan
-      SUMMARY.md                 # Execution summary from /ca:execute
-      CRITERIA.md                # Success criteria from /ca:plan
+      REQUIREMENT.md             # Finalized requirement from /ca-discuss
+      PLAN.md                    # Confirmed plan from /ca-plan
+      SUMMARY.md                 # Execution summary from /ca-execute
+      CRITERIA.md                # Success criteria from /ca-plan
   history/
     0001-feature-slug/           # Archived workflow cycles
 
@@ -239,9 +240,9 @@ Tests are organized into three phases under `tests/phases/`:
 
 | Phase | Script | Description |
 |-------|--------|-------------|
-| 1 | `phase1_quick.sh` | Quick workflow: `/ca:quick` → `/ca:plan` → `/ca:execute` → `/ca:verify` → `/ca:finish` |
-| 2 | `phase2_standard.sh` | Standard workflow: `/ca:new` → `/ca:discuss` → `/ca:plan` → `/ca:execute` → `/ca:verify` → `/ca:finish` |
-| 3 | `phase3_helpers.sh` | Helper commands: `/ca:todo`, `/ca:todos`, `/ca:map`, `/ca:status`, `/ca:list` |
+| 1 | `phase1_quick.sh` | Quick workflow: `/ca-quick` → `/ca-plan` → `/ca-execute` → `/ca-verify` → `/ca-finish` |
+| 2 | `phase2_standard.sh` | Standard workflow: `/ca-new` → `/ca-discuss` → `/ca-plan` → `/ca-execute` → `/ca-verify` → `/ca-finish` |
+| 3 | `phase3_helpers.sh` | Helper commands: `/ca-todo`, `/ca-todos`, `/ca-map`, `/ca-status`, `/ca-list` |
 
 Shared infrastructure lives in `tests/e2e_common.sh` (setup, tmux helpers, assertions, result recording). Each phase runs in a fully isolated temp directory with its own `HOME` override so tests never affect your real Claude config.
 

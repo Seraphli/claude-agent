@@ -2,17 +2,23 @@ const fs = require("fs");
 const path = require("path");
 
 const homeDir = require("os").homedir();
-const targetCommandsDir = path.join(homeDir, ".claude", "commands", "ca");
+const targetSkillsDir = path.join(homeDir, ".claude", "skills");
 const targetAgentsDir = path.join(homeDir, ".claude", "agents");
 const targetHooksDir = path.join(homeDir, ".claude", "hooks");
 const settingsPath = path.join(homeDir, ".claude", "settings.json");
 
-// Remove commands directory
-if (fs.existsSync(targetCommandsDir)) {
-  fs.rmSync(targetCommandsDir, { recursive: true });
-  console.log(`Removed ${targetCommandsDir}`);
+// Remove skill directories
+if (fs.existsSync(targetSkillsDir)) {
+  let removed = 0;
+  for (const entry of fs.readdirSync(targetSkillsDir)) {
+    if (entry.startsWith("ca-")) {
+      fs.rmSync(path.join(targetSkillsDir, entry), { recursive: true });
+      removed++;
+    }
+  }
+  console.log(`Removed ${removed} skill directories from ${targetSkillsDir}`);
 } else {
-  console.log("Commands directory not found, skipping.");
+  console.log("Skills directory not found, skipping.");
 }
 
 // Remove agent files

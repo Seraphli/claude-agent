@@ -1,12 +1,20 @@
-# /ca:plan — Propose Implementation Plan (Triple Confirmation)
+---
+name: ca-plan
+description: Proposes an implementation plan with triple confirmation. Use when a discussed requirement is ready for planning.
+disable-model-invocation: true
+---
+
+# /ca-plan — Propose Implementation Plan (Triple Confirmation)
+
+**CRITICAL — Code Modification Policy**: This command is for planning ONLY. Do NOT modify any source code or project files, regardless of whether this is a normal flow or fix round.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca-discuss` first and stop.
 
 ## Behavior
 
@@ -40,7 +48,7 @@ If `fix_round` > 0 (fix round N):
    - options:
      - "Run all" — "Research all issues"
      - "Skip research" — "Go straight to planning"
-5. **If Run all**: For each issue, launch a ca-researcher agent (model from config JSON) with:
+5. **If Run all**: For each issue, launch a ca-researcher agent. Pass the resolved `ca-researcher_model` from the config JSON to each agent. Each agent receives:
    - The issue description, project root path, map content
    - Prompt: "Investigate the root cause of this issue: <issue>. Read relevant source code, trace the problem, report findings with file/line references."
    - Multiple independent issues → parallel researchers (up to `max_concurrency`).
@@ -269,11 +277,11 @@ Set `plan_completed: true`, `plan_confirmed: true`, `current_step: plan`.
 Also set `status_note` to a context-aware summary, e.g.: "Plan confirmed. Ready for execution." (fix mode: "Fix round N plan confirmed. Ready for execution.")
 
 Tell the user the plan is confirmed. Suggest next steps:
-- `/ca:execute` (or `/ca:next`)
+- `/ca-execute` (or `/ca-next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-**Batch tip**: Plan multiple requirements first (`/ca:quick`/`/ca:new`), then `/ca:batch` to execute all.
+**Batch tip**: Plan multiple requirements first (`/ca-quick`/`/ca-new`), then `/ca-batch` to execute all.
 
 **Do NOT auto-proceed.**

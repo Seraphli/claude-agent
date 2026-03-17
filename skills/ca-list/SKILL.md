@@ -1,4 +1,12 @@
-# /ca:list — List All Workflows
+---
+name: ca-list
+description: Lists all active workflows with status flags and branch info. Use when reviewing multiple workflows.
+disable-model-invocation: true
+---
+
+# /ca-list — List All Workflows
+
+**CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
@@ -33,6 +41,6 @@ Display:
 - Plan confirmed (ready for batch): N
 - In progress: N
 
-Suggest relevant next commands (e.g., `/ca:batch` if any are plan_confirmed, `/ca:switch` to change active).
+Suggest relevant next commands (e.g., `/ca-batch` if any are plan_confirmed, `/ca-switch` to change active).
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

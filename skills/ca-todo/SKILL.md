@@ -1,4 +1,11 @@
-# /ca:todo — Add a Todo Item
+---
+name: ca-todo
+description: Adds a todo item to the project todo list. Use when user wants to record a todo.
+disable-model-invocation: true
+---
+# /ca-todo — Add a Todo Item
+
+**CRITICAL — Code Modification Policy**: This command only writes to .ca/todos.md. Do NOT modify source code.
 
 ## Prerequisites
 
@@ -16,7 +23,7 @@ Then continue with the normal flow.
 
 ### 1. Get the item
 
-The user's message after `/ca:todo` contains the item to add. If empty, ask what they want to add.
+The user's message after `/ca-todo` contains the item to add. If empty, ask what they want to add.
 
 ### 2. Append to todos.md
 
@@ -44,7 +51,7 @@ Tell the user the item has been added. Show the updated todo list.
 
 ## Rules
 
-- `/ca:todo` ONLY records todo items. Nothing else.
+- `/ca-todo` ONLY records todo items. Nothing else.
 - Do NOT perform research, answer questions about the todo content, or analyze its implications.
 - Do NOT update any memory files (context, errors, or other persistent files).
 - After recording the item and confirming, STOP immediately. Do not take any further actions.

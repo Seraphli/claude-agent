@@ -329,6 +329,33 @@ select_option_by_text() {
     select_option 1
 }
 
+# select_option_smart — Select option with automatic multiSelect detection
+#
+# Args:
+#   $1 — 1-based option index to select
+#
+# Checks LAST_EVENT for multiSelect flag. If multiSelect, uses Space to toggle
+# the target option then Enter to submit. Otherwise, uses normal select_option.
+select_option_smart() {
+    local n="$1"
+    if echo "${LAST_EVENT}" | grep -q '"multiSelect"[[:space:]]*:[[:space:]]*true'; then
+        echo "[select] multiSelect detected, using Space+Enter"
+        local i=1
+        while [ "${i}" -lt "${n}" ]; do
+            tmux send-keys -t "${TMUX_SESSION}" "Down" ""
+            sleep 0.1
+            i=$((i + 1))
+        done
+        tmux send-keys -t "${TMUX_SESSION}" Space
+        sleep 0.3
+        tmux send-keys -t "${TMUX_SESSION}" Tab
+        sleep 0.3
+        tmux send-keys -t "${TMUX_SESSION}" Enter
+    else
+        select_option "${n}"
+    fi
+}
+
 # send_text — Type a free-text response for AskUserQuestion free-input mode
 #
 # Args:

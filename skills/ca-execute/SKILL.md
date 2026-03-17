@@ -1,12 +1,20 @@
-# /ca:execute — Execute Confirmed Plan
+---
+name: ca-execute
+description: Executes the confirmed implementation plan using isolated executor agents. Use when a plan has been triple-confirmed.
+disable-model-invocation: true
+---
+
+# /ca-execute — Execute Confirmed Plan
+
+**CRITICAL — Code Modification Policy**: This command delegates code modifications to ca-executor agents. The orchestrator itself does NOT modify code directly.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. Parse the JSON output to get all config values.
 
 ## Prerequisites
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. Parse the JSON output.
-   - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Verify `plan_confirmed: true` from the parsed JSON. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
+   - If output contains `"error"`, tell the user to run `/ca-new` first and stop.
+2. Verify `plan_confirmed: true` from the parsed JSON. If not, tell the user to run `/ca-plan` first and get all three confirmations. **Stop immediately.**
 
 ## Behavior
 
@@ -24,7 +32,7 @@ If `fix_round` > 0 (fix round N):
 
 ### 1b. Ensure codebase map exists
 
-If `.ca/map.md` missing and project is not empty: run `/ca:map` first. If empty project: skip (created in step 7).
+If `.ca/map.md` missing and project is not empty: run `/ca-map` first. If empty project: skip (created in step 7).
 
 ### 2. Resolve model for ca-executor
 
@@ -83,7 +91,7 @@ Also set `status_note` to a context-aware summary of what was executed, e.g.: "E
 ### 7. Update codebase map
 
 If `.ca/map.md` exists: update to reflect changes, update date.
-If missing (empty project): create via `/ca:map`.
+If missing (empty project): create via `/ca-map`.
 
 ### 7b. Auto-commit on branch (if enabled)
 
@@ -102,11 +110,11 @@ If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
 If `batch_mode: true`: do NOT auto-proceed. Tell user execution is complete and stop.
 
 Otherwise check `auto_proceed_to_verify` from the config JSON:
-- `true`: Tell user complete, execute `Skill(ca:verify)`.
+- `true`: Tell user complete, execute `Skill(ca-verify)`.
 - `false`/not set: Suggest next steps:
-  - `/ca:verify` (or `/ca:next`)
+  - `/ca-verify` (or `/ca-next`)
   - `/clear` to free context
-  - Tip: set `auto_proceed_to_verify: true` in `/ca:settings`
+  - Tip: set `auto_proceed_to_verify: true` in `/ca-settings`
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 

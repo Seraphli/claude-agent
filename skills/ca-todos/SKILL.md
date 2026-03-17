@@ -1,4 +1,12 @@
-# /ca:todos — List All Todos
+---
+name: ca-todos
+description: Lists all todo items with checkbox status and archive. Use when reviewing the todo list.
+disable-model-invocation: true
+---
+
+# /ca-todos — List All Todos
+
+**CRITICAL — Code Modification Policy**: This command reads .ca/todos.md. May modify it when marking items as done/cancelled.
 
 ## Prerequisites
 
@@ -18,7 +26,7 @@ Then continue with the normal flow.
 
 Read and display the contents of `.ca/todos.md`.
 
-If the file is empty (only has the header), tell the user there are no todo items yet and suggest using `/ca:todo <item>` to add one.
+If the file is empty (only has the header), tell the user there are no todo items yet and suggest using `/ca-todo <item>` to add one.
 
 Display items with their checkbox status:
 - `- [ ]` for pending items

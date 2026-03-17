@@ -92,7 +92,7 @@ if (subcommand === "active") {
 } else if (subcommand === "read") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca:new first." }) + "\n");
+    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca-new first." }) + "\n");
     process.exit(1);
   }
   const statusPath = getStatusPath(workflowId);
@@ -105,7 +105,7 @@ if (subcommand === "active") {
 } else if (subcommand === "update") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca:new first." }) + "\n");
+    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca-new first." }) + "\n");
     process.exit(1);
   }
   const statusPath = getStatusPath(workflowId);

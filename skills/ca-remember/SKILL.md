@@ -1,4 +1,12 @@
-# /ca:remember — Save to Persistent Context
+---
+name: ca-remember
+description: Saves information to persistent context at project or global level. Use when user wants to persist information.
+disable-model-invocation: true
+---
+
+# /ca-remember — Save to Persistent Context
+
+**CRITICAL — Code Modification Policy**: This command only writes to ca-context.md files. Do NOT modify source code.
 
 ## Prerequisites
 

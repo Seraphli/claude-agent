@@ -1,4 +1,12 @@
-# /ca:forget — Remove from Persistent Context
+---
+name: ca-forget
+description: Removes information from persistent context. Use when user wants to remove stored context.
+disable-model-invocation: true
+---
+
+# /ca-forget — Remove from Persistent Context
+
+**CRITICAL — Code Modification Policy**: This command only modifies ca-context.md files. Do NOT modify source code.
 
 ## Prerequisites
 
@@ -25,7 +33,7 @@ Based on the user's choice:
 
 ### 3. Identify what to remove
 
-The user's message after `/ca:forget` describes what to remove. Match it against existing entries.
+The user's message after `/ca-forget` describes what to remove. Match it against existing entries.
 
 If the match is ambiguous, show the matching entries and ask the user to confirm which one(s) to remove.
 

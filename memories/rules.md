@@ -49,11 +49,11 @@ Format each entry as:
 
 ### When NOT to record errors
 
-- **Verify failures**: When `ca-verifier` reports criterion failures during `/ca:verify`, these are normal workflow results (expected part of the verify→fix cycle). Agents MUST NOT record verify failures in `ca-errors.md`. Only record errors when the agent itself makes a mistake (wrong approach, logic error, incorrect behavior), NOT when verification correctly identifies that code doesn't meet criteria.
+- **Verify failures**: When `ca-verifier` reports criterion failures during `/ca-verify`, these are normal workflow results (expected part of the verify→fix cycle). Agents MUST NOT record verify failures in `ca-errors.md`. Only record errors when the agent itself makes a mistake (wrong approach, logic error, incorrect behavior), NOT when verification correctly identifies that code doesn't meet criteria.
 
 ## Todo Independence Rule
 
-Users may invoke `/ca:todo` at any point during a workflow (discuss, research, plan, execute, verify). When this happens:
+Users may invoke `/ca-todo` at any point during a workflow (discuss, research, plan, execute, verify). When this happens:
 - Treat it as an independent command — process the todo addition, then resume the current workflow where you left off.
 - Do NOT incorporate the todo content into the current requirement, plan, or discussion.
 - Do NOT let the todo interrupt or alter the ongoing workflow state.
