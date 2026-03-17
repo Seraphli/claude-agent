@@ -1,7 +1,6 @@
 ---
 name: ca-errors
 description: Shows and manages error lessons from project and global levels. Use when user wants to view, clean up, or remove error records.
-disable-model-invocation: true
 ---
 
 # /ca:errors — Show Error Lessons

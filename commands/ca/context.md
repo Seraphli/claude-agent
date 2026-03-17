@@ -1,7 +1,6 @@
 ---
 name: ca-context
 description: Shows persistent context and loaded files in current session. Use when checking what context is loaded.
-disable-model-invocation: true
 ---
 
 # /ca:context — Show Persistent Context

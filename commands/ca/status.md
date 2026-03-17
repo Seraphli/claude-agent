@@ -1,7 +1,6 @@
 ---
 name: ca-status
 description: Shows current workflow status including step progress and branch info. Use when checking workflow progress.
-disable-model-invocation: true
 ---
 
 # /ca:status — Show Workflow Status

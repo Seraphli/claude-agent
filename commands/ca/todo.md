@@ -1,7 +1,6 @@
 ---
 name: ca-todo
 description: Adds a todo item to the project todo list. Use when user wants to record a todo.
-disable-model-invocation: true
 ---
 # /ca:todo — Add a Todo Item
 

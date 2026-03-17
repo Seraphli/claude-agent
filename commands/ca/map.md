@@ -1,7 +1,6 @@
 ---
 name: ca-map
 description: Scans project structure and generates a codebase map. Use when needing to map or update the project structure.
-disable-model-invocation: true
 ---
 
 # /ca:map — Scan Project Structure

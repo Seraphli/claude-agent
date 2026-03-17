@@ -1,7 +1,6 @@
 ---
 name: ca-quick
 description: Creates a streamlined workflow skipping the discuss phase. Use when user says "quick", "快速", or has a simple, well-understood requirement.
-disable-model-invocation: true
 ---
 # /ca:quick — Quick Workflow
 

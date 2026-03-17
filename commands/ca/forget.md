@@ -1,7 +1,6 @@
 ---
 name: ca-forget
 description: Removes information from persistent context. Use when user wants to remove stored context.
-disable-model-invocation: true
 ---
 
 # /ca:forget — Remove from Persistent Context

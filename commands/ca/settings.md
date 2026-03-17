@@ -1,7 +1,6 @@
 ---
 name: ca-settings
 description: Configures CA settings including language, model profile, and concurrency. Use when setting up or changing configuration.
-disable-model-invocation: true
 ---
 
 # /ca:settings — Configure Settings

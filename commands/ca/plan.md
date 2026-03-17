@@ -1,7 +1,6 @@
 ---
 name: ca-plan
 description: Proposes an implementation plan with triple confirmation. Use when a discussed requirement is ready for planning.
-disable-model-invocation: true
 ---
 
 # /ca:plan — Propose Implementation Plan (Triple Confirmation)

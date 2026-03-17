@@ -1,7 +1,6 @@
 ---
 name: ca-list
 description: Lists all active workflows with status flags and branch info. Use when reviewing multiple workflows.
-disable-model-invocation: true
 ---
 
 # /ca:list — List All Workflows

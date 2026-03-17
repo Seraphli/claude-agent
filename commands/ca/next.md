@@ -1,7 +1,6 @@
 ---
 name: ca-next
 description: Auto-detects the current workflow step and executes the next one. Use when user wants to advance the workflow.
-disable-model-invocation: true
 ---
 
 # /ca:next — Execute Next Workflow Step

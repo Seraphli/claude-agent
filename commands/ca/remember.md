@@ -1,7 +1,6 @@
 ---
 name: ca-remember
 description: Saves information to persistent context at project or global level. Use when user wants to persist information.
-disable-model-invocation: true
 ---
 
 # /ca:remember — Save to Persistent Context

@@ -1,7 +1,6 @@
 ---
 name: ca-new
 description: Creates a new requirement workflow with brief and git branch. Use when user says "new requirement", "新需求", or wants to start a new task.
-disable-model-invocation: true
 ---
 
 # /ca:new — Start a New Requirement

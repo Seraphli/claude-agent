@@ -1,7 +1,6 @@
 ---
 name: ca-switch
 description: Switches the active workflow and optionally the git branch. Use when working with multiple workflows.
-disable-model-invocation: true
 ---
 
 # /ca:switch — Switch Active Workflow

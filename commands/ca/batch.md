@@ -1,7 +1,6 @@
 ---
 name: ca-batch
 description: Batch executes multiple confirmed workflows sequentially. Use when multiple plans are confirmed and ready.
-disable-model-invocation: true
 ---
 # /ca:batch — Batch Execute Workflows
 

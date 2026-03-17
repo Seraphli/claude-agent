@@ -1,7 +1,6 @@
 ---
 name: ca-execute
 description: Executes the confirmed implementation plan using isolated executor agents. Use when a plan has been triple-confirmed.
-disable-model-invocation: true
 ---
 
 # /ca:execute — Execute Confirmed Plan

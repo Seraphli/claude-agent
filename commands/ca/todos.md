@@ -1,7 +1,6 @@
 ---
 name: ca-todos
 description: Lists all todo items with checkbox status and archive. Use when reviewing the todo list.
-disable-model-invocation: true
 ---
 
 # /ca:todos — List All Todos

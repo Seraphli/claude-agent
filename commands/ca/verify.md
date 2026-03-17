@@ -1,7 +1,6 @@
 ---
 name: ca-verify
 description: Independently verifies implementation against success criteria using verifier agents. Use when execution is complete.
-disable-model-invocation: true
 ---
 
 # /ca:verify — Verify Results

@@ -1,7 +1,6 @@
 ---
 name: ca-discuss
 description: Researches and discusses requirements through adaptive Q&A. Use when requirements need clarification before planning.
-disable-model-invocation: true
 ---
 # /ca:discuss — Discuss Requirements
 

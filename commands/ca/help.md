@@ -1,7 +1,6 @@
 ---
 name: ca-help
 description: Shows the CA command reference with all available commands. Use when user needs help with CA commands.
-disable-model-invocation: true
 ---
 # /ca:help — Command Reference
 

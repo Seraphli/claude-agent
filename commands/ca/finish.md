@@ -1,7 +1,6 @@
 ---
 name: ca-finish
 description: Wraps up a workflow with version bump, branch merge, and archive. Use when verification has passed.
-disable-model-invocation: true
 ---
 
 # /ca:finish — Wrap Up Workflow
