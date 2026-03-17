@@ -106,6 +106,13 @@ function generateSettingsRules(configContent) {
   return rules.join("\n") + "\n";
 }
 
+// Remove old commands/ca/ directory (migration from v2 to v3)
+const oldCommandsDir = path.join(homeDir, ".claude", "commands", "ca");
+if (fs.existsSync(oldCommandsDir)) {
+  fs.rmSync(oldCommandsDir, { recursive: true });
+  console.log(`  ${green}✓${reset} Removed old commands/ca/ directory`);
+}
+
 // Copy skills
 const srcSkillsDir = path.join(srcDir, "skills");
 syncSkills(srcSkillsDir, targetSkillsDir);
