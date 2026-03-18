@@ -108,6 +108,8 @@ If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
 
 If `batch_mode: true`: do NOT auto-proceed. Tell user execution is complete and stop.
 
+If `auto_fix_mode: true` in STATUS.md: Tell user auto-fix execution complete, execute `Skill(ca:verify)`.
+
 Otherwise check `auto_proceed_to_verify` from the config JSON:
 - `true`: Tell user complete, execute `Skill(ca:verify)`.
 - `false`/not set: Suggest next steps:

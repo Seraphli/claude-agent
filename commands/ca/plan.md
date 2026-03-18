@@ -33,6 +33,24 @@ If `fix_round` > 0 (fix round N):
 - Read `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`
 - This is a fix planning session
 
+### 1-auto. Auto-fix mode
+
+Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
+
+1. This is an automated fix round. Skip ALL research (steps 1a/1b), clarification (step 1c), and triple confirmation (step 3).
+2. Read `rounds/<fix_round>/ISSUES.md` to understand what failed.
+3. Read the previous plan and summary:
+   - If fix_round == 1: read `PLAN.md` and `SUMMARY.md` from workflow root.
+   - If fix_round > 1: read `rounds/<fix_round-1>/PLAN.md` and `rounds/<fix_round-1>/SUMMARY.md`.
+4. Read ALL source files referenced in the issues to understand the current code state.
+5. Generate a focused fix plan targeting ONLY the specific implementation bugs identified in ISSUES.md. The fix MUST be minimal — only change what is needed to fix the failing criteria. Do NOT redesign or restructure the approach.
+6. Write the plan to `.ca/workflows/<active_id>/rounds/<fix_round>/PLAN.md` (same format as normal PLAN.md).
+7. Keep existing CRITERIA.md unchanged (same criteria need to pass).
+8. Update STATUS.md: run `node ... ca:status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
+9. **Auto-proceed**: Call `Skill(ca:execute)`.
+
+**Do NOT proceed to steps 1a, 1b, 1c, 2, or 3 when auto_fix_mode is true.**
+
 ### 1a. Fix round research (fix mode only)
 
 If `fix_round` == 0, skip this step.

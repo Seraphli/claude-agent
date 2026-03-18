@@ -24,6 +24,8 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:
 - Write fix plans, solutions, or suggestions for how to fix failures
 - Call other skills (ca-plan, ca-execute, etc.)
 
+**Exception — Auto-fix loop**: When `auto_fix: true` in config and conditions are met (see step 3d), verify MAY call `Skill(ca:plan)` after completing the failure handling flow. This is the ONLY permitted skill call, and only in this specific auto-fix condition.
+
 You CAN and SHOULD read source code to understand the current state, verify criteria, and answer user questions about the implementation. The restriction is on WRITING changes, not on READING code.
 
 This applies regardless of how the user communicates — whether through AskUserQuestion options, canceling option selection and typing directly, or any other interaction pattern. If the user asks about failures, you may read code to explain the current state, but guide them to use `/ca:plan` for actual fixes.
@@ -114,15 +116,35 @@ Check `batch_mode` in STATUS.md:
    node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
    ```
    Do NOT use Write or Edit tools to update STATUS.md — the script handles type coercion and field updates correctly. Using Write/Edit may silently fail to reset fields.
-6. Report the failures to the user (show the report summary).
-7. Suggest the user run `/ca:plan` (or `/ca:next`) to plan the fix.
-8. **Stop immediately.**
+6. **Auto-fix assessment**: Read `auto_fix` and `max_fix_rounds` from config.
+   - If `auto_fix: false` or not set:
+     a. Report the failures to the user (show the report summary).
+     b. Suggest the user run `/ca:plan` (or `/ca:next`) to plan the fix.
+     c. **Stop immediately.**
+   - If `auto_fix: true`:
+     a. **Assess fixability**: Analyze the failed criteria and their details. Determine whether the failures are:
+        - **Implementation bugs** (code logic errors, missing implementation details, typos, wrong values, incomplete steps) — these are auto-fixable.
+        - **Approach/plan issues** (fundamental design flaws, wrong architecture, missing requirements, need for new design decisions) — these require user intervention.
+     b. If failures are **approach/plan issues** (NOT auto-fixable):
+        - Report the failures with explanation: "These failures indicate approach/plan issues that require manual intervention."
+        - Suggest the user run `/ca:plan` (or `/ca:next`).
+        - **Stop immediately.**
+     c. If failures are **implementation bugs** (auto-fixable) AND N <= `max_fix_rounds`:
+        - Update STATUS.md to also set `auto_fix_mode=true`: run `node ... ca:status.js update --project-root <project-root> auto_fix_mode=true`
+        - Report: "Auto-fix round N/max_fix_rounds: detected implementation bugs. Auto-generating fix plan..."
+        - Call `Skill(ca:plan)`.
+        - **Stop here.** Plan will chain to execute→verify.
+     d. If failures are **implementation bugs** but N > `max_fix_rounds`:
+        - Update STATUS.md to set `auto_fix_mode=false`: run `node ... ca:status.js update --project-root <project-root> auto_fix_mode=false`
+        - Report: "Auto-fix loop reached maximum rounds (max_fix_rounds). Manual intervention required."
+        - Suggest the user run `/ca:plan` (or `/ca:next`).
+        - **Stop immediately.**
 
 **CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
 - Modify source code or project files
 - Write fix plans, solutions, or suggestions in the report
 - Reset STATUS.md or modify PLAN.md
-- Call other skills (ca-plan, ca-execute, etc.)
+- Call other skills — **EXCEPT** `Skill(ca:plan)` when auto-fix conditions are met (see step 3d)
 - Re-run tests that already have logged output
 
 You CAN read source code to understand the current state and explain issues to the user. The prohibition is on modifying code and proposing fixes, not on reading and understanding.
@@ -131,7 +153,7 @@ If the user raises issues or asks about failures, you may read code and explain 
 
 #### 3e. Manual verification
 
-If `batch_mode: true` in STATUS.md: skip manual verification entirely and proceed to step 4.
+If `batch_mode: true` OR `auto_fix_mode: true` in STATUS.md: skip manual verification entirely and proceed to step 4.
 
 Present all `[manual]` criteria to the user one at a time. For each:
 - Describe what needs to be verified
@@ -167,7 +189,7 @@ Display the report with auto and manual sections:
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
 
-If `batch_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed directly to step 6 (Update STATUS.md).
+If `batch_mode: true` OR `auto_fix_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed directly to step 6 (Update STATUS.md).
 
 Use `AskUserQuestion` with:
 - header: "Results"
@@ -206,6 +228,8 @@ Use `AskUserQuestion` with:
 ### 6. Update STATUS.md
 
 Set `verify_completed: true`, `current_step: verify`.
+
+If `auto_fix_mode: true` in STATUS.md: also update STATUS.md to set `auto_fix_mode=false` (clear the flag since verification passed).
 
 Also set `status_note`, e.g.: "Verification passed. Ready for finish."
 

@@ -15,3 +15,5 @@ show_tg_commands: false
 use_branches: true
 merge_strategy: squash
 auto_delete_branch: true
+auto_fix: false
+max_fix_rounds: 3

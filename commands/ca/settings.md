@@ -120,6 +120,18 @@ Options: `true`, `false`.
 
 Default: `true`. Automatically delete the workflow branch after successful merge. When `false`, keep the branch.
 
+#### `auto_fix` — Auto-fix loop on verify failure
+
+Options: `true`, `false`.
+
+Default: `false`. When `true`, if verify detects auto criteria failures that are implementation bugs (not approach/plan issues), it automatically triggers plan→execute→verify loop without user interaction, until all criteria pass or `max_fix_rounds` is reached.
+
+#### `max_fix_rounds` — Maximum auto-fix rounds
+
+Options: `1`, `2`, `3`, `5`, or custom number.
+
+Default: `3`. Maximum number of fix rounds in the auto-fix loop. When reached, the loop stops and requires manual intervention.
+
 ### 4. Write config
 
 Write the config to the chosen location:
@@ -142,9 +154,11 @@ show_tg_commands: <value>
 use_branches: <value>
 merge_strategy: <value>
 auto_delete_branch: <value>
+auto_fix: <value>
+max_fix_rounds: <value>
 ```
 
-Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (false, 4, none, true for use_branches/auto_delete_branch, squash for merge_strategy).
+Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (false, 4, none, 3, true for use_branches/auto_delete_branch, squash for merge_strategy).
 
 ### 5. Sync rules file
 
