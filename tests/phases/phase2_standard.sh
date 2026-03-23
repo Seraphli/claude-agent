@@ -128,19 +128,19 @@ sleep 1
 select_option_by_text "Correct"
 
 # Expect: Rough Plan confirmation
-wait_for_ask 300
+wait_for_ask_expect "Rough Plan" "" 300
 assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
 # Expect: Detailed Plan confirmation
-wait_for_ask 300
+wait_for_ask_expect "Detailed Plan" "" 300
 assert_ask_header "Detailed Plan" "plan: Detailed Plan prompt"
 sleep 1
 select_option_by_text "Agree"
 
 # Expect: Results confirmation
-wait_for_ask 300
+wait_for_ask_expect "Results" "" 300
 assert_ask_header "Results" "plan: Results prompt"
 sleep 1
 select_option_by_text "Yes"

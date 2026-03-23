@@ -2,8 +2,8 @@
 # e2e.sh — Main E2E test orchestrator for claude-agent
 #
 # Usage:
-#   bash tests/e2e.sh            — Run all phases (1, 2, 3, 4, 5)
-#   bash tests/e2e.sh --phase N  — Run only phase N (1, 2, 3, 4, or 5)
+#   bash tests/e2e.sh            — Run all phases (1-10) with parallel execution (max 4)
+#   bash tests/e2e.sh --phase N  — Run only phase N (1-10)
 #
 # Requires: tmux, claude CLI, jq, node
 
@@ -12,6 +12,9 @@ set -euo pipefail
 # Resolve repo root from this script's location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CA_REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Max parallel phases
+MAX_PARALLEL=4
 
 # Parse --phase argument
 PHASE_FILTER=""
@@ -43,102 +46,144 @@ echo ""
 echo "  Logs: ${LOG_DIR}/"
 echo ""
 
-# Aggregate results across all phases
-TOTAL_PASS=0
-TOTAL_FAIL=0
-PHASE_SUMMARIES=()
+# Phase definitions: number|script|label
+PHASES=(
+    "1|${CA_REPO_ROOT}/tests/phases/phase1_quick.sh|Quick Workflow"
+    "2|${CA_REPO_ROOT}/tests/phases/phase2_standard.sh|Standard Workflow"
+    "3|${CA_REPO_ROOT}/tests/phases/phase3_helpers.sh|Helper Commands"
+    "4|${CA_REPO_ROOT}/tests/phases/phase4_i18n.sh|i18n (Chinese)"
+    "5|${CA_REPO_ROOT}/tests/phases/phase5_verify_fail.sh|Verify Failure Flow"
+    "6|${CA_REPO_ROOT}/tests/phases/phase6_autofix.sh|Auto-fix Loop"
+    "7|${CA_REPO_ROOT}/tests/phases/phase7_branch_autoproceed.sh|Branch + Auto-proceed"
+    "8|${CA_REPO_ROOT}/tests/phases/phase8_batch.sh|Batch Execution"
+    "9|${CA_REPO_ROOT}/tests/phases/phase9_context.sh|Context Management"
+    "10|${CA_REPO_ROOT}/tests/phases/phase10_multi_workflow.sh|Multi-workflow"
+)
 
-# run_phase — Execute a single phase script and collect results
-#
-# Args:
-#   $1 — phase number (1, 2, or 3)
-#   $2 — phase script path
-#   $3 — phase display label
-run_phase() {
+# Filter phases
+SELECTED_PHASES=()
+if [ -n "${PHASE_FILTER}" ]; then
+    for phase in "${PHASES[@]}"; do
+        IFS='|' read -r num script label <<< "${phase}"
+        if [ "${num}" = "${PHASE_FILTER}" ]; then
+            SELECTED_PHASES+=("${phase}")
+            break
+        fi
+    done
+    if [ ${#SELECTED_PHASES[@]} -eq 0 ]; then
+        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-10."
+        exit 1
+    fi
+else
+    SELECTED_PHASES=("${PHASES[@]}")
+fi
+
+# --- Parallel Execution with Pool ---
+
+# Temp dir for exit codes
+EXIT_DIR="$(mktemp -d /tmp/ca-e2e-exits-XXXXXX)"
+PIDS=()
+PHASE_LABELS=()
+
+run_phase_bg() {
     local phase_num="$1"
     local phase_script="$2"
     local phase_label="$3"
-
-    echo "  --- Phase ${phase_num}: ${phase_label} ---"
-    echo ""
-
-    # Log file for this phase
     local log_file="${LOG_DIR}/phase${phase_num}-${LOG_TIMESTAMP}.log"
 
-    # Run the phase script, tee to log file and console
-    local phase_exit=0
-    set +e
-    bash "${phase_script}" 2>&1 | tee "${log_file}"
-    phase_exit=${PIPESTATUS[0]}
-    set -e
+    echo "  [start] Phase ${phase_num}: ${phase_label}"
 
-    echo ""
-    echo "  Log saved: ${log_file}"
-
-    # phase exit code is the number of failures in that phase
-    local phase_fail=${phase_exit}
-
-    # Count PASSes and FAILs from the output by re-running summary on the results file
-    # Phase scripts call summarize_results which already prints their summary.
-    # Here we track overall totals using the exit code (fail count).
-    # To get pass count we need to sum from a results file — phases handle their own
-    # summarize_results call and print individual counts. We accumulate via exit code.
-    PHASE_SUMMARIES+=("Phase ${phase_num} (${phase_label}): exit=${phase_fail}")
-
-    TOTAL_FAIL=$((TOTAL_FAIL + phase_fail))
-
-    echo ""
+    (
+        set +e
+        bash "${phase_script}" > "${log_file}" 2>&1
+        echo $? > "${EXIT_DIR}/phase${phase_num}.exit"
+        set -e
+    ) &
+    PIDS+=($!)
+    PHASE_LABELS+=("${phase_num}|${phase_label}")
 }
 
-# Determine which phases to run
-run_phase_1=false
-run_phase_2=false
-run_phase_3=false
-run_phase_4=false
-run_phase_5=false
+# Wait for any one process to finish (frees a slot)
+wait_for_slot() {
+    while [ ${#PIDS[@]} -ge ${MAX_PARALLEL} ]; do
+        local new_pids=()
+        for pid in "${PIDS[@]}"; do
+            if kill -0 "${pid}" 2>/dev/null; then
+                new_pids+=("${pid}")
+            fi
+        done
+        PIDS=("${new_pids[@]}")
+        if [ ${#PIDS[@]} -ge ${MAX_PARALLEL} ]; then
+            sleep 5
+        fi
+    done
+}
 
-if [ -z "${PHASE_FILTER}" ]; then
-    run_phase_1=true
-    run_phase_2=true
-    run_phase_3=true
-    run_phase_4=true
-    run_phase_5=true
-else
-    case "${PHASE_FILTER}" in
-        1) run_phase_1=true ;;
-        2) run_phase_2=true ;;
-        3) run_phase_3=true ;;
-        4) run_phase_4=true ;;
-        5) run_phase_5=true ;;
-        *)
-            echo "Invalid phase: ${PHASE_FILTER}. Must be 1, 2, 3, 4, or 5."
-            exit 1
-            ;;
-    esac
+# Single phase mode: run sequentially (for --phase N)
+if [ ${#SELECTED_PHASES[@]} -eq 1 ]; then
+    IFS='|' read -r num script label <<< "${SELECTED_PHASES[0]}"
+    log_file="${LOG_DIR}/phase${num}-${LOG_TIMESTAMP}.log"
+    echo "  --- Phase ${num}: ${label} ---"
+    echo ""
+    set +e
+    bash "${script}" 2>&1 | tee "${log_file}"
+    phase_exit=${PIPESTATUS[0]}
+    set -e
+    echo ""
+    echo "  Log saved: ${log_file}"
+    echo ""
+    echo "  =================================="
+    echo "   Final E2E Summary"
+    echo "  =================================="
+    echo ""
+    echo "  Phase ${num} (${label}): exit=${phase_exit}"
+    echo ""
+    echo "  Total failures: ${phase_exit}"
+    echo ""
+    if [ "${phase_exit}" -eq 0 ]; then
+        echo "  ALL TESTS PASSED"
+    else
+        echo "  SOME TESTS FAILED"
+    fi
+    echo "  =================================="
+    echo ""
+    exit ${phase_exit}
 fi
 
-# Execute selected phases
-if [ "${run_phase_1}" = true ]; then
-    run_phase 1 "${CA_REPO_ROOT}/tests/phases/phase1_quick.sh" "Quick Workflow"
-fi
+# Multi-phase mode: run in parallel with pool
+echo "  Running ${#SELECTED_PHASES[@]} phases (max ${MAX_PARALLEL} parallel)..."
+echo ""
 
-if [ "${run_phase_2}" = true ]; then
-    run_phase 2 "${CA_REPO_ROOT}/tests/phases/phase2_standard.sh" "Standard Workflow"
-fi
+for phase in "${SELECTED_PHASES[@]}"; do
+    IFS='|' read -r num script label <<< "${phase}"
+    wait_for_slot
+    run_phase_bg "${num}" "${script}" "${label}"
+done
 
-if [ "${run_phase_3}" = true ]; then
-    run_phase 3 "${CA_REPO_ROOT}/tests/phases/phase3_helpers.sh" "Helper Commands"
-fi
+# Wait for all remaining processes
+wait
 
-if [ "${run_phase_4}" = true ]; then
-    run_phase 4 "${CA_REPO_ROOT}/tests/phases/phase4_i18n.sh" "i18n (Chinese)"
-fi
+# --- Collect Results ---
+TOTAL_FAIL=0
+PHASE_SUMMARIES=()
 
-if [ "${run_phase_5}" = true ]; then
-    run_phase 5 "${CA_REPO_ROOT}/tests/phases/phase5_verify_fail.sh" "Verify Failure Flow"
-fi
+for entry in "${PHASE_LABELS[@]}"; do
+    IFS='|' read -r num label <<< "${entry}"
+    exit_file="${EXIT_DIR}/phase${num}.exit"
+    if [ -f "${exit_file}" ]; then
+        phase_exit=$(cat "${exit_file}")
+    else
+        phase_exit=1
+    fi
+    PHASE_SUMMARIES+=("Phase ${num} (${label}): exit=${phase_exit}")
+    TOTAL_FAIL=$((TOTAL_FAIL + phase_exit))
+done
+
+# Cleanup exit dir
+rm -rf "${EXIT_DIR}"
 
 # --- Final Aggregated Summary ---
+echo ""
 echo "  =================================="
 echo "   Final E2E Summary"
 echo "  =================================="

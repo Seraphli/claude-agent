@@ -178,6 +178,8 @@ The executor must be able to follow mechanically without design decisions.
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
+**CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: Requirements → Rough Plan → Detailed Plan → Results, each asked once.
+
 #### Confirmation 1: Requirement Understanding
 
 **IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2a/2b.

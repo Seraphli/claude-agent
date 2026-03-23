@@ -84,17 +84,17 @@ assert_ask_header "需求|Requirements" "plan: Requirements prompt (中文)"
 sleep 1
 select_option_by_text "正确|Correct"
 
-wait_for_ask 300
+wait_for_ask_expect "粗略方案|Rough Plan" "" 300
 assert_ask_header "粗略方案|Rough Plan" "plan: Rough Plan prompt (中文)"
 sleep 1
 select_option_by_text "可行|Feasible"
 
-wait_for_ask 300
+wait_for_ask_expect "详细方案|Detailed Plan" "" 300
 assert_ask_header "详细方案|Detailed Plan" "plan: Detailed Plan prompt (中文)"
 sleep 1
 select_option_by_text "同意|Agree"
 
-wait_for_ask 300
+wait_for_ask_expect "结果|Results" "" 300
 assert_ask_header "结果|Results" "plan: Results prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"

@@ -31,7 +31,11 @@ If `fix_round` > 0 (fix round N):
 
 ### 1b. Ensure codebase map exists
 
-If `.ca/map.md` missing and project is not empty: run `/ca:map` first. If empty project: skip (created in step 7).
+**CRITICAL — Do NOT skip this step.** Check if `.ca/map.md` exists:
+
+1. Run: `ls <project-root>/.ca/map.md 2>/dev/null` to check existence.
+2. If the file does NOT exist AND the project is not empty (has source files): scan the project structure yourself using Glob/Read tools and write `.ca/map.md` directly. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.** Write a basic map with directory structure and key files.
+3. If the project is empty (no source files): skip (map will be created in step 7).
 
 ### 2. Resolve model for ca-executor
 
@@ -89,8 +93,8 @@ Also set `status_note` to a context-aware summary of what was executed, e.g.: "E
 
 ### 7. Update codebase map
 
-If `.ca/map.md` exists: update to reflect changes, update date.
-If missing (empty project): create via `/ca:map`.
+If `.ca/map.md` exists: update it directly using Read/Write tools to reflect changes and update the date.
+If missing (empty project): create it directly using Glob/Read/Write tools. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
 
 ### 7b. Auto-commit on branch (if enabled)
 

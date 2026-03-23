@@ -8,6 +8,9 @@
 #   CA_REPO_ROOT  — absolute path to the claude-agent repo root
 #   TEST_NAME     — name of the current test suite (used for tmux session naming)
 
+# Prevent any browser from opening during tests
+export BROWSER=none
+
 # --- Configuration ---
 
 # Tmux session name, derived from test suite name to avoid collisions
@@ -50,10 +53,20 @@ setup_test_env() {
     TEST_CONFIG_DIR="${TEST_DIR}/config"
     mkdir -p "${TEST_CONFIG_DIR}"
 
-    # Copy only credentials (not full ~/.claude/ to avoid MCP/hooks/plugins contamination)
+    # Copy only credentials — strip MCP servers and project configs to avoid
+    # loading production MCP servers (chrome-devtools, etc.) during tests
     mkdir -p "${TEST_CONFIG_DIR}/.claude"
     cp "${HOME}/.claude/.credentials.json" "${TEST_CONFIG_DIR}/.claude/.credentials.json"
-    cp "${HOME}/.claude.json" "${TEST_CONFIG_DIR}/.claude/.claude.json"
+    node -e "
+        const fs = require('fs');
+        const src = JSON.parse(fs.readFileSync('${HOME}/.claude.json', 'utf8'));
+        delete src.mcpServers;
+        delete src.projects;
+        delete src.claudeInChromeDefaultEnabled;
+        delete src.chromeExtension;
+        delete src.cachedChromeExtensionInstalled;
+        fs.writeFileSync('${TEST_CONFIG_DIR}/.claude/.claude.json', JSON.stringify(src, null, 2));
+    "
 
     # Install CA commands/agents first (does not touch settings.json in --home mode)
     node "${CA_REPO_ROOT}/bin/install.js" --home "${TEST_CONFIG_DIR}" > /dev/null 2>&1
@@ -183,12 +196,30 @@ start_claude() {
     # BROWSER=none prevents any browser from opening (e.g., auth, MCP)
     tmux new-session -d -s "${TMUX_SESSION}" \
         -x 220 -y 50 \
-        "cd '${project_dir}' && BROWSER=none CLAUDE_CONFIG_DIR='${TEST_CONFIG_DIR}/.claude' claude --model haiku --dangerously-skip-permissions --setting-sources user"
+        "cd '${project_dir}' && BROWSER=none CLAUDE_CONFIG_DIR='${TEST_CONFIG_DIR}/.claude' claude --model sonnet --dangerously-skip-permissions --setting-sources user"
 
     echo "[claude] started tmux session: ${TMUX_SESSION}"
 
-    # Wait for Claude to start
-    sleep 5
+    # Wait for Claude to start, auto-answer trust prompt if it appears
+    local start_wait=0
+    while [ ${start_wait} -lt 30 ]; do
+        sleep 2
+        start_wait=$((start_wait + 2))
+        local pane
+        pane="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)" || true
+        # Check for trust prompt ("Yes, I trust this folder")
+        if echo "${pane}" | grep -q "trust this folder"; then
+            echo "[claude] trust prompt detected, auto-accepting..."
+            tmux send-keys -t "${TMUX_SESSION}" Enter
+            sleep 3
+            break
+        fi
+        # Check if Claude is ready (shows the prompt line)
+        if echo "${pane}" | grep -q "^❯"; then
+            echo "[claude] ready (no trust prompt)"
+            break
+        fi
+    done
 }
 
 # inject_command — Send a command string to the claude tmux pane
@@ -266,6 +297,34 @@ assert_ask_header() {
         echo "[assert] FAIL: expected header matching '${expected}', got '${LAST_ASK_HEADER}'"
         fail "${name}"
     fi
+}
+
+# wait_for_ask_expect — Wait for a specific AskUserQuestion header, auto-answering unexpected ones
+#
+# Args:
+#   $1 — expected header pattern (grep -E regex)
+#   $2 — answer pattern for unexpected headers (select_option_by_text pattern)
+#   $3 — timeout in seconds (default: 300)
+#
+# If the received header doesn't match expected, selects option 1 and waits again.
+# Retries up to 3 times before giving up.
+wait_for_ask_expect() {
+    local expected="$1"
+    local fallback_answer="${2:-.*}"
+    local timeout="${3:-300}"
+    local retries=0
+    while [ ${retries} -lt 3 ]; do
+        wait_for_ask "${timeout}" || return 1
+        if echo "${LAST_ASK_HEADER}" | grep -qE "${expected}"; then
+            return 0
+        fi
+        echo "[ask-expect] got '${LAST_ASK_HEADER}', expected '${expected}', auto-answering and retrying..."
+        sleep 1
+        select_option 1
+        retries=$((retries + 1))
+    done
+    echo "[ask-expect] gave up after ${retries} retries, last header: ${LAST_ASK_HEADER}"
+    return 1
 }
 
 # wait_for_stop — Wait for Stop event (Claude finished processing)
@@ -363,6 +422,29 @@ select_option_smart() {
 send_text() {
     local text="$1"
     tmux send-keys -t "${TMUX_SESSION}" "${text}" Enter
+}
+
+# accept_write_permission — Accept .claude/ file write permission prompt
+#
+# Polls the tmux pane for "Do you want to create" prompt and sends Enter.
+# Args:
+#   $1 — timeout in seconds (default: 30)
+accept_write_permission() {
+    local timeout="${1:-30}"
+    local start=$SECONDS
+    while (( SECONDS - start < timeout )); do
+        local pane
+        pane="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+        if echo "${pane}" | grep -q "allow Claude to edit"; then
+            echo "[permission] detected .claude/ write permission prompt, accepting..."
+            sleep 1
+            tmux send-keys -t "${TMUX_SESSION}" Enter
+            return 0
+        fi
+        sleep 1
+    done
+    echo "[permission] no write permission prompt detected within ${timeout}s (may not be needed)"
+    return 0
 }
 
 # --- Assertions ---
