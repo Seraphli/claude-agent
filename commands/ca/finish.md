@@ -1,7 +1,10 @@
 ---
 name: ca-finish
 description: Wraps up a workflow with version bump, branch merge, and archive. Use when verification has passed.
+allowed_tools: []
 ---
+
+**RESTRICTION: This command can ONLY be invoked directly by the user. It MUST NOT be called by other agents, skills, or automated processes. If you are an agent executing a workflow, STOP — do not proceed with finish. Only the human user can authorize finish.**
 
 # /ca:finish — Wrap Up Workflow
 
