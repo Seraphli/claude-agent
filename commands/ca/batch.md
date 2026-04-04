@@ -6,11 +6,11 @@ description: Batch executes multiple confirmed workflows sequentially. Use when 
 
 **CRITICAL — Code Modification Policy**: This command orchestrates ca-execute and ca-verify skills. Does not modify code directly.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Prerequisites
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js list --project-root <project-root>`. Parse the JSON array to find eligible workflows:
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. Find eligible workflows from the output:
 - `plan_confirmed: true` and `execute_completed: false` (needs execute + verify)
 - `execute_completed: true` and `verify_completed: false` (needs verify only)
 

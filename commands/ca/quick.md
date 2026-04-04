@@ -6,7 +6,7 @@ description: Creates a streamlined workflow skipping the discuss phase. Use when
 
 **CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, active.md). Do NOT read, analyze, or modify source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Behavior
 
@@ -14,7 +14,7 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:
 
 ### 1. Check for existing workflows
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. If the output contains `"error"`, there are no existing workflows — skip to step 2.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains "No active workflow", there are no existing workflows — skip to step 2.
 
 If successful, check if `verify_completed` is `false` in the parsed JSON.
 

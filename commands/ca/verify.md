@@ -7,11 +7,11 @@ description: Independently verifies implementation against success criteria usin
 
 **CRITICAL — Code Modification Policy**: Verify is READ-ONLY. Do NOT modify any source code or project files.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Prerequisites
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
@@ -113,7 +113,7 @@ Check `batch_mode` in STATUS.md:
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
 5. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
    ```
-   node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
+   node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
    ```
    Do NOT use Write or Edit tools to update STATUS.md — the script handles type coercion and field updates correctly. Using Write/Edit may silently fail to reset fields.
 6. **Auto-fix assessment**: Read `auto_fix` and `max_fix_rounds` from config.
@@ -130,12 +130,12 @@ Check `batch_mode` in STATUS.md:
         - Suggest the user run `/ca:plan` (or `/ca:next`).
         - **Stop immediately.**
      c. If failures are **implementation bugs** (auto-fixable) AND N <= `max_fix_rounds`:
-        - Update STATUS.md to also set `auto_fix_mode=true`: run `node ... ca:status.js update --project-root <project-root> auto_fix_mode=true`
+        - Update STATUS.md to also set `auto_fix_mode=true`: run `node ... ca-status.js update --project-root <project-root> auto_fix_mode=true`
         - Report: "Auto-fix round N/max_fix_rounds: detected implementation bugs. Auto-generating fix plan..."
         - Call `Skill(ca:plan)`.
         - **Stop here.** Plan will chain to execute→verify.
      d. If failures are **implementation bugs** but N > `max_fix_rounds`:
-        - Update STATUS.md to set `auto_fix_mode=false`: run `node ... ca:status.js update --project-root <project-root> auto_fix_mode=false`
+        - Update STATUS.md to set `auto_fix_mode=false`: run `node ... ca-status.js update --project-root <project-root> auto_fix_mode=false`
         - Report: "Auto-fix loop reached maximum rounds (max_fix_rounds). Manual intervention required."
         - Suggest the user run `/ca:plan` (or `/ca:next`).
         - **Stop immediately.**
@@ -218,7 +218,7 @@ Use `AskUserQuestion` with:
      - If N > 1: write to `.ca/workflows/<active_id>/rounds/<N-1>/VERIFY-REPORT.md`
   6. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
      ```
-     node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=User rejected results (round N): <brief feedback>. Ready for fix planning."
+     node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=User rejected results (round N): <brief feedback>. Ready for fix planning."
      ```
      Do NOT use Write or Edit tools to update STATUS.md.
   7. Suggest `/ca:plan` (or `/ca:next`) for fix planning.

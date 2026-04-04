@@ -10,11 +10,11 @@ allowed_tools: []
 
 **CRITICAL — Code Modification Policy**: This command handles git operations only (commit, merge, archive). Do NOT modify source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Prerequisites
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
 

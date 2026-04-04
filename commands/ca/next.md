@@ -7,11 +7,11 @@ description: Auto-detects the current workflow step and executes the next one. U
 
 **CRITICAL — Code Modification Policy**: This command routes to the appropriate skill. Does not modify code directly.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Prerequisites
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
 - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 
 ## Behavior

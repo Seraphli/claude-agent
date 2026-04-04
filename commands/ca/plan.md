@@ -7,11 +7,11 @@ description: Proposes an implementation plan with triple confirmation. Use when 
 
 **CRITICAL — Code Modification Policy**: This command is for planning ONLY. Do NOT modify any source code or project files, regardless of whether this is a normal flow or fix round.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Prerequisites
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:status.js read --project-root <project-root>`. Parse the JSON output.
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
@@ -46,7 +46,7 @@ Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
 5. Generate a focused fix plan targeting ONLY the specific implementation bugs identified in ISSUES.md. The fix MUST be minimal — only change what is needed to fix the failing criteria. Do NOT redesign or restructure the approach.
 6. Write the plan to `.ca/workflows/<active_id>/rounds/<fix_round>/PLAN.md` (same format as normal PLAN.md).
 7. Keep existing CRITERIA.md unchanged (same criteria need to pass).
-8. Update STATUS.md: run `node ... ca:status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
+8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
 9. **Auto-proceed**: Call `Skill(ca:execute)`.
 
 **Do NOT proceed to steps 1a, 1b, 1c, 2, or 3 when auto_fix_mode is true.**
@@ -258,6 +258,8 @@ If any lacks coverage: **stop**, alert user, ask whether to add or exclude. Proc
 ### 4. Write PLAN.md
 
 Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
+
+**CRITICAL — Verbatim Copy**: The PLAN.md content MUST be an exact copy of the confirmed detailed plan from Confirmation 2b, including ALL code blocks, before/after examples, line numbers, and step details. Do NOT regenerate, summarize, abbreviate, or rewrite any part of the confirmed plan. The user confirmed a specific version — that exact version must be written to the file.
 
 ```markdown
 # Implementation Plan

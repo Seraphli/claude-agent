@@ -35,7 +35,7 @@ function getBriefFirstLine(briefPath) {
 // Update specific fields in a STATUS.md file and return updated object
 function updateStatus(filePath, updates) {
   if (!fs.existsSync(filePath)) {
-    process.stderr.write(JSON.stringify({ error: `STATUS.md not found: ${filePath}` }) + "\n");
+    process.stderr.write(`Error: STATUS.md not found: ${filePath}\n`);
     process.exit(1);
   }
   const lines = fs.readFileSync(filePath, "utf8").split("\n");
@@ -86,27 +86,54 @@ function getStatusPath(workflowId) {
   return path.join(caDir, "workflows", workflowId, "STATUS.md");
 }
 
+function formatStatus(status) {
+  const lines = ["# Workflow Status", ""];
+  const fields = ["workflow_id", "workflow_type", "current_step", "branch_name", "base_branch"];
+  for (const f of fields) {
+    if (status[f] !== undefined) lines.push(`${f}: ${status[f]}`);
+  }
+  lines.push("");
+  lines.push("## Progress");
+  const steps = [
+    ["init_completed", "init"],
+    ["discuss_completed", "discuss"],
+    ["plan_completed", "plan"],
+    ["plan_confirmed", "plan_confirmed"],
+    ["execute_completed", "execute"],
+    ["verify_completed", "verify"],
+  ];
+  for (const [key, label] of steps) {
+    if (status[key] !== undefined) {
+      lines.push(`- ${label}: ${status[key] ? "completed" : "not completed"}`);
+    }
+  }
+  if (status.fix_round) lines.push(`\nfix_round: ${status.fix_round}`);
+  if (status.auto_fix_mode !== undefined) lines.push(`auto_fix_mode: ${status.auto_fix_mode}`);
+  if (status.status_note) lines.push(`\nstatus_note: ${status.status_note}`);
+  return lines.join("\n");
+}
+
 if (subcommand === "active") {
   const workflowId = getActiveWorkflowId();
-  process.stdout.write(JSON.stringify({ workflow_id: workflowId }) + "\n");
+  process.stdout.write(workflowId ? `Active workflow: ${workflowId}\n` : "No active workflow.\n");
 } else if (subcommand === "read") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca:new first." }) + "\n");
-    process.exit(1);
+    process.stdout.write("No active workflow. Run /ca:new first.\n");
+    return;
   }
   const statusPath = getStatusPath(workflowId);
   const status = parseStatus(statusPath);
   if (!status) {
-    process.stderr.write(JSON.stringify({ error: `STATUS.md not found for workflow: ${workflowId}` }) + "\n");
+    process.stderr.write(`Error: STATUS.md not found for workflow: ${workflowId}\n`);
     process.exit(1);
   }
-  process.stdout.write(JSON.stringify(status, null, 2) + "\n");
+  process.stdout.write(formatStatus(status) + "\n");
 } else if (subcommand === "update") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stderr.write(JSON.stringify({ error: "No active workflow. Run /ca:new first." }) + "\n");
-    process.exit(1);
+    process.stdout.write("No active workflow. Run /ca:new first.\n");
+    return;
   }
   const statusPath = getStatusPath(workflowId);
   // Parse key=value pairs from remaining args
@@ -124,12 +151,14 @@ if (subcommand === "active") {
     else updates[key] = rawValue;
   }
   const updated = updateStatus(statusPath, updates);
-  process.stdout.write(JSON.stringify(updated, null, 2) + "\n");
+  if (!updated) return;
+  const changedPairs = Object.entries(updates).map(([k, v]) => `${k}=${v}`).join(", ");
+  process.stdout.write(`Updated STATUS.md: ${changedPairs}\n`);
 } else if (subcommand === "list") {
   const workflowsDir = path.join(caDir, "workflows");
   if (!fs.existsSync(workflowsDir)) {
-    process.stdout.write(JSON.stringify([]) + "\n");
-    process.exit(0);
+    process.stdout.write("No workflows found.\n");
+    return;
   }
   const activeId = getActiveWorkflowId();
   const entries = [];
@@ -149,8 +178,18 @@ if (subcommand === "active") {
       active: entry === activeId,
     });
   }
-  process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
+  if (entries.length === 0) {
+    process.stdout.write("No workflows found.\n");
+  } else {
+    const lines = ["# Workflows", ""];
+    entries.forEach((e, i) => {
+      const active = e.active ? " [active]" : "";
+      lines.push(`${i + 1}.${active} ${e.workflow_id} (${e.workflow_type}, step: ${e.current_step})`);
+      if (e.brief) lines.push(`   Brief: ${e.brief}`);
+    });
+    process.stdout.write(lines.join("\n") + "\n");
+  }
 } else {
-  process.stderr.write(JSON.stringify({ error: `Unknown subcommand: ${subcommand}` }) + "\n");
+  process.stderr.write(`Error: Unknown subcommand: ${subcommand}\n`);
   process.exit(1);
 }

@@ -7,7 +7,7 @@ description: Configures CA settings including language, model profile, and concu
 
 **CRITICAL — Code Modification Policy**: This command only modifies CA config files, not source code.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
 ## Auto-trigger Mode
 

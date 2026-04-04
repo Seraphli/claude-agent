@@ -6,7 +6,7 @@ description: Shows the CA command reference with all available commands. Use whe
 
 **CRITICAL — Code Modification Policy**: Read-only display command. Do NOT modify any files.
 
-Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca:config.js --project-root <project-root>`. Parse the JSON output to get all config values. If the script fails (files missing), execute `Skill(ca:settings)` for initial setup, then continue.
+Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`. If the script fails (files missing), execute `Skill(ca:settings)` for initial setup, then continue.
 
 Display all available CA commands in the user's preferred language:
 
