@@ -103,8 +103,8 @@ else
     fail "autofix: file created by auto-fix"
 fi
 
-STATUS_JSON="$(node "${CA_REPO_ROOT}/scripts/ca-status.js" read --project-root "${TEST_PROJECT}" 2>/dev/null)" || true
-FIX_ROUND="$(echo "${STATUS_JSON}" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const s=JSON.parse(d);process.stdout.write(String(s.fix_round||0))})" 2>/dev/null)" || true
+STATUS_TEXT="$(node "${CA_REPO_ROOT}/scripts/ca-status.js" read --project-root "${TEST_PROJECT}" 2>/dev/null)" || true
+FIX_ROUND="$(echo "${STATUS_TEXT}" | grep -oP '^fix_round:\s*\K\d+' || echo "0")"
 if [ -n "${FIX_ROUND}" ] && [ "${FIX_ROUND}" -ge 1 ] 2>/dev/null; then
     pass "autofix: fix_round >= 1"
 else

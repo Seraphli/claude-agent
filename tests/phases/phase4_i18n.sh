@@ -53,7 +53,7 @@ pane_log "startup"
 
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!'"
 wait_for_ask 300
-assert_ask_header "添加待办|Add Todo" "quick: todo prompt (中文)"
+assert_ask_header "添加|Add Todo" "quick: todo prompt (中文)"
 sleep 1
 select_option_by_text "跳过|No.*skip"
 wait_for_stop 300
@@ -89,12 +89,8 @@ assert_ask_header "粗略方案|Rough Plan" "plan: Rough Plan prompt (中文)"
 sleep 1
 select_option_by_text "可行|Feasible"
 
-wait_for_ask_expect "详细方案|Detailed Plan" "" 300
-assert_ask_header "详细方案|Detailed Plan" "plan: Detailed Plan prompt (中文)"
-sleep 1
-select_option_by_text "同意|Agree"
-
-wait_for_ask_expect "结果|Results" "" 300
+# Expect: Step-by-step plan confirmation (Confirmation 2b)
+wait_for_step_confirmations "结果|Results" "plan" 300
 assert_ask_header "结果|Results" "plan: Results prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"

@@ -2,3 +2,4 @@ node_modules/
 .ca/
 .claude/rules/ca*
 tests/logs/
+docs/superpowers/

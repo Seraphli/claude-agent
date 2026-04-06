@@ -15,6 +15,26 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
+### 0. Task cleanup and initialization
+
+1. Call `TaskList` to get all existing tasks.
+2. If no tasks exist, skip to step 5.
+3. If ALL tasks are `completed`: call `TaskUpdate` with `status: "deleted"` for each task.
+4. If any task is NOT `completed` (pending or in_progress):
+   a. Call `TaskGet` for each uncompleted task.
+   b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
+   c. Present to user: list each uncompleted task with subject, status, and possible cause.
+   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+      - "Clear and continue" — "Delete all old tasks and start current phase"
+      - "Stop" — "Pause to investigate the previous phase's issues"
+   e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
+   f. If "Stop": stop current command immediately.
+5. Create initial tasks:
+   - `TaskCreate`: subject "Read context & parse criteria", activeForm "Reading context"
+   - `TaskCreate`: subject "Present report & acceptance", activeForm "Presenting report"
+
+Mark "Read context & parse criteria" as `in_progress`.
+
 ## Behavior
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
@@ -50,6 +70,11 @@ If `fix_round` > 0 (current fix round N):
 
 Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within each group, note the list structure (ordered = sequential, unordered = parallel) for execution planning.
 
+Mark "Read context & parse criteria" as `completed`.
+
+For each `[auto]` criterion, `TaskCreate`: subject "Auto: <criterion summary>", activeForm "Verifying: <summary>".
+For each `[manual]` criterion (skip if `batch_mode: true` or `auto_fix_mode: true` in STATUS.md), `TaskCreate`: subject "Manual: <criterion summary>", activeForm "Verifying: <summary>".
+
 ### 2. Resolve model for ca-verifier
 
 Read `ca-verifier_model` from the config JSON already loaded. This is the already-resolved model name (opus/sonnet/haiku). Pass to Task tool.
@@ -64,17 +89,21 @@ Read the `[auto]` section from CRITERIA.md. Check the list structure:
 
 #### 3b. Single verifier
 
+Mark ALL auto criterion tasks as `in_progress`.
+
 Launch a single `ca-verifier` agent with all `[auto]` criteria. The agent verifies each criterion and returns a report.
+
+After verifier returns: mark each auto criterion task as `completed`.
 
 #### 3c. Parallel verification (optional)
 
-Read `max_concurrency` from the config JSON already loaded. If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch (or all groups if within limit), launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
+Read `max_concurrency` from the config JSON already loaded. If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch, mark tasks in current batch as `in_progress`. Launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
 - Its assigned criteria
 - All context files (REQUIREMENT.md/BRIEF.md, PLAN.md, SUMMARY.md)
 - The project root path
 - A unique output file path: `VERIFY-verifier-{N}.md`
 
-Wait for all agents to complete, then merge reports.
+Wait for all agents to complete. As each verifier returns: mark corresponding tasks as `completed`. Then merge reports.
 
 #### 3d. Handle auto results
 
@@ -156,16 +185,20 @@ If the user raises issues or asks about failures, you may read code and explain 
 If `batch_mode: true` OR `auto_fix_mode: true` in STATUS.md: skip manual verification entirely and proceed to step 4.
 
 Present all `[manual]` criteria to the user one at a time. For each:
+- Mark "Manual: <criterion>" as `in_progress`.
 - Describe what needs to be verified
 - Use `AskUserQuestion` to ask the user to confirm PASS or FAIL:
   - **CRITICAL**: header MUST be exactly `"Manual"`
   - question: describe the criterion and ask for PASS/FAIL confirmation
   - options: "Pass" / "Fail"
+- After user confirms Pass/Fail: mark "Manual: <criterion>" as `completed`.
 - Record the result
 
 After all manual criteria are verified, proceed to step 4.
 
 ### 4. Present verification report
+
+Mark "Present report & acceptance" as `in_progress`.
 
 Display the report with auto and manual sections:
 
@@ -226,6 +259,8 @@ Use `AskUserQuestion` with:
 - If **Accept**: Proceed to step 6.
 
 ### 6. Update STATUS.md
+
+Mark "Present report & acceptance" as `completed`.
 
 Set `verify_completed: true`, `current_step: verify`.
 

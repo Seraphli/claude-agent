@@ -21,6 +21,36 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 Get **three separate confirmations** before finalizing.
 
+### 0. Task cleanup and initialization
+
+1. Call `TaskList` to get all existing tasks.
+2. If no tasks exist, skip to step 5.
+3. If ALL tasks are `completed`: call `TaskUpdate` with `status: "deleted"` for each task.
+4. If any task is NOT `completed` (pending or in_progress):
+   a. Call `TaskGet` for each uncompleted task.
+   b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
+   c. Present to user: list each uncompleted task with subject, status, and possible cause.
+   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+      - "Clear and continue" — "Delete all old tasks and start current phase"
+      - "Stop" — "Pause to investigate the previous phase's issues"
+   e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
+   f. If "Stop": stop current command immediately.
+5. Create initial tasks (skip if `auto_fix_mode: true` — see step 1-auto for auto-fix tasks):
+   - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
+   - `TaskCreate`: subject "Draft plan", activeForm "Drafting plan"
+   - `TaskCreate`: subject "Confirmation 1: Requirements", activeForm "Confirming requirements"
+   - `TaskCreate`: subject "Confirmation 2a: Rough Plan", activeForm "Confirming rough plan"
+   - `TaskCreate`: subject "Confirmation 3: Expected Results", activeForm "Confirming results"
+   - `TaskCreate`: subject "Write PLAN.md & CRITERIA.md", activeForm "Writing plan files"
+
+   Note: "Confirm Step N" tasks for Confirmation 2b are created dynamically after 2a passes.
+
+   If `auto_fix_mode: true`, create only:
+   - `TaskCreate`: subject "Auto-fix: generate plan", activeForm "Generating fix plan"
+   - `TaskCreate`: subject "Write PLAN.md", activeForm "Writing plan"
+
+Mark the first task as `in_progress` ("Read context & research" or "Auto-fix: generate plan").
+
 ### 1. Read context
 
 Read these files:
@@ -44,7 +74,13 @@ Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
    - If fix_round > 1: read `rounds/<fix_round-1>/PLAN.md` and `rounds/<fix_round-1>/SUMMARY.md`.
 4. Read ALL source files referenced in the issues to understand the current code state.
 5. Generate a focused fix plan targeting ONLY the specific implementation bugs identified in ISSUES.md. The fix MUST be minimal — only change what is needed to fix the failing criteria. Do NOT redesign or restructure the approach.
+
+Mark "Auto-fix: generate plan" as `completed`. Mark "Write PLAN.md" as `in_progress`.
+
 6. Write the plan to `.ca/workflows/<active_id>/rounds/<fix_round>/PLAN.md` (same format as normal PLAN.md).
+
+Mark "Write PLAN.md" as `completed`.
+
 7. Keep existing CRITERIA.md unchanged (same criteria need to pass).
 8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
 9. **Auto-proceed**: Call `Skill(ca:execute)`.
@@ -146,6 +182,8 @@ Check for uncertain items from research. If any:
 
 Confirmation 2a and 2b are presentations of an ALREADY-COMPLETED plan. Do NOT defer file reading or plan design to after Confirmation 2a.
 
+Mark "Read context & research" as `completed`. Mark "Draft plan" as `in_progress`.
+
 ### 2. Draft the plan
 
 Prepare a plan covering:
@@ -176,11 +214,15 @@ The executor must be able to follow mechanically without design decisions.
 
 **Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<N>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
 
+Mark "Draft plan" as `completed`.
+
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
 **CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: Requirements → Rough Plan → Detailed Plan → Results, each asked once.
 
 #### Confirmation 1: Requirement Understanding
+
+Mark "Confirmation 1: Requirements" as `in_progress`.
 
 **IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2a/2b.
 
@@ -189,6 +231,8 @@ Present: "I understand you want: [concise summary]"
 `AskUserQuestion`: header "Requirements", question "Is my understanding correct?", options "Correct"/"Not correct".
 
 If **Not correct**: ask what's wrong, correct, re-ask.
+
+Mark "Confirmation 1: Requirements" as `completed`. Mark "Confirmation 2a: Rough Plan" as `in_progress`.
 
 #### Confirmation 2a: Rough Plan
 
@@ -208,16 +252,29 @@ Present a rough plan with 3 sections:
 
 If **Not feasible**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2a.
 
-#### Confirmation 2b: Detailed Plan
+Mark "Confirmation 2a: Rough Plan" as `completed`.
+
+#### Confirmation 2b: Detailed Plan (Step-by-Step)
 
 Only generate detailed plan AFTER Confirmation 2a passes.
 
-Present:
+**Step-by-step confirmation flow:**
 
-1. **Implementation Steps**: Pure list outline — short titles only, no descriptions/prose. Ordered = sequential, unordered = parallel.
-2. **Step Details**: Detailed instructions per step with exact changes, locations, before/after.
+1. Present the **Implementation Steps** outline first (pure list, short titles only, ordered = sequential, unordered = parallel). This is the same outline format as before.
 
-**CRITICAL**: The `header` parameter MUST be exactly `"Detailed Plan"`. Do NOT use alternative headers like "Implementation", "Plan Details", etc.
+2. For EACH step in the outline, in order:
+   a. `TaskCreate`: subject "Confirm Step N: <step title>", activeForm "Confirming step N".
+   b. Mark the task as `in_progress`.
+   c. Present that step's **Step Details** content (location, before/after, exact changes).
+   d. `AskUserQuestion`: header "Step N", question "Does this step look correct?", options:
+      - "Correct" — "This step is fine"
+      - "Needs changes" — "I want to revise this step"
+   e. If **Needs changes**: ask what to change, revise, re-present, re-confirm.
+      If the change affects Confirmation 2a or 1, re-ask affected confirmations in order first (reset and re-create their tasks if needed).
+   f. Mark "Confirm Step N" as `completed`.
+   g. Proceed to the next step.
+
+3. After ALL steps are confirmed, present a final summary: "All N steps confirmed."
 
 **CRITICAL — No Conditional Descriptions in Step Details**: Every step MUST contain definitive instructions based on code you have ALREADY read. The following patterns are FORBIDDEN in Step Details:
 
@@ -237,17 +294,17 @@ These patterns mean the Pre-plan Requirement was not fulfilled — you have NOT 
 
 **Self-check — Mechanical Executability**: After writing all Step Details, review each step: "Can the executor follow this mechanically without reading additional code or making any judgment?" If any step requires the executor to investigate, decide, or check conditions, rewrite that step with definitive instructions before presenting to the user.
 
-`AskUserQuestion`: header "Detailed Plan", question "Do you agree with this detailed plan?", options "Agree"/"Disagree".
-
-If **Disagree**: ask what to change, revise. If change affects Confirmation 2a or 1, re-ask affected confirmations in order first.
-
 #### Confirmation 3: Expected Results
+
+Mark "Confirmation 3: Expected Results" as `in_progress`.
 
 Present **two separate sections**: Expected Results (observable end state) and Success Criteria (verifiable conditions).
 
 `AskUserQuestion`: header "Results", question "Are these the expected results?", options "Yes"/"No".
 
 If **No**: revise. If change affects Confirmation 2b, 2a, or 1, re-ask affected confirmations in order first.
+
+Mark "Confirmation 3: Expected Results" as `completed`.
 
 ### 3b. Self-check: Requirements Coverage
 
@@ -256,6 +313,8 @@ Self-check after all confirmations: for EACH original requirement, verify at lea
 If any lacks coverage: **stop**, alert user, ask whether to add or exclude. Proceed only after confirmation.
 
 ### 4. Write PLAN.md
+
+Mark "Write PLAN.md & CRITERIA.md" as `in_progress`.
 
 Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
 
@@ -318,6 +377,8 @@ Tag each criterion `[auto]` or `[manual]`:
 - criterion 3
 - criterion 4
 ```
+
+Mark "Write PLAN.md & CRITERIA.md" as `completed`.
 
 ### 5. Update STATUS.md
 

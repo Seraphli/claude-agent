@@ -20,6 +20,26 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 Goal: understand **exactly** what the user wants before code is written.
 
+### 0. Task cleanup and initialization
+
+1. Call `TaskList` to get all existing tasks.
+2. If no tasks exist, skip to step 5.
+3. If ALL tasks are `completed`: call `TaskUpdate` with `status: "deleted"` for each task.
+4. If any task is NOT `completed` (pending or in_progress):
+   a. Call `TaskGet` for each uncompleted task.
+   b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
+   c. Present to user: list each uncompleted task with subject, status, and possible cause.
+   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+      - "Clear and continue" — "Delete all old tasks and start current phase"
+      - "Stop" — "Pause to investigate the previous phase's issues"
+   e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
+   f. If "Stop": stop current command immediately.
+5. Create initial tasks:
+   - `TaskCreate`: subject "Assess requirement", activeForm "Assessing requirement"
+   - `TaskCreate`: subject "Confirm requirements", activeForm "Confirming requirements"
+
+Mark "Assess requirement" as `in_progress`.
+
 ### 1. Adaptive Research
 
 #### 1a. Resolve model for ca-researcher
@@ -46,6 +66,8 @@ Based on your assessment, follow ONE of these paths:
 - Present your preliminary approach briefly (2-3 sentences describing what you'd do).
 - Proceed to step 1c (where the user can choose to skip research).
 
+Mark "Assess requirement" as `completed`.
+
 #### 1c. Research confirmation
 
 Based on your understanding of the requirement, propose research directions. The goal is to fill knowledge gaps needed to form a solid plan.
@@ -70,13 +92,15 @@ Use `AskUserQuestion`:
   - "Skip research" — "Skip research, go straight to discussion"
 
 **If Run all**: Proceed to step 1d with all directions.
-**If Skip research**: Skip steps 1d and 1e. Proceed to step 2.
+**If Skip research**: `TaskCreate`: subject "Research (skipped)", activeForm "Skipping research". Mark it immediately as `completed`. Skip steps 1d and 1e. Proceed to step 2.
 **If Select directions**: Use `AskUserQuestion` with `multiSelect: true`:
   - header: "Directions"
   - question: "Select which directions to research:"
   - options: (the proposed directions, max 4)
   - If user selects none (Other with skip intent): treat as Skip research.
   - Otherwise: proceed to step 1d with selected directions only.
+
+For each confirmed research direction, `TaskCreate`: subject "Research: <direction name>", activeForm "Researching <direction name>".
 
 #### 1d. Launch researchers
 
@@ -86,17 +110,19 @@ Launch ca-researcher agents **only for the directions confirmed by the user**. U
 - The content of `.ca/map.md` (if exists)
 - The specific research prompt for each direction
 
-Launch in parallel (up to `max_concurrency`).
+Launch in parallel (up to `max_concurrency`). Mark the corresponding "Research: <direction name>" task as `in_progress` when launching each agent.
 
 #### 1e. Present research findings
 
-After all agents complete, present a merged summary organized by research direction.
+As each researcher agent returns, mark the corresponding "Research: <direction name>" task as `completed`. After all agents complete, present a merged summary organized by research direction.
 
 ### 2. Start the discussion
 
 Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want.
 
 ### 3. Systematic dimension scan
+
+`TaskCreate`: subject "Dimension scan", activeForm "Scanning dimensions". Mark as `in_progress`.
 
 After research findings are available (or after step 2 if research was skipped), scan the requirement against all relevant dimensions.
 
@@ -140,9 +166,11 @@ Present the assessment as a table to the user:
 | ... | ... | ... |
 ```
 
+Mark "Dimension scan" as `completed`.
+
 ### 4. Ask clarifying questions ONE AT A TIME
 
-Generate questions ONLY from dimensions marked Partial or Missing. Sort by Impact × Uncertainty (highest first). Ask ONE question at a time. Typically 2-5 questions suffice.
+Generate questions ONLY from dimensions marked Partial or Missing. Sort by Impact × Uncertainty (highest first). Ask ONE question at a time. Typically 2-5 questions suffice. For each clarifying question, `TaskCreate`: subject "Clarify: <brief question summary>", activeForm "Clarifying <summary>". Mark as `in_progress`. After user answers: mark as `completed`.
 
 **IMPORTANT**: If the user indicates they don't understand your question, you MUST stop and explain or rephrase the current question. Do NOT move on to the next question until the current one is resolved. Follow the Discussion Completeness Rule in `_rules.md`.
 
@@ -155,6 +183,8 @@ Reserve plain text for open-ended questions.
 **IMPORTANT**: Research MUST use `ca-researcher` agents (via the Agent tool with subagent_type ca-researcher). Do NOT use Explore agents, claude-code-guide, or general-purpose agents as a substitute for ca-researcher during any research phase in this command.
 
 ### 5. Present requirement summary
+
+Mark "Confirm requirements" as `in_progress`.
 
 Present a structured summary:
 
@@ -181,7 +211,7 @@ Use `AskUserQuestion` with:
   - "Accurate" — "Requirements are correct, proceed"
   - "Needs changes" — "I want to revise something"
 
-- If **Accurate**: Write the summary to `.ca/workflows/<active_id>/REQUIREMENT.md` and also write the success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
+- If **Accurate**: Mark "Confirm requirements" as `completed`. Write the summary to `.ca/workflows/<active_id>/REQUIREMENT.md` and also write the success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
 ```
 # Success Criteria
 

@@ -87,12 +87,8 @@ assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
-wait_for_ask_expect "Detailed Plan" "" 300
-assert_ask_header "Detailed Plan" "plan: Detailed Plan prompt"
-sleep 1
-select_option_by_text "Agree"
-
-wait_for_ask_expect "Results" "" 300
+# Expect: Step-by-step plan confirmation (Confirmation 2b)
+wait_for_step_confirmations "Results" "plan" 300
 assert_ask_header "Results" "plan: Results prompt"
 sleep 1
 select_option_by_text "Yes"

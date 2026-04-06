@@ -13,6 +13,10 @@ export BROWSER=none
 
 # --- Configuration ---
 
+# Isolated tmux server per phase to avoid triggering production hooks
+# and prevent parallel phases from interfering with each other
+TMUX_CMD="tmux -L ca-e2e-${TEST_NAME:-test} -f /dev/null"
+
 # Tmux session name, derived from test suite name to avoid collisions
 TMUX_SESSION="ca-e2e-${TEST_NAME:-test}"
 
@@ -152,7 +156,7 @@ dump_debug() {
     echo ""
     echo "=== DEBUG DUMP [${label}] ==="
     echo "--- pane content ---"
-    tmux capture-pane -t "${TMUX_SESSION}" -p -S -100 2>/dev/null || echo "(no pane content)"
+    ${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p -S -100 2>/dev/null || echo "(no pane content)"
     echo "--- event log (last 30 lines) ---"
     if [ -n "${EVENT_LOG}" ] && [ -f "${EVENT_LOG}" ]; then
         tail -30 "${EVENT_LOG}" 2>/dev/null || echo "(empty)"
@@ -168,8 +172,9 @@ cleanup() {
     # Dump debug info before cleanup
     dump_debug "exit-cleanup"
 
-    # Kill tmux session if it exists
-    tmux kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
+    # Kill tmux session and server
+    ${TMUX_CMD} kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
+    ${TMUX_CMD} kill-server 2>/dev/null || true
     sleep 2
 
     # Remove temp dir
@@ -189,12 +194,12 @@ start_claude() {
     local project_dir="${TEST_DIR}/project"
 
     # Kill any existing session with this name
-    tmux kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
+    ${TMUX_CMD} kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
 
     # Start new detached tmux session running claude in the project dir
     # CLAUDE_CONFIG_DIR redirects user scope (~/.claude/) to our temp config dir
     # BROWSER=none prevents any browser from opening (e.g., auth, MCP)
-    tmux new-session -d -s "${TMUX_SESSION}" \
+    ${TMUX_CMD} new-session -d -s "${TMUX_SESSION}" \
         -x 220 -y 50 \
         "cd '${project_dir}' && BROWSER=none CLAUDE_CONFIG_DIR='${TEST_CONFIG_DIR}/.claude' claude --model sonnet --dangerously-skip-permissions --setting-sources user"
 
@@ -206,11 +211,11 @@ start_claude() {
         sleep 2
         start_wait=$((start_wait + 2))
         local pane
-        pane="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)" || true
+        pane="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)" || true
         # Check for trust prompt ("Yes, I trust this folder")
         if echo "${pane}" | grep -q "trust this folder"; then
             echo "[claude] trust prompt detected, auto-accepting..."
-            tmux send-keys -t "${TMUX_SESSION}" Enter
+            ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Enter
             sleep 3
             break
         fi
@@ -228,7 +233,7 @@ start_claude() {
 #   $1 — command text to send (will be followed by Enter)
 inject_command() {
     local cmd="$1"
-    tmux send-keys -t "${TMUX_SESSION}" "${cmd}" Enter
+    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "${cmd}" Enter
 }
 
 # --- Interaction Helpers ---
@@ -327,6 +332,40 @@ wait_for_ask_expect() {
     return 1
 }
 
+# wait_for_step_confirmations — Handle step-by-step plan confirmation (Confirmation 2b)
+#
+# Loops waiting for "Step N" AskUserQuestion headers, auto-selecting "Correct" for each.
+# Stops when it receives a header matching the next_expected pattern (e.g., "Results").
+# Sets LAST_ASK_HEADER to the final matching header so callers can assert it directly.
+#
+# Args:
+#   $1 — next expected header pattern after all steps (grep -E regex, e.g., "Results|结果")
+#   $2 — test name prefix (e.g., "plan")
+#   $3 — timeout per step in seconds (default: 300)
+wait_for_step_confirmations() {
+    local next_expected="$1"
+    local name_prefix="$2"
+    local timeout="${3:-300}"
+    local step_count=0
+    while true; do
+        wait_for_ask "${timeout}" || return 1
+        if echo "${LAST_ASK_HEADER}" | grep -qE "${next_expected}"; then
+            echo "[steps] confirmed ${step_count} steps, reached '${LAST_ASK_HEADER}'"
+            pass "${name_prefix}: step-by-step confirmation (${step_count} steps)"
+            return 0
+        elif echo "${LAST_ASK_HEADER}" | grep -qE "Step|步骤"; then
+            step_count=$((step_count + 1))
+            echo "[steps] confirming step ${step_count}: ${LAST_ASK_HEADER}"
+            sleep 1
+            select_option_by_text "Correct|正确"
+        else
+            echo "[steps] unexpected header '${LAST_ASK_HEADER}', auto-answering..."
+            sleep 1
+            select_option 1
+        fi
+    done
+}
+
 # wait_for_stop — Wait for Stop event (Claude finished processing)
 #
 # Args:
@@ -350,13 +389,13 @@ select_option() {
 
     # Send Down arrow (n-1) times to reach the target option
     while [ "${i}" -lt "${n}" ]; do
-        tmux send-keys -t "${TMUX_SESSION}" "Down" ""
+        ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "Down" ""
         sleep 0.1
         i=$((i + 1))
     done
 
     # Confirm selection
-    tmux send-keys -t "${TMUX_SESSION}" "" Enter
+    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "" Enter
 }
 
 # select_option_by_text — Find option by label pattern and select it
@@ -401,15 +440,15 @@ select_option_smart() {
         echo "[select] multiSelect detected, using Space+Enter"
         local i=1
         while [ "${i}" -lt "${n}" ]; do
-            tmux send-keys -t "${TMUX_SESSION}" "Down" ""
+            ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "Down" ""
             sleep 0.1
             i=$((i + 1))
         done
-        tmux send-keys -t "${TMUX_SESSION}" Space
+        ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Space
         sleep 0.3
-        tmux send-keys -t "${TMUX_SESSION}" Tab
+        ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Tab
         sleep 0.3
-        tmux send-keys -t "${TMUX_SESSION}" Enter
+        ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Enter
     else
         select_option "${n}"
     fi
@@ -421,7 +460,7 @@ select_option_smart() {
 #   $1 — text to type (followed by Enter)
 send_text() {
     local text="$1"
-    tmux send-keys -t "${TMUX_SESSION}" "${text}" Enter
+    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "${text}" Enter
 }
 
 # accept_write_permission — Accept .claude/ file write permission prompt
@@ -432,18 +471,27 @@ send_text() {
 accept_write_permission() {
     local timeout="${1:-30}"
     local start=$SECONDS
+    local found=0
     while (( SECONDS - start < timeout )); do
         local pane
-        pane="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
-        if echo "${pane}" | grep -q "allow Claude to edit"; then
-            echo "[permission] detected .claude/ write permission prompt, accepting..."
+        pane="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+        if echo "${pane}" | grep -qE "allow Claude to edit|Do you want to proceed|requested permissions"; then
+            echo "[permission] detected write permission prompt, accepting..."
             sleep 1
-            tmux send-keys -t "${TMUX_SESSION}" Enter
+            ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Enter
+            found=1
+            sleep 2
+            continue
+        fi
+        if [ "${found}" -eq 1 ]; then
+            echo "[permission] no more permission prompts"
             return 0
         fi
         sleep 1
     done
-    echo "[permission] no write permission prompt detected within ${timeout}s (may not be needed)"
+    if [ "${found}" -eq 0 ]; then
+        echo "[permission] no write permission prompt detected within ${timeout}s (may not be needed)"
+    fi
     return 0
 }
 
@@ -508,28 +556,42 @@ assert_status_field() {
     local project_dir="${TEST_DIR}/project"
     local status_script="${CA_REPO_ROOT}/scripts/ca-status.js"
 
-    # Read status JSON for active workflow
-    local status_json
-    status_json="$(node "${status_script}" read --project-root "${project_dir}" 2>/dev/null)"
+    # Read status text for active workflow
+    local status_text
+    status_text="$(node "${status_script}" read --project-root "${project_dir}" 2>/dev/null)"
 
-    if [ $? -ne 0 ] || [ -z "${status_json}" ]; then
+    if [ $? -ne 0 ] || [ -z "${status_text}" ]; then
         echo "[assert] FAIL: could not read status for project: ${project_dir}"
         fail "${name}"
         return
     fi
 
-    # Extract field value using node inline script
-    local actual
-    actual="$(node -e "
-        const s = ${status_json};
-        process.stdout.write(String(s['${field}'] !== undefined ? s['${field}'] : ''));
-    " 2>/dev/null)"
+    # Extract field value from text output (format: "field: value" or "- label: completed/not completed")
+    local actual=""
+    # Try direct "field: value" format first
+    actual="$(echo "${status_text}" | grep -E "^${field}:" | head -1 | sed "s/^${field}:[[:space:]]*//" || true)"
+
+    # If not found, check progress section for boolean fields (e.g., plan_completed → "- plan: completed")
+    if [ -z "${actual}" ]; then
+        local label="${field%_completed}"
+        if [ "${label}" != "${field}" ]; then
+            local progress_line
+            progress_line="$(echo "${status_text}" | grep -E "^- ${label}:" | head -1 || true)"
+            if [ -n "${progress_line}" ]; then
+                if echo "${progress_line}" | grep -q "not completed"; then
+                    actual="false"
+                elif echo "${progress_line}" | grep -q "completed"; then
+                    actual="true"
+                fi
+            fi
+        fi
+    fi
 
     if [ "${actual}" = "${expected}" ]; then
         pass "${name}"
     else
         echo "[assert] FAIL: status.${field} = '${actual}', expected '${expected}'"
-        echo "[assert] full status: ${status_json}"
+        echo "[assert] full status: ${status_text}"
         fail "${name}"
     fi
 }
@@ -565,7 +627,7 @@ fail() {
 pane_log() {
     local label="${1:-debug}"
     echo "=== pane_log [${label}] ==="
-    tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null || echo "(no pane content)"
+    ${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null || echo "(no pane content)"
     echo "=== end pane_log ==="
 }
 

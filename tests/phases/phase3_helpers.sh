@@ -50,7 +50,7 @@ wait_for_stop 300
 pane_log "after-todos-list"
 
 # Capture pane output and check that it contains todo content
-PANE_CONTENT="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+PANE_CONTENT="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
 if echo "${PANE_CONTENT}" | grep -qiE "(fix login bug|todo|no todo)"; then
     pass "todos: output contains todo content"
 else
@@ -85,7 +85,7 @@ inject_command "/ca:status"
 wait_for_stop 300
 pane_log "after-status"
 
-PANE_STATUS="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+PANE_STATUS="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
 if echo "${PANE_STATUS}" | grep -qiE "(workflow|status|phase|step|quick)"; then
     pass "status: output contains workflow info"
 else
@@ -102,7 +102,7 @@ inject_command "/ca:list"
 wait_for_stop 300
 pane_log "after-list"
 
-PANE_LIST="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+PANE_LIST="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
 if echo "${PANE_LIST}" | grep -qiE "(workflow|quick|no workflow|list)"; then
     pass "list: output contains workflow listing"
 else

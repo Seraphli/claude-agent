@@ -12,6 +12,17 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
+### 0. Initialize task tracking
+
+Create initial tasks for this phase:
+
+1. `TaskCreate`: subject "Check existing workflows", activeForm "Checking existing workflows"
+2. `TaskCreate`: subject "Collect requirement & link todo", activeForm "Collecting requirement"
+3. `TaskCreate`: subject "Create workflow files", activeForm "Creating workflow files"
+4. `TaskCreate`: subject "Create git branch", activeForm "Creating git branch"
+
+Mark "Check existing workflows" as `in_progress`.
+
 ### 1. Check for existing workflows
 
 Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains "No active workflow", there are no existing workflows — skip to step 2.
@@ -31,6 +42,8 @@ If there is an unfinished active workflow:
 - If **Keep and start new**: Read the existing workflow's STATUS.md, then append `status_note: Switched away during <current_step> phase.` to it. Leave the existing workflow in `workflows/`, continue to create new.
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
 - If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:plan` to continue planning.
+
+Mark "Check existing workflows" as completed. Mark "Collect requirement & link todo" as in_progress.
 
 ### 2. Create directory structure
 
@@ -91,6 +104,8 @@ Create the workflow directory: `.ca/workflows/<id>/`
 3. If the user selects a todo, use that as the requirement description and save it for linking in step 4.
 4. If the user provides a new description instead, use it and proceed to match/add logic as above.
 
+Mark "Collect requirement & link todo" as completed. Mark "Create workflow files" as in_progress.
+
 ### 4. Write BRIEF.md
 
 Write `.ca/workflows/<id>/BRIEF.md` with:
@@ -127,6 +142,8 @@ verify_completed: false
 
 Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
 
+Mark "Create workflow files" as completed. Mark "Create git branch" as in_progress.
+
 ### 5b. Create git branch (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
@@ -156,6 +173,8 @@ If `use_branches` is `true`:
    branch_name: ca/<workflow-id>
    base_branch: main
    ```
+
+Mark "Create git branch" as completed.
 
 ### 6. Confirm completion
 

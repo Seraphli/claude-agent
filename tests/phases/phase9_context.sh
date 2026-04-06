@@ -10,6 +10,9 @@ setup_test_env
 TEST_PROJECT="${TEST_DIR}/project"
 trap 'cleanup' EXIT
 
+# Pre-create .claude/rules to avoid sensitive path permission prompts
+mkdir -p "${TEST_PROJECT}/.claude/rules"
+
 start_claude
 sleep 5
 pane_log "startup"
@@ -37,7 +40,7 @@ inject_command "/ca:context"
 wait_for_stop 300
 pane_log "context-done"
 
-PANE_CONTENT="$(tmux capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
+PANE_CONTENT="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
 if echo "${PANE_CONTENT}" | grep -qiE "(test-context-data|context|persistent)"; then
     pass "context: output shows context data"
 else

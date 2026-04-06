@@ -18,6 +18,29 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
 
+### 0. Task cleanup and initialization
+
+1. Call `TaskList` to get all existing tasks.
+2. If no tasks exist, skip to step 5.
+3. If ALL tasks are `completed`: call `TaskUpdate` with `status: "deleted"` for each task.
+4. If any task is NOT `completed` (pending or in_progress):
+   a. Call `TaskGet` for each uncompleted task.
+   b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
+   c. Present to user: list each uncompleted task with subject, status, and possible cause.
+   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+      - "Clear and continue" — "Delete all old tasks and start current phase"
+      - "Stop" — "Pause to investigate the previous phase's issues"
+   e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
+   f. If "Stop": stop current command immediately.
+5. Create initial tasks:
+   - `TaskCreate`: subject "Gitignore check", activeForm "Checking gitignore"
+   - `TaskCreate`: subject "Commit & merge", activeForm "Committing and merging"
+   - `TaskCreate`: subject "Version bump", activeForm "Bumping version"
+   - `TaskCreate`: subject "Update todo", activeForm "Updating todo"
+   - `TaskCreate`: subject "Archive workflow", activeForm "Archiving workflow"
+
+Mark "Gitignore check" as `in_progress`.
+
 ## Behavior
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
@@ -61,6 +84,8 @@ For patterns that should NOT be in `.gitignore` but are present:
     - "Yes, remove" — "Remove entries from .gitignore"
     - "No, skip" — "Leave .gitignore as is"
 - If **Yes, remove**: Remove matching lines from `.gitignore`.
+
+Mark "Gitignore check" as `completed`. Mark "Commit & merge" as `in_progress`.
 
 ### 2. Git commit and merge
 
@@ -191,6 +216,8 @@ Use original commit logic:
   6. After confirmation: bump the version in the project files, stage specific files, commit with the confirmed message.
 - If no: proceed to step 3.
 
+Mark "Commit & merge" as `completed`. Mark "Version bump" as `completed`. Mark "Update todo" as `in_progress`.
+
 #### 2d. Write status_note
 
 After the commit/merge step completes (regardless of branch/non-branch mode), update STATUS.md:
@@ -209,10 +236,14 @@ If it does:
   e. Move the completed todo item to the `# Archive` section at the bottom of the file.
   f. Save the updated `.ca/todos.md`.
 
+Mark "Update todo" as `completed`. Mark "Archive workflow" as `in_progress`.
+
 ### 4. Archive and cleanup
 
 1. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
 2. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md, VERIFY-REPORT.md, rounds/ directory if exists, and any other files).
 3. Remove the `.ca/workflows/<active_id>/` directory after archiving. If other workflows exist in `.ca/workflows/`, set `active.md` to one of them. If no workflows remain, delete `.ca/active.md`.
+
+Mark "Archive workflow" as `completed`.
 
 Tell the user the workflow cycle is complete.

@@ -87,6 +87,14 @@ function formatOutput(cfg) {
   }
   lines.push(`max_concurrency: ${cfg.max_concurrency}`);
   lines.push(`  → Maximum number of parallel agents. If more agents needed, split into batches of ${cfg.max_concurrency}.`);
+  lines.push(`auto_fix: ${cfg.auto_fix}`);
+  if (cfg.auto_fix) {
+    lines.push(`  → When verify fails with implementation bugs, automatically trigger plan→execute→verify fix loop.`);
+  } else {
+    lines.push(`  → When verify fails, suggest /ca:plan for manual fix. Do NOT auto-trigger fix loop.`);
+  }
+  lines.push(`max_fix_rounds: ${cfg.max_fix_rounds}`);
+  lines.push(`  → Maximum number of auto-fix rounds before requiring manual intervention.`);
   lines.push("");
   lines.push("## Git");
   lines.push(`use_branches: ${cfg.use_branches}`);
