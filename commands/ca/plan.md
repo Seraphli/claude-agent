@@ -73,6 +73,12 @@ Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
    - If fix_round == 1: read `PLAN.md` and `SUMMARY.md` from workflow root.
    - If fix_round > 1: read `rounds/<fix_round-1>/PLAN.md` and `rounds/<fix_round-1>/SUMMARY.md`.
 4. Read ALL source files referenced in the issues to understand the current code state.
+   **CRITICAL — Log-First Analysis**: Before analyzing code to draw conclusions:
+   1. Search for available logs: VERIFY-REPORT.md, test output files, /tmp/*.log, command output files
+   2. If logs exist, read and analyze them first — logs provide ground truth of actual runtime behavior
+   3. Cross-reference log evidence with code to identify root cause
+   4. Only if no logs exist, fall back to pure code analysis
+   Do NOT skip log analysis and jump to code-only conclusions.
 5. Generate a focused fix plan targeting ONLY the specific implementation bugs identified in ISSUES.md. The fix MUST be minimal — only change what is needed to fix the failing criteria. Do NOT redesign or restructure the approach.
 
 Mark "Auto-fix: generate plan" as `completed`. Mark "Write PLAN.md" as `in_progress`.
@@ -103,7 +109,7 @@ If `fix_round` > 0 (fix round N):
      - "Skip research" — "Go straight to planning"
 5. **If Run all**: For each issue, launch a ca-researcher agent. Pass the resolved `ca-researcher_model` from the config JSON to each agent. Each agent receives:
    - The issue description, project root path, map content
-   - Prompt: "Investigate the root cause of this issue: <issue>. Read relevant source code, trace the problem, report findings with file/line references."
+   - Prompt: "Investigate the root cause of this issue: <issue>. PRIORITY: First search for and analyze any available logs (test output, error logs, VERIFY-REPORT.md, /tmp/*.log, command output files). Understand actual runtime behavior from logs before reading code. Only fall back to pure code analysis if no logs exist. Then read relevant source code, trace the problem. Report findings with file/line references and log evidence."
    - Multiple independent issues → parallel researchers (up to `max_concurrency`).
 6. **If Skip research**: Skip to step 1c.
 7. Present findings to the user.

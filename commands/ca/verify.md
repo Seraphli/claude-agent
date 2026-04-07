@@ -113,6 +113,12 @@ If all auto criteria PASS: proceed to step 3e (manual verification).
 
 If any auto criteria FAIL:
 
+**CRITICAL — All Failures Are Actionable**:
+- NEVER dismiss a failure as "unrelated to current changes" or "pre-existing issue" — if it FAILs, it must be investigated and fixed
+- NEVER ask the user "do you accept these results?" or "is this acceptable?" when there are FAIL criteria
+- NEVER proceed to step 3e (manual verification), step 4, or step 5
+- ALL failures require entering the fix round flow below — no exceptions
+
 Check `batch_mode` in STATUS.md:
 
 **If `batch_mode: true`**:
@@ -169,12 +175,13 @@ Check `batch_mode` in STATUS.md:
         - Suggest the user run `/ca:plan` (or `/ca:next`).
         - **Stop immediately.**
 
-**CRITICAL — No Fixing in Verify**: The verify command MUST NEVER:
+**CRITICAL — No Editing in Verify**: The verify command MUST NEVER:
 - Modify source code or project files
 - Write fix plans, solutions, or suggestions in the report
 - Reset STATUS.md or modify PLAN.md
 - Call other skills — **EXCEPT** `Skill(ca:plan)` when auto-fix conditions are met (see step 3d)
 - Re-run tests that already have logged output
+- Offer to "fix directly", "fix now", or ask "should I fix this?" — ALL fixes MUST go through `/ca:plan`
 
 You CAN read source code to understand the current state and explain issues to the user. The prohibition is on modifying code and proposing fixes, not on reading and understanding.
 
@@ -221,6 +228,8 @@ Display the report with auto and manual sections:
 **CRITICAL — Verify is READ-ONLY (Reminder)**: Even at the final acceptance step, you MUST NOT modify any source code, write fix plans, or call other skills. If the user rejects, record the issues and direct to `/ca:plan`. Do NOT attempt to fix anything.
 
 ### 5. MANDATORY CONFIRMATION — User Acceptance
+
+**CRITICAL — Guard**: This step MUST only be reached when ALL auto criteria are PASS. If any auto criterion was FAIL, the flow should have stopped at step 3d. Do NOT present acceptance options when failures exist.
 
 If `batch_mode: true` OR `auto_fix_mode: true` in STATUS.md: skip user acceptance (auto criteria all passed = accepted) and proceed directly to step 6 (Update STATUS.md).
 
