@@ -256,13 +256,17 @@ Present a rough plan with 3 sections:
 
 `AskUserQuestion`: header "Rough Plan", question "Is this rough plan feasible?", options "Feasible"/"Not feasible".
 
-If **Not feasible**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2a.
+**CRITICAL — After-Answer Actions (MUST execute in order)**:
 
-Mark "Confirmation 2a: Rough Plan" as `completed`.
+1. **If Not feasible**: ask what to change, revise. If change affects Confirmation 1, re-ask it first, then re-ask Confirmation 2a. Do NOT perform actions 2-3 until the user picks Feasible.
+2. **If Feasible**: `TaskUpdate` "Confirmation 2a: Rough Plan" to `completed`. **This action is MANDATORY — skipping it will leave an orphan in_progress task and cause the next phase to fail with a "Tasks" cleanup prompt.**
+3. After action 2 completes, proceed to Confirmation 2b below.
 
 #### Confirmation 2b: Detailed Plan (Step-by-Step)
 
 Only generate detailed plan AFTER Confirmation 2a passes.
+
+**CRITICAL — Pre-2b Task Check (MANDATORY)**: Before creating any "Confirm Step N" task, you MUST call `TaskList` and verify that "Confirmation 2a: Rough Plan" has status `completed`. If it is still `in_progress` or `pending`, you forgot to mark it in the previous step — `TaskUpdate` it to `completed` immediately, then continue. Do NOT proceed to the step-by-step flow until 2a is verified as completed.
 
 **Step-by-step confirmation flow:**
 

@@ -249,11 +249,9 @@ inject_command() {
 wait_for_event() {
     local pattern="$1"
     local timeout="${2:-300}"
-    local start_lines
-    start_lines=$(wc -l < "${EVENT_LOG}" 2>/dev/null || echo 0)
+    local start_lines="${EVENT_LINE_COUNT:-0}"
     local start=$SECONDS
     while (( SECONDS - start < timeout )); do
-        sleep 1
         local current_lines
         current_lines=$(wc -l < "${EVENT_LOG}" 2>/dev/null || echo 0)
         if [ "${current_lines}" -gt "${start_lines}" ]; then
@@ -261,11 +259,11 @@ wait_for_event() {
             match=$(tail -n +"$((start_lines + 1))" "${EVENT_LOG}" | grep -m1 "${pattern}" || true)
             if [ -n "${match}" ]; then
                 LAST_EVENT="${match}"
-                # Update start_lines to avoid re-matching
                 EVENT_LINE_COUNT="${current_lines}"
                 return 0
             fi
         fi
+        sleep 1
     done
     echo "TIMEOUT: wait_for_event pattern='${pattern}' exceeded ${timeout}s"
     return 1

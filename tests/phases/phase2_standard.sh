@@ -60,7 +60,7 @@ pane_log "startup"
 # Step 1: /ca:new — create a new standard workflow
 # ============================================================
 
-inject_command "/ca:new Add a hello command to utils.js. All success criteria must be auto-verifiable via bash commands"
+inject_command "/ca:new Add a goodbye(name) function to utils.js that returns 'Goodbye, name!'. All success criteria must be auto-verifiable via bash commands"
 wait_for_ask 300
 assert_ask_header "Add Todo" "new: Add Todo prompt"
 sleep 1
