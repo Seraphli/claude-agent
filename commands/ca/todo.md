@@ -8,12 +8,12 @@ description: Adds a todo item to the project todo list. Use when user wants to r
 
 ## Prerequisites
 
+Before reading or writing `.ca/todos.md`, if the file exists and contains a line matching `^# Archive`, follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/todos-migration.md` to migrate to the split layout, then continue.
+
 Check `.ca/todos.md` exists. If not, create it with:
 
 ```markdown
 # Todo List
-
-# Archive
 ```
 
 Then continue with the normal flow.

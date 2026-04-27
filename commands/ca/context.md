@@ -48,6 +48,7 @@ For each of the following categories, report whether the file's content is prese
 
 **Other persistent data:**
 - `.ca/todos.md`
+- `.ca/todos-archive.md`
 - `.ca/map.md`
 
 Only display files that are loaded in your context. Skip files that are not loaded — do not show them at all.

@@ -185,7 +185,8 @@ Use `/ca:settings` to configure.
 
 .ca/                             # Created per-project by /ca:new or /ca:quick
   config.md                      # Workspace config (overrides global)
-  todos.md                       # Todo list with archive
+  todos.md                       # Active todo items (uncompleted)
+  todos-archive.md               # Archived todo items (completed/cancelled)
   map.md                         # Codebase structure map (/ca:map)
   active.md                      # Currently active workflow ID
   workflows/

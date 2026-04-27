@@ -228,13 +228,16 @@ After the commit/merge step completes (regardless of branch/non-branch mode), up
 
 **CRITICAL — You MUST actually read the file**: Use the Read tool to read `.ca/workflows/<active_id>/BRIEF.md` NOW. Do NOT skip this step or assume you already know the contents. Parse the file content and check if it contains a `linked_todo: <todo text>` line. There may be multiple `linked_todo:` lines — process ALL of them.
 If it does:
-  **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
+  **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `.ca/todos.md` and `.ca/todos-archive.md`. NEVER use Bash commands to write to these files.
+
+  Before reading `.ca/todos.md`, if the file contains a line matching `^# Archive`, follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/todos-migration.md` to migrate to the split layout, then continue.
+
   a. Read `.ca/todos.md`.
-  b. Find the matching uncompleted todo item (under `# Todo List`, matching the exact text).
+  b. Find the matching uncompleted todo item (matching the exact text).
   c. Mark it as completed: change `- [ ]` to `- [x]`.
   d. Update the time tag: If the line has `> Added: <date>`, change it to `> Added: <date> | Completed: YYYY-MM-DD` (use today's date).
-  e. Move the completed todo item to the `# Archive` section at the bottom of the file.
-  f. Save the updated `.ca/todos.md`.
+  e. Remove the completed todo item (with all its blockquote lines) from `.ca/todos.md`.
+  f. Append the completed todo item to `.ca/todos-archive.md` under the `# Archive` header. If `.ca/todos-archive.md` does not exist, create it with a single `# Archive` header line followed by the item. Save both files.
 
 Mark "Update todo" as `completed`. Mark "Archive workflow" as `in_progress`.
 

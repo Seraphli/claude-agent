@@ -53,6 +53,7 @@ Create the following directories and files if they don't exist:
 ```
 .ca/
   todos.md
+  todos-archive.md   (created when items are archived)
   workflows/
   history/
 ```
@@ -75,11 +76,13 @@ Create the workflow directory: `.ca/workflows/<id>/`
 
 **IMPORTANT**: Only use `Read` and `Write`/`Edit` tools to operate on `todos.md`. NEVER use Bash commands to write to this file.
 
+Before reading `.ca/todos.md`, if the file exists and contains a line matching `^# Archive`, follow `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/todos-migration.md` to migrate to the split layout, then continue.
+
 **If the user provided a description** with this command:
 
 **First, check if the user's description is a todo reference** (e.g., "处理 todo", "处理所有 todo", "处理 todo 中的 XXX 问题", "handle the todos", or similar expressions indicating they want to work on existing todo items rather than describing a new requirement). If so, treat this as if the user did NOT provide a description — go to the "If the user did NOT provide a description" flow below (list todos and let user select). Do NOT use the reference text (e.g., "处理 todo") as the requirement description.
 
-1. Read `.ca/todos.md` and find all uncompleted todo items (under `# Todo List`, not in `# Archive`).
+1. Read `.ca/todos.md` and find all uncompleted todo items (all items in `.ca/todos.md` are active — archived items live in `.ca/todos-archive.md`).
 2. Analyze the user's description and see if it matches any existing todo item.
 3. If a match is found, **MANDATORY**: use `AskUserQuestion` with:
    - header: "Link Todo"
