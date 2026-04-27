@@ -186,7 +186,10 @@ Read STATUS.md for `branch_name` and `base_branch`.
 3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
 
 #### 2c. Delete branch
-1. If `auto_delete_branch` is `true`: Run `git branch -d <branch_name>`. Inform user branch was deleted.
+1. If `auto_delete_branch` is `true`:
+   - If `merge_strategy` is `squash`: Run `git branch -D <branch_name>` (squash merge does not preserve original branch commits, so `-d` reachability check fails; `-D` is safe because the squash commit already contains all changes).
+   - If `merge_strategy` is `merge`: Run `git branch -d <branch_name>`.
+   - Inform user branch was deleted.
 2. If `auto_delete_branch` is `false`: Keep branch, inform user.
 
 **If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):
