@@ -32,6 +32,7 @@ Display all available CA commands in the user's preferred language:
 | `/ca:switch` | Switch active workflow — select from available workflows |
 | `/ca:list` | List all workflows with status summary |
 | `/ca:batch` | Batch execute workflows — serial with branch/checkpoint mode |
+| `/ca:restore` | Restore an archived workflow from history for continued work |
 
 ## Context Management
 

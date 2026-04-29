@@ -233,7 +233,13 @@ start_claude() {
 #   $1 — command text to send (will be followed by Enter)
 inject_command() {
     local cmd="$1"
-    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "${cmd}" Enter
+    pane_log "before-inject"
+    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" "${cmd}" ""
+    sleep 2
+    pane_log "after-text-before-enter"
+    ${TMUX_CMD} send-keys -t "${TMUX_SESSION}" Enter
+    sleep 2
+    pane_log "after-enter"
 }
 
 # --- Interaction Helpers ---

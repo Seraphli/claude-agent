@@ -206,6 +206,48 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Step 6: /ca:restore — restore archived workflow
+# ---------------------------------------------------------------------------
+
+inject_command "/ca:restore"
+
+# Expect: archive selection prompt
+wait_for_ask 300
+assert_ask_header "Restore|恢复" "restore: archive selection prompt"
+sleep 1
+select_option 1
+
+wait_for_stop 600
+pane_log "restore-done"
+
+# Refresh workflow dir
+WORKFLOW_DIR="$(get_workflow_dir)"
+
+# Verify workflow restored to workflows/
+if [ -n "${WORKFLOW_DIR}" ]; then
+    assert_file_exists "${WORKFLOW_DIR}/STATUS.md" "restore: STATUS.md exists in workflows"
+    assert_file_exists "${WORKFLOW_DIR}/BRIEF.md" "restore: BRIEF.md preserved"
+else
+    fail "restore: STATUS.md exists in workflows"
+    fail "restore: BRIEF.md preserved"
+fi
+
+# Verify archive directory removed (history should be empty now)
+if [ "$(ls -A "${HISTORY_DIR}" 2>/dev/null)" ]; then
+    echo "[assert] FAIL: archive directory still exists in history"
+    fail "restore: archive removed from history"
+else
+    pass "restore: archive removed from history"
+fi
+
+# Verify STATUS.md fields reset
+if [ -n "${WORKFLOW_DIR}" ]; then
+    assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "verify_completed: false" "restore: verify_completed reset"
+    assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "current_step: plan" "restore: current_step is plan"
+    assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "fix_round: 1" "restore: fix_round set to 1"
+fi
+
+# ---------------------------------------------------------------------------
 # Results
 # ---------------------------------------------------------------------------
 
