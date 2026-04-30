@@ -37,8 +37,8 @@ Get **three separate confirmations** before finalizing.
    f. If "Stop": stop current command immediately.
 5. Create initial tasks (skip if `auto_fix_mode: true` — see step 1-auto for auto-fix tasks):
    - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
-   - `TaskCreate`: subject "Draft plan", activeForm "Drafting plan"
    - `TaskCreate`: subject "Confirmation 1: Requirements", activeForm "Confirming requirements"
+   - `TaskCreate`: subject "Draft plan", activeForm "Drafting plan"
    - `TaskCreate`: subject "Confirmation 2a: Rough Plan", activeForm "Confirming rough plan"
    - `TaskCreate`: subject "Confirmation 3: Expected Results", activeForm "Confirming results"
    - `TaskCreate`: subject "Write PLAN.md & CRITERIA.md", activeForm "Writing plan files"
@@ -91,7 +91,7 @@ Mark "Write PLAN.md" as `completed`.
 8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
 9. **Auto-proceed**: Call `Skill(ca:execute)`.
 
-**Do NOT proceed to steps 1a, 1b, 1c, 2, or 3 when auto_fix_mode is true.**
+**Do NOT proceed to steps 1a, 1b, 1c, or 3 when auto_fix_mode is true.**
 
 ### 1a. Fix round research (fix mode only)
 
@@ -162,7 +162,7 @@ Use `AskUserQuestion`:
   - "Skip research" — "Go straight to planning"
 
 **If Run all**: Proceed to launch all.
-**If Skip research**: Skip rest of 1b AND 1c. Go to step 2 (Draft the plan).
+**If Skip research**: Skip rest of 1b AND 1c. Go to step 3 (Confirmation & Planning).
 **If Select directions**: `AskUserQuestion` with `multiSelect: true`, header "Directions", question "Select which directions to research:", options = proposed directions. If none selected, treat as skip.
 
 #### 1b-iii. Launch and present
@@ -173,7 +173,7 @@ Read `ca-researcher_model` from the config JSON already loaded. Launch agents on
 
 ### 1c. Clarify uncertain items
 
-**Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 2.
+**Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 3.
 
 Check for uncertain items from research. If any:
 
@@ -181,16 +181,34 @@ Check for uncertain items from research. If any:
 2. Clarify each one at a time.
 3. Proceed only after all resolved — no "needs further research" or "TBD" in the plan.
 
-**CRITICAL — Pre-plan Requirement**: Before entering the triple confirmation flow, you MUST have already:
-1. Completed ALL research (steps 1a/1b)
-2. Read ALL relevant source files referenced in REQUIREMENT.md/BRIEF.md
-3. Prepared the COMPLETE detailed plan internally (including exact code changes)
+Mark "Read context & research" as `completed`.
 
-Confirmation 2a and 2b are presentations of an ALREADY-COMPLETED plan. Do NOT defer file reading or plan design to after Confirmation 2a.
+### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
-Mark "Read context & research" as `completed`. Mark "Draft plan" as `in_progress`.
+**CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: Requirements → Rough Plan → Detailed Plan → Results, each asked once.
 
-### 2. Draft the plan
+#### Confirmation 1: Requirement Understanding
+
+Mark "Confirmation 1: Requirements" as `in_progress`.
+
+**IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2a/2b.
+
+Present: "I understand you want: [concise summary]"
+
+`AskUserQuestion`: header "Requirements", question "Is my understanding correct?", options "Correct"/"Not correct".
+
+If **Not correct**: ask what's wrong, correct, re-ask.
+
+Mark "Confirmation 1: Requirements" as `completed`. Mark "Draft plan" as `in_progress`.
+
+#### Draft the plan
+
+**CRITICAL — Complete Code Reading & Full Draft**: Requirements are now confirmed. Before presenting ANY plan to the user, you MUST:
+1. Read ALL source files that will be modified or referenced in the plan
+2. Design the COMPLETE solution with exact code changes, line numbers, and before/after examples
+3. Produce a full internal draft that contains everything needed for Confirmation 2a (condensed) and 2b (detailed)
+
+The draft plan is the COMPLETE, unconfirmed plan. Confirmation 2a presents it in condensed form, Confirmation 2b presents each step in full detail. Both are derived from this single draft — they are NOT separate design phases. The rough plan is a CONDENSED VERSION of the detailed plan, NOT a draft or sketch to be expanded.
 
 Prepare a plan covering:
 - **Approach**: What method/strategy will be used
@@ -220,29 +238,17 @@ The executor must be able to follow mechanically without design decisions.
 
 **Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<N>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
 
-Mark "Draft plan" as `completed`.
-
-### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
-
-**CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: Requirements → Rough Plan → Detailed Plan → Results, each asked once.
-
-#### Confirmation 1: Requirement Understanding
-
-Mark "Confirmation 1: Requirements" as `in_progress`.
-
-**IMPORTANT**: Only confirm requirement understanding here. No approach/implementation details — those belong in Confirmation 2a/2b.
-
-Present: "I understand you want: [concise summary]"
-
-`AskUserQuestion`: header "Requirements", question "Is my understanding correct?", options "Correct"/"Not correct".
-
-If **Not correct**: ask what's wrong, correct, re-ask.
-
-Mark "Confirmation 1: Requirements" as `completed`. Mark "Confirmation 2a: Rough Plan" as `in_progress`.
+Mark "Draft plan" as `completed`. Mark "Confirmation 2a: Rough Plan" as `in_progress`.
 
 #### Confirmation 2a: Rough Plan
 
-**CRITICAL — Flow Order**: The rough plan is a CODE-FREE summary of the detailed plan you have ALREADY prepared internally. You must have read all files and designed the full solution before presenting this. Do NOT present a rough plan first and then start reading files.
+**CRITICAL — Flow Order**: The rough plan is a CODE-FREE CONDENSED VERSION of the draft plan completed above. It summarizes the SPECIFIC implementation changes (how to do it), NOT the requirements (what to do). Do NOT present a rough plan that merely restates requirements — it must describe concrete implementation changes for each file.
+
+**Negative example** (FORBIDDEN — restating requirements):
+> "`plan.md` — 强化 Pre-plan Requirement 指令"
+
+**Positive example** (CORRECT — describing implementation):
+> "`plan.md` — 将 Draft plan 步骤从 Confirmation 1 之前移到之后，新增 CRITICAL 段落要求先读完所有源文件再起草，并在 Flow Order 中增加反面/正面示例"
 
 Present a rough plan with 3 sections:
 
