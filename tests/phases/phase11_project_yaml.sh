@@ -1,20 +1,20 @@
 #!/bin/bash
-# phase11_project_yaml.sh — E2E tests for project.yaml multi-repo branch support
+# phase11_project_yaml.sh — E2E tests for project.yaml multi-repo worktree support
 
 CA_REPO_ROOT="${CA_REPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 TEST_NAME="phase11"
 source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 echo ""
-echo "Phase 11: project.yaml multi-repo branch support"
+echo "Phase 11: project.yaml multi-repo worktree support"
 echo "================================================="
 
 # Persistent results file across multiple setup/cleanup cycles
 PERSISTENT_RESULTS="$(mktemp /tmp/ca-e2e-phase11-results-XXXXXX.txt)"
 
-# --- Test 1: /ca:new with project.yaml multi-repo branches ---
+# --- Test 1: /ca:new with project.yaml multi-repo worktrees ---
 echo ""
-echo "--- Test 1: /ca:new multi-repo branches ---"
+echo "--- Test 1: /ca:new multi-repo worktrees ---"
 
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
@@ -76,9 +76,9 @@ assert_ask_header "Link Todo|Add Todo|Todo" "new: todo question appears"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
-# Wait for branch selection question (multi-repo)
+# Wait for worktree selection question (multi-repo)
 wait_for_ask 120
-assert_ask_header "Branches" "new: multi-repo branch selection appears"
+assert_ask_header "Worktrees" "new: multi-repo worktree selection appears"
 sleep 1
 # Select first repo
 select_option_smart 1
@@ -86,22 +86,31 @@ select_option_smart 1
 # Wait for stop (workflow created)
 wait_for_stop 120
 
-# Verify STATUS.md has project_branches
-assert_file_contains "${TEST_DIR}/project/.ca/workflows/test-multi-repo-requirement/STATUS.md" "project_branches" "new: STATUS.md has project_branches"
+# Verify STATUS.md has project_worktrees
+assert_file_contains "${TEST_DIR}/project/.ca/workflows/test-multi-repo-requirement/STATUS.md" "project_worktrees" "new: STATUS.md has project_worktrees"
 
-# Verify branch was created in repo1
-REPO1_BRANCH=$(git -C "${REPO1}" branch --list "ca/*" 2>/dev/null)
-if [ -n "${REPO1_BRANCH}" ]; then
-  pass "new: branch created in repo1"
+# Verify worktree directory was created for repo1
+# Worktree path: <repo-parent>/<repo-name>-wt/ca-<workflow-id>/
+REPO1_WT_DIR=$(find "${TEST_DIR}" -type d -name "repo1-wt" 2>/dev/null | head -1)
+if [ -n "${REPO1_WT_DIR}" ] && [ -d "${REPO1_WT_DIR}" ]; then
+  pass "new: worktree directory created for repo1"
 else
-  fail "new: branch not created in repo1"
+  fail "new: worktree directory not created for repo1"
+fi
+
+# Verify original repo1 stays on main
+REPO1_BRANCH=$(git -C "${REPO1}" branch --show-current 2>/dev/null)
+if [ "${REPO1_BRANCH}" = "main" ] || [ "${REPO1_BRANCH}" = "master" ]; then
+  pass "new: original repo1 stays on main/master"
+else
+  fail "new: original repo1 not on main/master (got: ${REPO1_BRANCH})"
 fi
 
 cleanup
 
-# --- Test 2: /ca:quick with project.yaml multi-repo branches ---
+# --- Test 2: /ca:quick with project.yaml multi-repo worktrees ---
 echo ""
-echo "--- Test 2: /ca:quick multi-repo branches ---"
+echo "--- Test 2: /ca:quick multi-repo worktrees ---"
 
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
@@ -165,24 +174,32 @@ assert_ask_header "Link Todo|Add Todo|Todo" "quick: todo question appears"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
-# Wait for branch selection question (multi-repo)
+# Wait for worktree selection question (multi-repo)
 wait_for_ask 120
-assert_ask_header "Branches" "quick: multi-repo branch selection appears"
+assert_ask_header "Worktrees" "quick: multi-repo worktree selection appears"
 sleep 1
 select_option_smart 1
 
 # Wait for stop (workflow created)
 wait_for_stop 120
 
-# Verify STATUS.md has project_branches
-assert_file_contains "${TEST_DIR}/project/.ca/workflows/quick-multi-repo-test/STATUS.md" "project_branches" "quick: STATUS.md has project_branches"
+# Verify STATUS.md has project_worktrees
+assert_file_contains "${TEST_DIR}/project/.ca/workflows/quick-multi-repo-test/STATUS.md" "project_worktrees" "quick: STATUS.md has project_worktrees"
 
-# Verify branch was created in repo1
-REPO1_BRANCH=$(git -C "${REPO1}" branch --list "ca/*" 2>/dev/null)
-if [ -n "${REPO1_BRANCH}" ]; then
-  pass "quick: branch created in repo1"
+# Verify worktree directory was created for repo1
+REPO1_WT_DIR=$(find "${TEST_DIR}" -type d -name "repo1-wt" 2>/dev/null | head -1)
+if [ -n "${REPO1_WT_DIR}" ] && [ -d "${REPO1_WT_DIR}" ]; then
+  pass "quick: worktree directory created for repo1"
 else
-  fail "quick: branch not created in repo1"
+  fail "quick: worktree directory not created for repo1"
+fi
+
+# Verify original repo1 stays on main
+REPO1_BRANCH=$(git -C "${REPO1}" branch --show-current 2>/dev/null)
+if [ "${REPO1_BRANCH}" = "main" ] || [ "${REPO1_BRANCH}" = "master" ]; then
+  pass "quick: original repo1 stays on main/master"
+else
+  fail "quick: original repo1 not on main/master (got: ${REPO1_BRANCH})"
 fi
 
 cleanup

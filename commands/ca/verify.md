@@ -70,6 +70,10 @@ If `fix_round` > 0 (current fix round N):
 
 Parse the criteria into two groups based on `[auto]` and `[manual]` tags. Within each group, note the list structure (ordered = sequential, unordered = parallel) for execution planning.
 
+Read `worktree_path` from STATUS.md. If present, this is the **code working directory** — verifier agents should read/verify source code here, not at `<project-root>`. The orchestrator continues using `<project-root>` for all `.ca/` file operations.
+
+Also read `project_worktrees` from STATUS.md for passing to verifier agents.
+
 Mark "Read context & parse criteria" as `completed`.
 
 For each `[auto]` criterion, `TaskCreate`: subject "Auto: <criterion summary>", activeForm "Verifying: <summary>".
@@ -92,6 +96,7 @@ Read the `[auto]` section from CRITERIA.md. Check the list structure:
 Mark ALL auto criterion tasks as `in_progress`.
 
 Launch a single `ca-verifier` agent with all `[auto]` criteria. The agent verifies each criterion and returns a report.
+If `worktree_path` exists in STATUS.md, pass `worktree_path` as the "Code working directory" to the verifier agent. The verifier reads and verifies source code in this directory.
 
 After verifier returns: mark each auto criterion task as `completed`.
 
@@ -100,7 +105,7 @@ After verifier returns: mark each auto criterion task as `completed`.
 Read `max_concurrency` from the config JSON already loaded. If the number of parallel groups exceeds `max_concurrency`, split into batches of `max_concurrency` size and execute batches sequentially. For each batch, mark tasks in current batch as `in_progress`. Launch multiple `ca-verifier` agents **in the same message**, each handling a subset of `[auto]` criteria (based on the unordered list grouping). Each agent receives:
 - Its assigned criteria
 - All context files (REQUIREMENT.md/BRIEF.md, PLAN.md, SUMMARY.md)
-- The project root path
+- The code working directory: `worktree_path` if present, otherwise `<project-root>`
 - A unique output file path: `VERIFY-verifier-{N}.md`
 
 Wait for all agents to complete. As each verifier returns: mark corresponding tasks as `completed`. Then merge reports.

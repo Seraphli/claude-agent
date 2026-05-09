@@ -22,14 +22,14 @@ The list includes `workflow_id`, `workflow_type`, `current_step`, `brief`, and `
 
 Present a table with all workflows:
 
-| | ID | Type | Step | Branch | Status Flags | Brief |
+| | ID | Type | Step | Worktree | Status Flags | Brief |
 |---|-----|------|------|--------|-------------|-------|
-| → | feature-x | standard | plan | ca/feature-x | ✅init ✅discuss ⬜plan | Add feature X... |
+| → | feature-x | standard | plan | ../myproject-wt/ca-feature-x/ | ✅init ✅discuss ⬜plan | Add feature X... |
 | | fix-bug | quick | execute | | ✅init ✅discuss ✅plan ✅execute ⬜verify | Fix login bug... |
 
 Use `→` to mark the active workflow.
 
-The Branch column is only shown when at least one workflow has a `branch_name` in its STATUS.md. If no workflows have a branch, omit the Branch column entirely.
+The Worktree column is only shown when at least one workflow has a `worktree_path` in its STATUS.md. If no workflows have a worktree, omit the Worktree column entirely. Display the worktree path (or branch name as fallback for legacy workflows).
 
 Show status flags as checkmarks (✅ completed, ⬜ pending).
 

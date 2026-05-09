@@ -49,19 +49,21 @@ Tell the user the active workflow has been switched. Show the new active workflo
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-### 4b. Switch git branch (if enabled)
+### 4b. Switch git context (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
-Read the **target** workflow's STATUS.md for `branch_name`.
+Read the **target** workflow's STATUS.md for `worktree_path`.
 
-1. Check uncommitted changes: `git status --porcelain`. If not clean:
-   - Check current branch: `git branch --show-current`.
-   - If current branch starts with `ca/` (workflow branch): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
-   - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes on a non-workflow branch. How to proceed?", options:
-     - "Commit" — "Commit changes to current branch before switching"
-     - "Cancel" — "Cancel switch"
-   - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
-   - If **Cancel**: Revert `.ca/active.md` to previous workflow ID. Stop.
-2. If `use_branches` is `true` AND target workflow has `branch_name`:
+1. If `use_branches` is `true` AND target workflow has `worktree_path`:
+   - Tell the user the worktree path: "Code for this workflow is at: `<worktree_path>`"
+   - No `git checkout` needed — worktree mode uses separate directories, not branch switching.
+2. If `use_branches` is `true` AND target workflow does NOT have `worktree_path` (legacy branch mode):
+   - Handle uncommitted changes:
+     - Check current branch: `git branch --show-current`.
+     - If current branch starts with `ca/`: auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes on a non-workflow branch. How to proceed?", options:
+       - "Commit" — "Commit changes to current branch before switching"
+       - "Cancel" — "Cancel switch"
+     - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - If **Cancel**: Revert `.ca/active.md` to previous workflow ID. Stop.
    - Switch branch: `git checkout <branch_name>`.
-   - Tell the user the git branch has been switched.

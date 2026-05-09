@@ -119,15 +119,15 @@ Read from the config JSON already loaded:
 - `merge_strategy`
 - `auto_delete_branch`
 
-Read STATUS.md for `branch_name` and `base_branch`.
+Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
 **If `use_branches` is `true` AND `branch_name` exists** (branch mode):
 
 #### 2a. Ensure branch changes are committed
-1. `git status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
+1. `git -C <worktree_path> status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
 2. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
 3. If yes:
-   - Run `git diff --stat` and `git status` to gather info.
+   - Run `git -C <worktree_path> diff --stat` and `git -C <worktree_path> status` to gather info.
    - Generate commit message: `<type>: <concise title>` with body listing each change (reference PLAN.md and SUMMARY.md).
    - **CRITICAL — Show full file list**: Display the complete `git diff --stat` output (every file line, NOT just the summary line "N files changed") AND the commit message to the user:
      ```
@@ -141,11 +141,11 @@ Read STATUS.md for `branch_name` and `base_branch`.
      ```
    **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
    - If **Revise**: let user edit the message, re-confirm.
-   - Stage specific files and commit (no `git add -A`).
+   - Stage specific files and commit in the worktree: `git -C <worktree_path> add <files>` and `git -C <worktree_path> commit -m "..."`.
 4. If no: proceed to step 2b.
 
 #### 2b. Merge to base branch
-1. Switch to base branch: `git checkout <base_branch>`.
+1. Verify current branch: `git branch --show-current`. If not `<base_branch>`, **stop and report error**: "Main repo is not on base branch (<base_branch>). Current branch: <actual>. Please switch to <base_branch> manually before running /ca:finish." Do NOT auto-checkout — worktree mode guarantees the main repo stays on base branch.
 2. Based on `merge_strategy`:
    - `squash`: Run `git merge --squash <branch_name>`. Then:
      1. Generate a commit message from PLAN.md + SUMMARY.md following conventional commit format.
@@ -187,24 +187,26 @@ Read STATUS.md for `branch_name` and `base_branch`.
 
 #### 2b-multi. Multi-repo merge (if project_branches exists)
 
-Read `project_branches` from STATUS.md. If present:
-1. Parse the comma-separated `label:path` pairs.
-2. For each repo path:
-   a. Check current branch: `git -C <path> branch --show-current`.
-   b. If on `ca/<workflow-id>`:
-      - Based on `merge_strategy`:
-        - `squash`: `git -C <path> checkout main && git -C <path> merge --squash ca/<workflow-id> && git -C <path> commit -m "<same commit message as main repo>"`
-        - `merge`: `git -C <path> checkout main && git -C <path> merge ca/<workflow-id> --no-ff -m "<same commit message>"`
-      - If `auto_delete_branch` is true:
-        - `squash`: `git -C <path> branch -D ca/<workflow-id>`
-        - `merge`: `git -C <path> branch -d ca/<workflow-id>`
+Read `project_worktrees` from STATUS.md. If present:
+1. Parse the comma-separated `label:original_path:worktree_path` triples.
+2. For each repo:
+   b. First verify the original repo is on its base branch: `git -C <original_path> branch --show-current`. Resolve expected base: `git -C <original_path> rev-parse --verify main 2>/dev/null` → `main`, else `master`. If current branch doesn't match, **stop and report error**.
+   c. Based on `merge_strategy`:
+        - `squash`: `git -C <original_path> merge --squash ca/<workflow-id> && git -C <original_path> commit -m "<same commit message as main repo>"`
+        - `merge`: `git -C <original_path> merge ca/<workflow-id> --no-ff -m "<same commit message>"`
+   d. Remove worktree: `git -C <original_path> worktree remove <worktree_path>`
+   e. If `auto_delete_branch` is true:
+        - `squash`: `git -C <original_path> branch -D ca/<workflow-id>`
+        - `merge`: `git -C <original_path> branch -d ca/<workflow-id>`
 3. Report which repos were merged.
 
 #### 2c. Delete branch
 1. If `auto_delete_branch` is `true`:
-   - If `merge_strategy` is `squash`: Run `git branch -D <branch_name>` (squash merge does not preserve original branch commits, so `-d` reachability check fails; `-D` is safe because the squash commit already contains all changes).
-   - If `merge_strategy` is `merge`: Run `git branch -d <branch_name>`.
-   - Inform user branch was deleted.
+   - First remove the worktree (if it still exists): `git worktree remove <worktree_path>`
+   - Then delete the branch:
+     - If `merge_strategy` is `squash`: Run `git branch -D <branch_name>` (squash merge does not preserve original branch commits, so `-d` reachability check fails; `-D` is safe because the squash commit already contains all changes).
+     - If `merge_strategy` is `merge`: Run `git branch -d <branch_name>`.
+   - Inform user worktree was removed and branch was deleted.
 2. If `auto_delete_branch` is `false`: Keep branch, inform user.
 
 **If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):

@@ -102,11 +102,11 @@ Options: `true`, `false`.
 
 Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca:plan` → `/ca_plan`).
 
-#### `use_branches` — Git branch per workflow
+#### `use_branches` — Git worktree per workflow
 
 Options: `true`, `false`.
 
-Default: `true`. When `true`, each workflow creates a dedicated git branch (`ca/<workflow-id>`). Execute auto-commits on the branch, finish merges back to the base branch.
+Default: `true`. When `true`, each workflow creates a git worktree with a dedicated branch (`ca/<workflow-id>`) in a directory alongside the project. Execute auto-commits in the worktree, finish merges back to the base branch and removes the worktree.
 
 #### `merge_strategy` — Merge strategy for finish
 

@@ -74,7 +74,7 @@ Mark "Scan archived workflows" as `completed`. Mark "Restore workflow files" as 
 
 Mark "Restore workflow files" as `completed`. Mark "Create git branch" as `in_progress`.
 
-### 3. Create git branch (if enabled)
+### 3. Create git worktree (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
 
@@ -82,17 +82,20 @@ Read `use_branches` from the config JSON already loaded.
    - If current branch starts with `ca/`: auto-commit `git add -A && git commit -m "wip: save uncommitted changes"`.
    - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
      - "Commit" — "Commit changes to current branch before proceeding"
-     - "Skip branch" — "Don't create a branch for this workflow"
+     - "Skip worktree" — "Don't create a worktree for this workflow"
    - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
-   - If **Skip branch**: Skip branch creation. Continue to step 4.
+   - If **Skip worktree**: Skip worktree creation. Continue to step 4.
 
 If `use_branches` is `true`:
-1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not, skip.
-2. Switch to main branch: `git checkout main`.
-3. Create and switch to new branch: `git checkout -b ca/<workflow-id>`.
-4. Update STATUS.md:
+1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not, **warn the user**: "Current project is not a git repository. Worktree/branch will not be created for the restored workflow." Continue to step 4 without worktree.
+2. Resolve base branch: default to `main`, fallback to `master`. Save as `base_branch`.
+3. Determine worktree path: `<parent-of-project-root>/<project-dirname>-wt/ca-<workflow-id>/`
+4. Create parent directory: `mkdir -p <parent-of-project-root>/<project-dirname>-wt/`
+5. Create worktree with new branch from base branch: `git worktree add <worktree-path> -b ca/<workflow-id> <base_branch>`
+6. Update STATUS.md:
    - Set `branch_name: ca/<workflow-id>`
-   - Set `base_branch: main`
+   - Set `base_branch: <base_branch>`
+   - Set `worktree_path: <absolute-worktree-path>`
 
 Mark "Create git branch" as `completed`.
 

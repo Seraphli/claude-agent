@@ -20,14 +20,14 @@ Display all available CA commands in the user's preferred language:
 
 | Command | Description |
 |---------|-------------|
-| `/ca:new [description]` | Start a new requirement — gather brief, create workflow + branch |
-| `/ca:quick [description]` | Quick workflow — brief + branch, skip discuss |
-| `/ca:write [description]` | Writing workflow — brief + branch, writing-specific discuss dimensions |
+| `/ca:new [description]` | Start a new requirement — gather brief, create workflow + worktree |
+| `/ca:quick [description]` | Quick workflow — brief + worktree, skip discuss |
+| `/ca:write [description]` | Writing workflow — brief + worktree, writing-specific discuss dimensions |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
 | `/ca:execute` | Execute the confirmed plan (uses ca-executor agent) |
 | `/ca:verify` | Self-check + user acceptance (uses ca-verifier agent) |
-| `/ca:finish` | Wrap up workflow — version bump, merge branch, archive |
+| `/ca:finish` | Wrap up workflow — version bump, merge worktree, archive |
 | `/ca:next` | Auto-detect current step and execute the next one |
 | `/ca:switch` | Switch active workflow — select from available workflows |
 | `/ca:list` | List all workflows with status summary |
@@ -64,10 +64,10 @@ Display all available CA commands in the user's preferred language:
 ```
 /ca:new → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
-- `/ca:new` and `/ca:quick` create a workflow + dedicated branch
-- `/ca:execute` auto-commits changes on the branch
-- `/ca:verify` checks results on the branch (if verify fails, issues are recorded and workflow returns to plan)
-- `/ca:finish` bumps version, merges branch, and archives the workflow
+- `/ca:new` and `/ca:quick` create a workflow + dedicated worktree
+- `/ca:execute` auto-commits changes in the worktree
+- `/ca:verify` checks results in the worktree (if verify fails, issues are recorded and workflow returns to plan)
+- `/ca:finish` bumps version, merges worktree branch, removes worktree, and archives the workflow
 
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 
@@ -86,7 +86,7 @@ Display all available CA commands in the user's preferred language:
 **Multi-workflow:**
 ```
 /ca:new → /ca:discuss → /ca:plan   (repeat for multiple requirements)
-/ca:batch                            (batch execute all confirmed plans, each on its branch)
+/ca:batch                            (batch execute all confirmed plans, each in its worktree)
 ```
 
 Every step has a **mandatory confirmation point** — nothing proceeds without your explicit approval.

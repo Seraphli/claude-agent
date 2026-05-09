@@ -147,19 +147,19 @@ Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, 
 
 Mark "Create workflow files" as completed. Mark "Create git branch" as in_progress.
 
-### 5b. Create git branch (if enabled)
+### 5b. Create git worktree (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
 
 1. Check uncommitted changes: `git status --porcelain`. If not clean:
    - If `use_branches` is `true`:
-     - Record current branch: `git branch --show-current` → save as `base_branch`.
-     - If `base_branch` starts with `ca/` (workflow branch): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
+     - Check current branch: `git branch --show-current`.
+     - If current branch starts with `ca/` (workflow branch in a worktree): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
      - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes to current branch before proceeding"
-       - "Skip branch" — "Don't create a branch for this workflow"
+       - "Skip worktree" — "Don't create a worktree for this workflow"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
-     - If **Skip branch**: Skip branch creation, do not add branch fields to STATUS.md. Continue to step 7.
+     - If **Skip worktree**: Skip worktree creation, do not add worktree fields to STATUS.md. Continue to step 7.
    - If `use_branches` is `false`:
      - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes before starting workflow"
@@ -168,32 +168,42 @@ Read `use_branches` from the config JSON already loaded.
      - If **Ignore**: Continue to step 7.
 
 If `use_branches` is `true`:
-1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, skip branch creation and do not add branch fields to STATUS.md.
-2. Switch to main branch: `git checkout main`.
-3. Create and switch to new branch: `git checkout -b ca/<workflow-id>`.
-4. Append to STATUS.md (after `verify_completed` line):
+1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, **warn the user**: "Current project is not a git repository. Worktree/branch will not be created — workflow will proceed without git isolation." Do not add worktree fields to STATUS.md. Continue to step 7.
+2. Resolve base branch: default to `main`. Verify it exists: `git rev-parse --verify main 2>/dev/null`. If not, try `master`. Save as `base_branch`.
+3. Determine worktree path: `<parent-of-project-root>/<project-dirname>-wt/ca-<workflow-id>/`
+   - Example: project at `/home/user/myproject/` → worktree at `/home/user/myproject-wt/ca-feature-x/`
+   - Create parent directory if needed: `mkdir -p <parent-of-project-root>/<project-dirname>-wt/`
+4. Create worktree with new branch from base branch: `git worktree add <worktree-path> -b ca/<workflow-id> <base_branch>`
+   - This creates the worktree directory AND the branch in one command, starting from `<base_branch>`.
+   - The main repo stays on its current branch (no checkout needed).
+5. Append to STATUS.md (after `verify_completed` line):
    ```
    branch_name: ca/<workflow-id>
-   base_branch: main
+   base_branch: <base_branch>
+   worktree_path: <absolute-worktree-path>
    ```
 
-#### 5c. Multi-repo branch creation (if project.yaml exists)
+#### 5c. Multi-repo worktree creation (if project.yaml exists)
 
 If the config output contains `## Project` with `project_dirs`:
 1. Collect all project dirs from the config output.
-2. For each dir, check if it is a git repository: `git -C <dir_path> rev-parse --is-inside-work-tree 2>/dev/null`. Filter to only git repos.
-3. If there are git repos in project dirs, use `AskUserQuestion` with:
-   - header: "Branches"
-   - question: "project.yaml lists these git repos. Create workflow branches in which ones?"
+2. For each dir, check if it is a git repository: `git -C <dir_path> rev-parse --is-inside-work-tree 2>/dev/null`. Separate into git repos and non-git dirs.
+3. If any dirs are NOT git repos, **list them to the user**: "`<label> (<path>)` is not a git repository; worktree will not be created for it." for each non-git dir.
+4. If there are git repos in project dirs, use `AskUserQuestion` with:
+   - header: "Worktrees"
+   - question: "project.yaml lists these git repos. Create workflow worktrees in which ones?"
    - multiSelect: true
-   - options: one per git repo dir (label: `<dir_label> (<dir_path>)`, description: "Create ca/<workflow-id> branch here")
-4. For each selected repo:
-   - `git -C <dir_path> checkout -b ca/<workflow-id>`
-5. Append to STATUS.md after `base_branch` line:
+   - options: one per git repo dir (label: `<dir_label> (<dir_path>)`, description: "Create worktree with ca/<workflow-id> branch here")
+5. For each selected repo:
+   - Resolve base branch for this repo: `git -C <dir_path> rev-parse --verify main 2>/dev/null` → if exists, use `main`; else try `master`; if neither exists, skip this repo and warn user.
+   - Determine worktree path: `<parent-of-dir_path>/<dir-dirname>-wt/ca-<workflow-id>/`
+   - Create parent directory: `mkdir -p <parent-of-dir_path>/<dir-dirname>-wt/`
+   - `git -C <dir_path> worktree add <worktree-path> -b ca/<workflow-id> <base_branch>`
+6. Append to STATUS.md after `worktree_path` line:
    ```
-   project_branches: <dir_label_1>:<dir_path_1>, <dir_label_2>:<dir_path_2>
+   project_worktrees: <dir_label_1>:<dir_original_path_1>:<worktree_path_1>, <dir_label_2>:<dir_original_path_2>:<worktree_path_2>
    ```
-   (comma-separated list of label:path pairs for repos where branches were created)
+   (comma-separated list of label:original_path:worktree_path triples for repos where worktrees were created)
 
 Mark "Create git branch" as completed.
 

@@ -50,6 +50,10 @@ Read `fix_round` from STATUS.md (default: 0).
 If `fix_round` > 0 (fix round N):
 - Read PLAN.md from `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`
 
+Read `worktree_path` from STATUS.md. If present, this is the **code working directory** — executor agents operate on source files here. The orchestrator continues using `<project-root>` for all `.ca/` file operations (reading PLAN.md, writing SUMMARY.md, etc.).
+
+Also read `project_worktrees` from STATUS.md. If present and the config output contains `## Project`, use the worktree paths from the triples as the project directory paths when passing to executor agents (instead of the original `project_dirs` paths).
+
 Also read the config output. If it contains `## Project`:
 - Extract `project_dirs` and `project_rules` from the config output.
 - When launching ca-executor agents, include the project directory information in the prompt:
@@ -81,6 +85,7 @@ For each leaf item in the Implementation Steps outline, `TaskCreate`: subject "S
 
 Mark the corresponding "Step N: <title>" task as `in_progress`.
 Launch a single `ca-executor` with step details inlined. Wait for completion before next item.
+If `worktree_path` exists in STATUS.md, pass `worktree_path` as the "Code working directory" to the executor (separate from `<project-root>` which the orchestrator uses for `.ca/` files). If `project_worktrees` exists, pass the worktree paths from the triples as the project directory paths.
 After executor completes: mark as `completed`.
 
 ### 3b. Parallel execution
@@ -90,6 +95,7 @@ Read `max_concurrency` from the config JSON already loaded. If items exceed limi
 - REQUIREMENT.md/BRIEF.md content
 - Project root path
 - Output file: `SUMMARY-executor-{N}.md`
+  - If `worktree_path` exists: pass `worktree_path` as "Code working directory" instead of project root for code operations
 
 Wait for all to complete before next sequential item. As each executor completes: mark the corresponding task as `completed`.
 
@@ -134,17 +140,17 @@ Also set `status_note` to a context-aware summary of what was executed, e.g.: "E
 If `.ca/map.md` exists: update it directly using Read/Write tools to reflect changes and update the date.
 If missing (empty project): create it directly using Glob/Read/Write tools. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
 
-### 7b. Auto-commit on branch (if enabled)
+### 7b. Auto-commit in worktree (if enabled)
 
 Read `use_branches` from the config JSON already loaded.
-Read STATUS.md for `branch_name`.
+Read STATUS.md for `worktree_path`.
 
-If `use_branches` is `true` AND `branch_name` exists in STATUS.md:
-1. Verify current git branch matches `branch_name`: `git branch --show-current`. If mismatch, warn user and skip commit.
-2. Check for changes: `git status --porcelain`. If no changes, skip.
-3. Stage all changes: `git add -A`.
+If `use_branches` is `true` AND `worktree_path` exists in STATUS.md:
+1. Check worktree exists: `test -d <worktree_path>`. If not, warn user and skip commit.
+2. Check for changes: `git -C <worktree_path> status --porcelain`. If no changes, skip.
+3. Stage all changes: `git -C <worktree_path> add -A`.
 4. Read BRIEF.md first line (after `# Brief`) for title.
-5. Commit: `git commit -m "wip: <brief title>"`.
+5. Commit: `git -C <worktree_path> commit -m "wip: <brief title>"`.
 
 Mark "Commit & update map" as `completed`.
 

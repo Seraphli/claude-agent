@@ -20,9 +20,12 @@ Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --pr
 
 Use the parsed JSON to display: active workflow ID, current step, completed/pending steps, recommended next action.
 
-If STATUS.md contains `branch_name`:
+If STATUS.md contains `worktree_path`:
+- Display: Worktree: `<worktree_path>` (branch: `<branch_name>`, base: `<base_branch>`)
+- Check worktree exists: `test -d <worktree_path>`. If not, show warning: "⚠ Worktree directory does not exist".
+If STATUS.md contains `branch_name` but NOT `worktree_path` (legacy):
 - Display: Branch: `<branch_name>` (base: `<base_branch>`)
-- Run `git branch --show-current` and compare with `branch_name`. If mismatch, show warning: "⚠ Current git branch does not match workflow branch".
+- Run `git branch --show-current` and compare with `branch_name`. If mismatch, show warning.
 
 ### 4. Show available files
 

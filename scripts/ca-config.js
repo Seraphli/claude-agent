@@ -110,9 +110,9 @@ function formatOutput(cfg) {
   lines.push("## Git");
   lines.push(`use_branches: ${cfg.use_branches}`);
   if (cfg.use_branches) {
-    lines.push(`  → Create a dedicated git branch (ca/<workflow-id>) for each workflow. Commit after execution, squash-merge on finish.`);
+    lines.push(`  → Create a git worktree with dedicated branch (ca/<workflow-id>) for each workflow. Code changes in isolated worktree directory, merge on finish.`);
   } else {
-    lines.push(`  → Do NOT create git branches for workflows. Work on the current branch.`);
+    lines.push(`  → Do NOT create git worktrees for workflows. Work on the current branch.`);
   }
   lines.push(`merge_strategy: ${cfg.merge_strategy}`);
   lines.push(`  → Use ${cfg.merge_strategy} merge when finishing a workflow.`);

@@ -56,17 +56,29 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/BRIEF.md" "quick: BRIEF.md created"
     assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "branch_name:" "quick: branch_name in STATUS"
+    assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "worktree_path:" "quick: worktree_path in STATUS"
 else
     fail "quick: BRIEF.md created"
     fail "quick: branch_name in STATUS"
+    fail "quick: worktree_path in STATUS"
 fi
 
-CURRENT_BRANCH="$(git -C "${TEST_PROJECT}" branch --show-current)"
-if echo "${CURRENT_BRANCH}" | grep -q "^ca/"; then
-    pass "quick: on ca/ branch"
+# Verify worktree directory exists (main repo stays on its current branch)
+WORKTREE_PARENT="${TEST_PROJECT}-wt"
+if [ -d "${WORKTREE_PARENT}" ] && ls -d "${WORKTREE_PARENT}"/ca-* > /dev/null 2>&1; then
+    pass "quick: worktree directory created"
 else
-    echo "[assert] FAIL: expected ca/ branch, got ${CURRENT_BRANCH}"
-    fail "quick: on ca/ branch"
+    echo "[assert] FAIL: expected worktree directory under ${WORKTREE_PARENT}"
+    fail "quick: worktree directory created"
+fi
+
+# Verify main repo stays on main (not switched to ca/ branch)
+CURRENT_BRANCH="$(git -C "${TEST_PROJECT}" branch --show-current)"
+if [ "${CURRENT_BRANCH}" = "main" ]; then
+    pass "quick: main repo stays on main branch"
+else
+    echo "[assert] FAIL: expected main repo on main, got ${CURRENT_BRANCH}"
+    fail "quick: main repo stays on main branch"
 fi
 
 # /ca:plan
@@ -105,7 +117,13 @@ select_option_by_text "Accept"
 wait_for_stop 600
 pane_log "verify-done"
 
-WIP_COMMIT="$(git -C "${TEST_PROJECT}" log --oneline -5 | grep -i "wip" || true)"
+# WIP commit lands in the worktree branch; check worktree dir if it exists, else main repo
+WORKTREE_DIR="$(ls -d "${WORKTREE_PARENT}"/ca-* 2>/dev/null | head -1 || true)"
+if [ -n "${WORKTREE_DIR}" ]; then
+    WIP_COMMIT="$(git -C "${WORKTREE_DIR}" log --oneline -5 | grep -i "wip" || true)"
+else
+    WIP_COMMIT="$(git -C "${TEST_PROJECT}" log --oneline -5 | grep -i "wip" || true)"
+fi
 if [ -n "${WIP_COMMIT}" ]; then
     pass "execute: wip commit on branch"
 else
@@ -124,12 +142,12 @@ select_option_by_text "Confirm"
 wait_for_stop 300
 pane_log "finish-done"
 
-FINAL_BRANCH="$(git -C "${TEST_PROJECT}" branch --show-current)"
-if [ "${FINAL_BRANCH}" = "main" ]; then
-    pass "finish: back on main branch"
+# Verify worktree removed after finish
+if [ -d "${WORKTREE_PARENT}" ] && ls -d "${WORKTREE_PARENT}"/ca-* > /dev/null 2>&1; then
+    echo "[assert] FAIL: worktree directory still exists under ${WORKTREE_PARENT}"
+    fail "finish: worktree removed"
 else
-    echo "[assert] FAIL: expected main, got ${FINAL_BRANCH}"
-    fail "finish: back on main branch"
+    pass "finish: worktree removed"
 fi
 
 if git -C "${TEST_PROJECT}" branch | grep -q "ca/"; then
