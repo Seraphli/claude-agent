@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const yaml = require("js-yaml");
 
 // Parse key: value lines from a markdown config file
 function parseConfigFile(filePath) {
@@ -49,6 +50,16 @@ for (const agent of ["ca-executor", "ca-researcher", "ca-verifier"]) {
   const key = `${agent}_model`;
   if (!resolved[key]) {
     resolved[key] = profile[agent];
+  }
+}
+
+let projectInfo = null;
+const projectYamlPath = path.join(projectRoot, ".ca", "project.yaml");
+if (fs.existsSync(projectYamlPath)) {
+  try {
+    projectInfo = yaml.load(fs.readFileSync(projectYamlPath, "utf8"));
+  } catch (e) {
+    process.stderr.write(`Warning: Failed to parse project.yaml: ${e.message}\n`);
   }
 }
 
@@ -129,6 +140,24 @@ function formatOutput(cfg) {
     lines.push(`  → CA files (.ca/) are NOT version controlled. On finish, check .gitignore includes .ca/.`);
   } else {
     lines.push(`  → CA files (.ca/) are version controlled (${cfg.track_ca_files}).`);
+  }
+  if (projectInfo) {
+    lines.push("## Project");
+    if (projectInfo.project_name) lines.push(`project_name: ${projectInfo.project_name}`);
+    if (projectInfo.description) lines.push(`description: ${projectInfo.description}`);
+    if (Array.isArray(projectInfo.dirs)) {
+      lines.push("project_dirs:");
+      for (const dir of projectInfo.dirs) {
+        lines.push(`  - label: ${dir.label}, path: ${dir.path}`);
+      }
+    }
+    if (Array.isArray(projectInfo.rules)) {
+      lines.push("project_rules:");
+      for (const rule of projectInfo.rules) {
+        lines.push(`  - ${rule}`);
+      }
+    }
+    lines.push("");
   }
   return lines.join("\n") + "\n";
 }

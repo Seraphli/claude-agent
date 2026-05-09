@@ -90,6 +90,7 @@ CONFIG
     chmod +x "${TEST_DIR}/hook_handler.sh"
     EVENT_LOG="${TEST_DIR}/events.log"
     touch "${EVENT_LOG}"
+    EVENT_LINE_COUNT=0
 
     # Create settings with hooks (AFTER install.js to ensure no overwrite)
     cat > "${TEST_CONFIG_DIR}/.claude/settings.json" << SETTINGS

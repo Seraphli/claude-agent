@@ -3,7 +3,7 @@
 #
 # Usage:
 #   bash tests/e2e.sh            — Run all phases (1-10) with parallel execution (max 4)
-#   bash tests/e2e.sh --phase N  — Run only phase N (1-10)
+#   bash tests/e2e.sh --phase N  — Run only phase N (1-11)
 #
 # Requires: tmux, claude CLI, jq, node
 
@@ -58,6 +58,7 @@ PHASES=(
     "8|${CA_REPO_ROOT}/tests/phases/phase8_batch.sh|Batch Execution"
     "9|${CA_REPO_ROOT}/tests/phases/phase9_context.sh|Context Management"
     "10|${CA_REPO_ROOT}/tests/phases/phase10_multi_workflow.sh|Multi-workflow"
+    "11|${CA_REPO_ROOT}/tests/phases/phase11_project_yaml.sh|Project YAML"
 )
 
 # Filter phases
@@ -71,7 +72,7 @@ if [ -n "${PHASE_FILTER}" ]; then
         fi
     done
     if [ ${#SELECTED_PHASES[@]} -eq 0 ]; then
-        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-10."
+        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-11."
         exit 1
     fi
 else

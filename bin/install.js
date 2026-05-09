@@ -139,6 +139,14 @@ syncDir(srcScriptsDir, targetScriptsDir);
 const scriptCount = fs.readdirSync(targetScriptsDir).filter((f) => f.endsWith(".js")).length;
 console.log(`  ${green}✓${reset} Installed ${scriptCount} scripts`);
 
+// Copy node_modules (js-yaml dependency)
+const srcNodeModules = path.join(srcDir, "node_modules", "js-yaml");
+if (fs.existsSync(srcNodeModules)) {
+  const targetNodeModules = path.join(caConfigDir, "node_modules", "js-yaml");
+  syncDir(srcNodeModules, targetNodeModules);
+  console.log(`  ${green}✓${reset} Installed js-yaml dependency`);
+}
+
 if (!customHome) {
   // Create rules directory and install rules files
   const rulesDir = path.join(homeDir, ".claude", "rules");

@@ -185,6 +185,21 @@ Read STATUS.md for `branch_name` and `base_branch`.
      5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
 3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
 
+#### 2b-multi. Multi-repo merge (if project_branches exists)
+
+Read `project_branches` from STATUS.md. If present:
+1. Parse the comma-separated `label:path` pairs.
+2. For each repo path:
+   a. Check current branch: `git -C <path> branch --show-current`.
+   b. If on `ca/<workflow-id>`:
+      - Based on `merge_strategy`:
+        - `squash`: `git -C <path> checkout main && git -C <path> merge --squash ca/<workflow-id> && git -C <path> commit -m "<same commit message as main repo>"`
+        - `merge`: `git -C <path> checkout main && git -C <path> merge ca/<workflow-id> --no-ff -m "<same commit message>"`
+      - If `auto_delete_branch` is true:
+        - `squash`: `git -C <path> branch -D ca/<workflow-id>`
+        - `merge`: `git -C <path> branch -d ca/<workflow-id>`
+3. Report which repos were merged.
+
 #### 2c. Delete branch
 1. If `auto_delete_branch` is `true`:
    - If `merge_strategy` is `squash`: Run `git branch -D <branch_name>` (squash merge does not preserve original branch commits, so `-d` reachability check fails; `-D` is safe because the squash commit already contains all changes).

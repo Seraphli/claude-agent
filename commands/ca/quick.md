@@ -177,6 +177,24 @@ If `use_branches` is `true`:
    base_branch: main
    ```
 
+#### 5c. Multi-repo branch creation (if project.yaml exists)
+
+If the config output contains `## Project` with `project_dirs`:
+1. Collect all project dirs from the config output.
+2. For each dir, check if it is a git repository: `git -C <dir_path> rev-parse --is-inside-work-tree 2>/dev/null`. Filter to only git repos.
+3. If there are git repos in project dirs, use `AskUserQuestion` with:
+   - header: "Branches"
+   - question: "project.yaml lists these git repos. Create workflow branches in which ones?"
+   - multiSelect: true
+   - options: one per git repo dir (label: `<dir_label> (<dir_path>)`, description: "Create ca/<workflow-id> branch here")
+4. For each selected repo:
+   - `git -C <dir_path> checkout -b ca/<workflow-id>`
+5. Append to STATUS.md after `base_branch` line:
+   ```
+   project_branches: <dir_label_1>:<dir_path_1>, <dir_label_2>:<dir_path_2>
+   ```
+   (comma-separated list of label:path pairs for repos where branches were created)
+
 Mark "Create git branch" as completed.
 
 ### 6. Confirm completion

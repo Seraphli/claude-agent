@@ -50,6 +50,13 @@ Read `fix_round` from STATUS.md (default: 0).
 If `fix_round` > 0 (fix round N):
 - Read PLAN.md from `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`
 
+Also read the config output. If it contains `## Project`:
+- Extract `project_dirs` and `project_rules` from the config output.
+- When launching ca-executor agents, include the project directory information in the prompt:
+  - "Project directories: <list of label: path pairs>"
+  - "Additional rules to follow: <content of each rules file>"
+- Read the content of each rules file listed in `project_rules` and include it in the executor prompt as additional context.
+
 ### 1b. Ensure codebase map exists
 
 **CRITICAL — Do NOT skip this step.** Check if `.ca/map.md` exists:
