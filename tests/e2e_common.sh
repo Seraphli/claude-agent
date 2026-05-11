@@ -287,7 +287,12 @@ wait_for_ask() {
     local timeout="${1:-300}"
     if wait_for_event '"tool_name":"AskUserQuestion"' "${timeout}"; then
         LAST_ASK_HEADER=$(echo "${LAST_EVENT}" | grep -oP '"header"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"header"\s*:\s*"\([^"]*\)".*/\1/')
+        local ask_question ask_options
+        ask_question=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions[0].question // empty' 2>/dev/null)
+        ask_options=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions[0].options[].label' 2>/dev/null | tr '\n' ', ' | sed 's/,$//')
         echo "[ask] received: ${LAST_ASK_HEADER}"
+        echo "[ask]   question: ${ask_question}"
+        echo "[ask]   options: [${ask_options}]"
         return 0
     fi
     return 1
@@ -416,6 +421,7 @@ select_option_by_text() {
     labels=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions[0].options[].label' 2>/dev/null)
     if [ -z "${labels}" ]; then
         echo "[select] WARNING: could not extract options from event, falling back to option 1"
+        echo "[select]   raw event: ${LAST_EVENT:0:500}"
         select_option 1
         return
     fi
@@ -429,6 +435,7 @@ select_option_by_text() {
         index=$((index + 1))
     done <<< "${labels}"
     echo "[select] WARNING: no option matching '${pattern}', falling back to option 1"
+    echo "[select]   available options: [${labels}]"
     select_option 1
 }
 
@@ -632,7 +639,7 @@ fail() {
 pane_log() {
     local label="${1:-debug}"
     echo "=== pane_log [${label}] ==="
-    ${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null || echo "(no pane content)"
+    ${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p -S - 2>/dev/null || echo "(no pane content)"
     echo "=== end pane_log ==="
 }
 

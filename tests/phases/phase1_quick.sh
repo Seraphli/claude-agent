@@ -100,6 +100,12 @@ assert_ask_header "Requirements" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
+# Expect: SPEC confirmation (quick workflow creates SPEC during plan)
+wait_for_ask 300
+assert_ask_header "SPEC" "plan: SPEC prompt"
+sleep 1
+select_option_by_text "Accurate"
+
 # Expect: Rough Plan confirmation
 wait_for_ask_expect "Rough Plan" "" 300
 assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
@@ -121,10 +127,18 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/PLAN.md" "plan: PLAN.md created"
+    assert_file_exists "${WORKFLOW_DIR}/SPEC.md" "plan: SPEC.md created"
+    assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Desired Result / User Experience" "plan: SPEC has Desired Result section"
+    assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Verification Design" "plan: SPEC has Verification Design section"
     assert_file_exists "${WORKFLOW_DIR}/CRITERIA.md" "plan: CRITERIA.md created"
+    assert_file_contains "${WORKFLOW_DIR}/CRITERIA.md" "\\[auto\\]" "plan: CRITERIA.md has [auto] tag"
 else
     fail "plan: PLAN.md created"
+    fail "plan: SPEC.md created"
+    fail "plan: SPEC has Desired Result section"
+    fail "plan: SPEC has Verification Design section"
     fail "plan: CRITERIA.md created"
+    fail "plan: CRITERIA.md has [auto] tag"
 fi
 
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -191,7 +205,7 @@ select_option_by_text "Yes"
 wait_for_ask 120
 assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
-select_option_by_text "Yes"
+select_option_by_text "Confirm"
 
 wait_for_stop 300
 pane_log "finish-done"

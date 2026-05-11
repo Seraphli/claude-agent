@@ -37,6 +37,7 @@ Goal: understand **exactly** what the user wants before code is written.
 5. Create initial tasks:
    - `TaskCreate`: subject "Assess requirement", activeForm "Assessing requirement"
    - `TaskCreate`: subject "Confirm requirements", activeForm "Confirming requirements"
+   - `TaskCreate`: subject "Create SPEC", activeForm "Creating SPEC"
 
 Mark "Assess requirement" as `in_progress`.
 
@@ -211,14 +212,47 @@ Use `AskUserQuestion` with:
   - "Accurate" — "Requirements are correct, proceed"
   - "Needs changes" — "I want to revise something"
 
-- If **Accurate**: Mark "Confirm requirements" as `completed`. Write the summary to `.ca/workflows/<active_id>/REQUIREMENT.md` and also write the success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
-```
-# Success Criteria
+- If **Accurate**: Mark "Confirm requirements" as `completed`. Write the summary to `.ca/workflows/<active_id>/REQUIREMENT.md`.
 
-1. ...
-2. ...
+Mark "Create SPEC" as `in_progress`.
+
+### 6b. Create SPEC
+
+Based on the confirmed requirements and any research findings from earlier steps, draft a SPEC document with two sections:
+
+1. **Desired Result / User Experience**: Describe what the user expects to see, use, or experience after implementation. For new features: how to trigger/use it, interaction flow, expected system response, key boundary/exception behavior visible to the user. For fixes: what behavior changes the user will observe.
+2. **Verification Design**: List test cases as action + assertion pairs. Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. Do NOT write complete bash scripts — describe actions and assertions clearly enough to be converted into E2E test phases later.
+
+Present the draft SPEC to the user:
+
 ```
-Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Also set `status_note` to a context-aware summary, e.g.: "Requirements discussed and confirmed. Ready for planning." Tell the user discussion is complete. Suggest next steps:
+## SPEC Draft
+
+### Desired Result / User Experience
+<content>
+
+### Verification Design
+<test cases as action + assertion>
+```
+
+`AskUserQuestion`: header "SPEC", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
+
+If **Needs changes**: ask what needs to change, revise, re-confirm.
+If **Accurate**: Write the SPEC to `.ca/workflows/<active_id>/SPEC.md`:
+
+```markdown
+# SPEC
+
+## Desired Result / User Experience
+<confirmed content>
+
+## Verification Design
+<confirmed content>
+```
+
+Mark "Create SPEC" as `completed`.
+
+Update STATUS.md (`discuss_completed: true`, `current_step: discuss`). Also set `status_note` to a context-aware summary, e.g.: "Requirements discussed and confirmed. SPEC created. Ready for planning." Tell the user discussion is complete. Suggest next steps:
 - `/ca:plan` (or `/ca:next`)
 - `/clear` to free context
 

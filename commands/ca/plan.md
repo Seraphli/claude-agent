@@ -38,6 +38,7 @@ Get **three separate confirmations** before finalizing.
 5. Create initial tasks (skip if `auto_fix_mode: true` — see step 1-auto for auto-fix tasks):
    - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
    - `TaskCreate`: subject "Confirmation 1: Requirements", activeForm "Confirming requirements"
+   - `TaskCreate`: subject "Create/Read SPEC", activeForm "Handling SPEC"
    - `TaskCreate`: subject "Draft plan", activeForm "Drafting plan"
    - `TaskCreate`: subject "Confirmation 2a: Rough Plan", activeForm "Confirming rough plan"
    - `TaskCreate`: subject "Confirmation 3: Expected Results", activeForm "Confirming results"
@@ -56,6 +57,7 @@ Mark the first task as `in_progress` ("Read context & research" or "Auto-fix: ge
 Read these files:
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.ca/workflows/<active_id>/SPEC.md` (if exists — contains confirmed desired result and verification design)
 - `.ca/workflows/<active_id>/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
 Also read `fix_round` from STATUS.md (default: 0).
@@ -199,7 +201,54 @@ Present: "I understand you want: [concise summary]"
 
 If **Not correct**: ask what's wrong, correct, re-ask.
 
-Mark "Confirmation 1: Requirements" as `completed`. Mark "Draft plan" as `in_progress`.
+Mark "Confirmation 1: Requirements" as `completed`. Mark "Create/Read SPEC" as `in_progress`.
+
+#### SPEC Handling
+
+**If `workflow_type: quick` AND SPEC.md does NOT exist** (typical quick workflow path):
+
+Based on the confirmed requirements (BRIEF.md) and any research findings from step 1b, draft a SPEC document with two sections:
+
+1. **Desired Result / User Experience**: Describe what the user expects to see, use, or experience after implementation. For new features: how to trigger/use it, interaction flow, expected system response, key boundary/exception behavior visible to the user. For fixes: what behavior changes the user will observe.
+2. **Verification Design**: List test cases as action + assertion pairs. Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. Do NOT write complete bash scripts — describe actions and assertions clearly enough to be converted into E2E test phases later.
+
+Present the draft SPEC to the user:
+
+```
+## SPEC Draft
+
+### Desired Result / User Experience
+<content>
+
+### Verification Design
+<test cases as action + assertion>
+```
+
+`AskUserQuestion`: header "SPEC", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
+
+If **Needs changes**: ask what to change, revise, re-confirm.
+If **Accurate**: Write to `.ca/workflows/<active_id>/SPEC.md`:
+
+```markdown
+# SPEC
+
+## Desired Result / User Experience
+<confirmed content>
+
+## Verification Design
+<confirmed content>
+```
+
+**If `workflow_type: standard` AND SPEC.md does NOT exist** (abnormal state — discuss should have created it):
+
+Tell the user: "SPEC.md is missing. The discuss phase should have created it. Please run `/ca:discuss` to complete the requirement discussion and create SPEC.md."
+**Stop immediately.**
+
+**If SPEC.md exists** (normal standard workflow path, or quick workflow with pre-existing SPEC):
+
+Read SPEC.md. Present a brief summary of its key points to the user (1-2 sentences covering desired result and verification approach). No confirmation needed — SPEC was already confirmed during discuss or a previous plan session. If the user identifies SPEC issues during the later Results confirmation (Confirmation 3), the SPEC revision path in Confirmation 3 handles it.
+
+Mark "Create/Read SPEC" as `completed`. Mark "Draft plan" as `in_progress`.
 
 #### Draft the plan
 
@@ -209,6 +258,8 @@ Mark "Confirmation 1: Requirements" as `completed`. Mark "Draft plan" as `in_pro
 3. Produce a full internal draft that contains everything needed for Confirmation 2a (condensed) and 2b (detailed)
 
 The draft plan is the COMPLETE, unconfirmed plan. Confirmation 2a presents it in condensed form, Confirmation 2b presents each step in full detail. Both are derived from this single draft — they are NOT separate design phases. The rough plan is a CONDENSED VERSION of the detailed plan, NOT a draft or sketch to be expanded.
+
+**CRITICAL — SPEC-Driven Planning**: The plan MUST be driven by SPEC.md. Reference the Desired Result / User Experience section to understand what the end state should look like. Consider the test cases from Verification Design when designing implementation steps — the implementation should be structured so that each test case in the SPEC can verify the corresponding functionality.
 
 Prepare a plan covering:
 - **Approach**: What method/strategy will be used
@@ -314,11 +365,17 @@ These patterns mean the Pre-plan Requirement was not fulfilled — you have NOT 
 
 Mark "Confirmation 3: Expected Results" as `in_progress`.
 
-Present **two separate sections**: Expected Results (observable end state) and Success Criteria (verifiable conditions).
+Present **two separate sections**:
+
+1. **Expected Results**: Reference SPEC.md's Desired Result / User Experience — summarize the observable end state that the implementation plan will achieve.
+2. **Success Criteria**: Derive verifiable criteria from SPEC.md's Verification Design. Tag each criterion as `[auto]` or `[manual]`:
+   - **`[auto]`**: verifier checks by reading files, running commands, grep/glob, comparing structures.
+   - **`[manual]`**: requires UI interaction, subjective judgment, external services, or real-time observation.
+   - **Default to `[auto]`** — verifier has Read, Bash, Grep, Glob.
 
 `AskUserQuestion`: header "Results", question "Are these the expected results?", options "Yes"/"No".
 
-If **No**: revise. If change affects Confirmation 2b, 2a, or 1, re-ask affected confirmations in order first.
+If **No**: ask what is wrong. If the feedback affects SPEC.md content (Desired Result or Verification Design), revise SPEC.md through the SPEC confirmation flow first (re-present draft, AskUserQuestion header "SPEC"), then re-run affected confirmations in order: 2a Rough Plan → 2b Detailed Plan → Results. If the feedback only affects implementation details or criterion tagging, revise the affected plan confirmations in order without re-opening SPEC.
 
 Mark "Confirmation 3: Expected Results" as `completed`.
 
@@ -368,13 +425,15 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflo
 
 ### 4b. Write/Update CRITERIA.md
 
-Write success criteria to `.ca/workflows/<active_id>/CRITERIA.md`:
+Derive success criteria from SPEC.md's Verification Design section. Convert each test case into a verifiable criterion tagged `[auto]` or `[manual]`.
 
 If file exists and fix_round > 0, append new fix-specific criteria below existing ones.
 If the file does not exist, create it:
 
 ```
 # Success Criteria
+
+Derived from SPEC.md Verification Design.
 
 Tag each criterion `[auto]` or `[manual]`:
 

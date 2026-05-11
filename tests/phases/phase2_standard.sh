@@ -101,6 +101,12 @@ for i in $(seq 1 10); do
     select_option_smart 1
 done
 
+# Expect: SPEC confirmation after requirements
+wait_for_ask 300
+assert_ask_header "SPEC" "discuss: SPEC prompt"
+sleep 1
+select_option_by_text "Accurate"
+
 wait_for_stop 300
 pane_log "discuss-done"
 
@@ -109,8 +115,14 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/REQUIREMENT.md" "discuss: REQUIREMENT.md exists"
+    assert_file_exists "${WORKFLOW_DIR}/SPEC.md" "discuss: SPEC.md exists"
+    assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Desired Result / User Experience" "discuss: SPEC has Desired Result section"
+    assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Verification Design" "discuss: SPEC has Verification Design section"
 else
     fail "discuss: REQUIREMENT.md exists"
+    fail "discuss: SPEC.md exists"
+    fail "discuss: SPEC has Desired Result section"
+    fail "discuss: SPEC has Verification Design section"
 fi
 
 assert_status_field "discuss_completed" "true" "discuss: discuss_completed=true"
@@ -127,8 +139,11 @@ assert_ask_header "Requirements" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
-# Expect: Rough Plan confirmation
-wait_for_ask_expect "Rough Plan" "" 300
+# Expect: Rough Plan confirmation directly; standard workflow must not re-confirm SPEC
+wait_for_ask 300
+if echo "${LAST_ASK_HEADER}" | grep -qE "SPEC"; then
+    fail "plan: standard workflow must not re-confirm SPEC"
+fi
 assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
@@ -148,9 +163,11 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/PLAN.md"     "plan: PLAN.md exists"
     assert_file_exists "${WORKFLOW_DIR}/CRITERIA.md" "plan: CRITERIA.md exists"
+    assert_file_contains "${WORKFLOW_DIR}/CRITERIA.md" "\\[auto\\]" "plan: CRITERIA.md has [auto] tag"
 else
     fail "plan: PLAN.md exists"
     fail "plan: CRITERIA.md exists"
+    fail "plan: CRITERIA.md has [auto] tag"
 fi
 
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -214,7 +231,7 @@ select_option_by_text "Yes"
 wait_for_ask 120
 assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
-select_option_by_text "Yes"
+select_option_by_text "Confirm"
 
 wait_for_stop 300
 pane_log "finish-done"

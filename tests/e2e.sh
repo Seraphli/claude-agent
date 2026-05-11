@@ -2,7 +2,7 @@
 # e2e.sh — Main E2E test orchestrator for claude-agent
 #
 # Usage:
-#   bash tests/e2e.sh            — Run all phases (1-10) with parallel execution (max 4)
+#   bash tests/e2e.sh            — Run all phases (1-11) sequentially
 #   bash tests/e2e.sh --phase N  — Run only phase N (1-11)
 #
 # Requires: tmux, claude CLI, jq, node
@@ -12,9 +12,6 @@ set -euo pipefail
 # Resolve repo root from this script's location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CA_REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
-# Max parallel phases
-MAX_PARALLEL=4
 
 # Parse --phase argument
 PHASE_FILTER=""
@@ -79,47 +76,6 @@ else
     SELECTED_PHASES=("${PHASES[@]}")
 fi
 
-# --- Parallel Execution with Pool ---
-
-# Temp dir for exit codes
-EXIT_DIR="$(mktemp -d /tmp/ca-e2e-exits-XXXXXX)"
-PIDS=()
-PHASE_LABELS=()
-
-run_phase_bg() {
-    local phase_num="$1"
-    local phase_script="$2"
-    local phase_label="$3"
-    local log_file="${LOG_DIR}/phase${phase_num}-${LOG_TIMESTAMP}.log"
-
-    echo "  [start] Phase ${phase_num}: ${phase_label}"
-
-    (
-        set +e
-        bash "${phase_script}" > "${log_file}" 2>&1
-        echo $? > "${EXIT_DIR}/phase${phase_num}.exit"
-        set -e
-    ) &
-    PIDS+=($!)
-    PHASE_LABELS+=("${phase_num}|${phase_label}")
-}
-
-# Wait for any one process to finish (frees a slot)
-wait_for_slot() {
-    while [ ${#PIDS[@]} -ge ${MAX_PARALLEL} ]; do
-        local new_pids=()
-        for pid in "${PIDS[@]}"; do
-            if kill -0 "${pid}" 2>/dev/null; then
-                new_pids+=("${pid}")
-            fi
-        done
-        PIDS=("${new_pids[@]}")
-        if [ ${#PIDS[@]} -ge ${MAX_PARALLEL} ]; then
-            sleep 5
-        fi
-    done
-}
-
 # Single phase mode: run sequentially (for --phase N)
 if [ ${#SELECTED_PHASES[@]} -eq 1 ]; then
     IFS='|' read -r num script label <<< "${SELECTED_PHASES[0]}"
@@ -151,37 +107,30 @@ if [ ${#SELECTED_PHASES[@]} -eq 1 ]; then
     exit ${phase_exit}
 fi
 
-# Multi-phase mode: run in parallel with pool
-echo "  Running ${#SELECTED_PHASES[@]} phases (max ${MAX_PARALLEL} parallel)..."
+# Multi-phase mode: run sequentially
+echo "  Running ${#SELECTED_PHASES[@]} phases sequentially..."
 echo ""
 
-for phase in "${SELECTED_PHASES[@]}"; do
-    IFS='|' read -r num script label <<< "${phase}"
-    wait_for_slot
-    run_phase_bg "${num}" "${script}" "${label}"
-done
-
-# Wait for all remaining processes
-wait
-
-# --- Collect Results ---
 TOTAL_FAIL=0
 PHASE_SUMMARIES=()
 
-for entry in "${PHASE_LABELS[@]}"; do
-    IFS='|' read -r num label <<< "${entry}"
-    exit_file="${EXIT_DIR}/phase${num}.exit"
-    if [ -f "${exit_file}" ]; then
-        phase_exit=$(cat "${exit_file}")
-    else
-        phase_exit=1
-    fi
+for phase in "${SELECTED_PHASES[@]}"; do
+    IFS='|' read -r num script label <<< "${phase}"
+    log_file="${LOG_DIR}/phase${num}-${LOG_TIMESTAMP}.log"
+    echo "  --- Phase ${num}: ${label} ---"
+    set +e
+    bash "${script}" > "${log_file}" 2>&1
+    phase_exit=$?
+    set -e
     PHASE_SUMMARIES+=("Phase ${num} (${label}): exit=${phase_exit}")
     TOTAL_FAIL=$((TOTAL_FAIL + phase_exit))
+    if [ "${phase_exit}" -eq 0 ]; then
+        echo "  [pass] Phase ${num}: ${label}"
+    else
+        echo "  [fail] Phase ${num}: ${label} (exit=${phase_exit})"
+        echo "  Log: ${log_file}"
+    fi
 done
-
-# Cleanup exit dir
-rm -rf "${EXIT_DIR}"
 
 # --- Final Aggregated Summary ---
 echo ""
