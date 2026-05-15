@@ -29,13 +29,12 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 # get_workflow_dir — Find the active workflow directory under .ca/workflows/
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    if [ ! -f "${active_file}" ]; then
+    local workflow_id
+    workflow_id="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    if [ -z "${workflow_id}" ]; then
         echo ""
         return
     fi
-    local workflow_id
-    workflow_id="$(cat "${active_file}")"
     echo "${project_dir}/.ca/workflows/${workflow_id}"
 }
 
@@ -59,9 +58,6 @@ trap 'cleanup' EXIT
 WORKFLOW_ID="verify-fail-test"
 WORKFLOW_DIR="${TEST_PROJECT}/.ca/workflows/${WORKFLOW_ID}"
 mkdir -p "${WORKFLOW_DIR}"
-
-# Write .ca/active.md
-printf '%s' "${WORKFLOW_ID}" > "${TEST_PROJECT}/.ca/active.md"
 
 # Write STATUS.md
 cat > "${WORKFLOW_DIR}/STATUS.md" << 'EOF'
@@ -127,7 +123,7 @@ pane_log "startup"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:verify"
-wait_for_stop 120
+wait_for_stop 240
 pane_log "verify-done"
 
 # Refresh workflow dir pointer

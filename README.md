@@ -68,7 +68,6 @@ Use `/ca:next` at any point to automatically detect and run the next step.
 
 ```
 /ca:new → /ca:discuss → /ca:plan   (repeat for each requirement)
-/ca:switch                          (switch between workflows)
 /ca:batch                           (batch execute all confirmed plans)
 ```
 
@@ -128,7 +127,6 @@ Skips the discuss phase. Creates a brief and goes straight to planning. Research
 | `/ca:map` | Scan and record project structure |
 | `/ca:settings` | Configure language, model, and auto-proceed settings |
 | `/ca:status` | Show current workflow state |
-| `/ca:switch` | Switch active workflow |
 | `/ca:list` | List all workflows with status summary |
 | `/ca:batch` | Batch execute all plan-confirmed workflows |
 | `/ca:remember <info>` | Save to persistent context (project or global) |
@@ -195,7 +193,6 @@ Use `/ca:settings` to configure.
   todos.md                       # Active todo items (uncompleted)
   todos-archive.md               # Archived todo items (completed/cancelled)
   map.md                         # Codebase structure map (/ca:map)
-  active.md                      # Currently active workflow ID
   workflows/
     <workflow-id>/
       STATUS.md                  # Workflow state

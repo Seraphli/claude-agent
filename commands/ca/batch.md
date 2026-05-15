@@ -44,18 +44,16 @@ If **Cancel**: Stop.
 
 ### 3. Serial execution with checkpoints
 
-Save the current active workflow ID (from `.ca/active.md`) to restore later.
 Initialize a results list to track each workflow's outcome.
 
 For each workflow in order:
 
 #### 3a. Set active and prepare
-1. Write the workflow ID to `.ca/active.md` (set as active).
-2. Write `batch_mode: true` to the workflow's STATUS.md. Also set `status_note` for the workflow being processed.
-3. Read `use_worktrees` from the config JSON already loaded.
+1. Write `batch_mode: true` to the workflow's STATUS.md. Also set `status_note` for the workflow being processed.
+2. Read `use_worktrees` from the config JSON already loaded.
    Read STATUS.md for `branch_name`.
-4. **If worktree mode** (`worktree_path` exists): no checkout needed. Read `worktree_path` from STATUS.md — executor/verifier will use this as code working directory.
-5. **If non-worktree mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
+3. **If worktree mode** (`worktree_path` exists): no checkout needed. Read `worktree_path` from STATUS.md — executor/verifier will use this as code working directory.
+4. **If non-worktree mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
 
 #### 3b. Execute (if needed)
 If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workflow.
@@ -91,16 +89,14 @@ Show counts: Passed / Failed / Total.
 If 2+ passed: compare changed files between pairs. No overlap → Independent. Overlap → list files.
 
 #### 4c. Recommendations
-- **Independent**: `/ca:switch <id>` → `/ca:finish` each.
+- **Independent**: `/ca:finish` each workflow.
 - **Overlapping**: Review overlapping files first.
-- **Failed**: `/ca:switch <id>` → `/ca:plan`.
-- **Branch mode passed**: `/ca:switch <id>` → `/ca:finish` to merge each workflow branch.
+- **Failed**: `/ca:plan` for the failed workflow.
+- **Branch mode passed**: `/ca:finish` each workflow to merge its branch.
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.
 
-### 5. Restore active workflow
+### 5. Post-batch cleanup
 
 After all workflows are processed:
-- If there are remaining unfinished workflows in `.ca/workflows/`, set `active.md` to one of them.
-- If no workflows remain, delete `.ca/active.md`.
 - **If worktree mode**: no branch switch needed — main repo is already on its base branch.

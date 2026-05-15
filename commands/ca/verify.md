@@ -9,9 +9,19 @@ description: Independently verifies implementation against success criteria usin
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
-## Prerequisites
+### Resolve workflow ID
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
+Determine which workflow to operate on using this priority:
+
+1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
+2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
+3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
+   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to verify?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
+
+After resolving `<active_id>`:
+
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root> --workflow-id <active_id>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `execute_completed: true` from the parsed JSON. If not, tell the user to run `/ca:execute` first. **Stop immediately.**
 
@@ -156,7 +166,7 @@ Check `batch_mode` in STATUS.md:
    - Do NOT include fix plans, suggestions, or solutions — only record the problems
 5. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
    ```
-   node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
+   node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> --workflow-id <active_id> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=Verification failed (round N): <brief failure summary>. Ready for fix planning."
    ```
    Do NOT use Write or Edit tools to update STATUS.md — the script handles type coercion and field updates correctly. Using Write/Edit may silently fail to reset fields.
 6. **Auto-fix assessment**: Read `auto_fix` and `max_fix_rounds` from config.
@@ -173,12 +183,12 @@ Check `batch_mode` in STATUS.md:
         - Suggest the user run `/ca:plan` (or `/ca:next`).
         - **Stop immediately.**
      c. If failures are **implementation bugs** (auto-fixable) AND N <= `max_fix_rounds`:
-        - Update STATUS.md to also set `auto_fix_mode=true`: run `node ... ca-status.js update --project-root <project-root> auto_fix_mode=true`
+        - Update STATUS.md to also set `auto_fix_mode=true`: run `node ... ca-status.js update --project-root <project-root> --workflow-id <active_id> auto_fix_mode=true`
         - Report: "Auto-fix round N/max_fix_rounds: detected implementation bugs. Auto-generating fix plan..."
         - Call `Skill(ca:plan)`.
         - **Stop here.** Plan will chain to execute→verify.
      d. If failures are **implementation bugs** but N > `max_fix_rounds`:
-        - Update STATUS.md to set `auto_fix_mode=false`: run `node ... ca-status.js update --project-root <project-root> auto_fix_mode=false`
+        - Update STATUS.md to set `auto_fix_mode=false`: run `node ... ca-status.js update --project-root <project-root> --workflow-id <active_id> auto_fix_mode=false`
         - Report: "Auto-fix loop reached maximum rounds (max_fix_rounds). Manual intervention required."
         - Suggest the user run `/ca:plan` (or `/ca:next`).
         - **Stop immediately.**
@@ -269,7 +279,7 @@ Use `AskUserQuestion` with:
      - If N > 1: write to `.ca/workflows/<active_id>/rounds/<N-1>/VERIFY-REPORT.md`
   6. **Update STATUS.md**: CRITICAL — Use `ca-status.js update` to ensure ALL fields are correctly reset. Run:
      ```
-     node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=User rejected results (round N): <brief feedback>. Ready for fix planning."
+     node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js update --project-root <project-root> --workflow-id <active_id> fix_round=<N> plan_completed=false plan_confirmed=false execute_completed=false verify_completed=false current_step=verify "status_note=User rejected results (round N): <brief feedback>. Ready for fix planning."
      ```
      Do NOT use Write or Edit tools to update STATUS.md.
   7. Suggest `/ca:plan` (or `/ca:next`) for fix planning.

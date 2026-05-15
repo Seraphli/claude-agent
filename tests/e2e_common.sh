@@ -249,7 +249,7 @@ inject_command() {
 #
 # Args:
 #   $1 — grep pattern to match
-#   $2 — timeout in seconds (default: 300)
+#   $2 — timeout in seconds (default: 45)
 #
 # Sets LAST_EVENT to the matching line.
 # Returns 0 on match, 1 on timeout.
@@ -279,7 +279,7 @@ wait_for_event() {
 # wait_for_ask — Wait for AskUserQuestion event and extract header into LAST_ASK_HEADER
 #
 # Args:
-#   $1 — timeout in seconds (default: 300)
+#   $1 — timeout in seconds (default: 45)
 #
 # Sets LAST_ASK_HEADER to the header value from the event.
 # Returns 0 if AskUserQuestion received, 1 if timeout.
@@ -319,7 +319,7 @@ assert_ask_header() {
 # Args:
 #   $1 — expected header pattern (grep -E regex)
 #   $2 — answer pattern for unexpected headers (select_option_by_text pattern)
-#   $3 — timeout in seconds (default: 300)
+#   $3 — timeout in seconds (default: 45)
 #
 # If the received header doesn't match expected, selects option 1 and waits again.
 # Retries up to 3 times before giving up.
@@ -351,7 +351,7 @@ wait_for_ask_expect() {
 # Args:
 #   $1 — next expected header pattern after all steps (grep -E regex, e.g., "Results|结果")
 #   $2 — test name prefix (e.g., "plan")
-#   $3 — timeout per step in seconds (default: 300)
+#   $3 — timeout per step in seconds (default: 45)
 wait_for_step_confirmations() {
     local next_expected="$1"
     local name_prefix="$2"
@@ -379,7 +379,7 @@ wait_for_step_confirmations() {
 # wait_for_stop — Wait for Stop event (Claude finished processing)
 #
 # Args:
-#   $1 — timeout in seconds (default: 600)
+#   $1 — timeout in seconds (default: 60)
 #
 # Returns 0 if Stop detected, 1 if timeout.
 wait_for_stop() {
@@ -568,9 +568,16 @@ assert_status_field() {
     local project_dir="${TEST_DIR}/project"
     local status_script="${CA_REPO_ROOT}/scripts/ca-status.js"
 
-    # Read status text for active workflow
+    # Discover workflow ID from .ca/workflows/ directory (first workflow found)
+    local wf_id
+    wf_id="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    if [ -z "${wf_id}" ]; then
+        echo "[assert] FAIL: no workflows found in ${project_dir}/.ca/workflows/"
+        fail "${name}"
+        return
+    fi
     local status_text
-    status_text="$(node "${status_script}" read --project-root "${project_dir}" 2>/dev/null)"
+    status_text="$(node "${status_script}" read --project-root "${project_dir}" --workflow-id "${wf_id}" 2>/dev/null)"
 
     if [ $? -ne 0 ] || [ -z "${status_text}" ]; then
         echo "[assert] FAIL: could not read status for project: ${project_dir}"

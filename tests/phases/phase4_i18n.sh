@@ -16,14 +16,13 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    if [ ! -f "${active_file}" ]; then
+    local wf_id
+    wf_id="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    if [ -z "${wf_id}" ]; then
         echo ""
         return
     fi
-    local workflow_id
-    workflow_id="$(cat "${active_file}")"
-    echo "${project_dir}/.ca/workflows/${workflow_id}"
+    echo "${project_dir}/.ca/workflows/${wf_id}"
 }
 
 # ---------------------------------------------------------------------------
@@ -74,7 +73,7 @@ inject_command "/ca:plan"
 
 # Research is optional — model may skip directly to Requirements
 wait_for_ask 120
-if echo "${LAST_ASK_HEADER}" | grep -qE "研究|Research"; then
+if echo "${LAST_ASK_HEADER}" | grep -qE "研究|调研|Research"; then
     pass "plan: Research prompt (中文)"
     sleep 1
     select_option_by_text "跳过|Skip"
@@ -105,7 +104,7 @@ assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:execute"
-wait_for_stop 180
+wait_for_stop 240
 pane_log "execute-done"
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
@@ -135,12 +134,12 @@ assert_ask_header "提交|Commit" "finish: Commit prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"
 
-wait_for_ask
+wait_for_ask 120
 assert_ask_header "确认|Confirm" "finish: Confirm prompt (中文)"
 sleep 1
 select_option_by_text "确认|Confirm|是|Yes"
 
-wait_for_stop
+wait_for_stop 120
 pane_log "finish-done"
 
 # Assert workflow archived

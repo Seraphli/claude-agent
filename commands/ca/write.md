@@ -5,7 +5,7 @@ description: Creates a writing workflow with writing-specific dimensions. Use wh
 
 # /ca:write — Writing Workflow
 
-**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, active.md). Do NOT read, analyze, or modify source code.
+**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md). Do NOT read, analyze, or modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
@@ -15,23 +15,22 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 ### 1. Check for existing workflows
 
-Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`. If the output contains "No active workflow", there are no existing workflows — skip to step 2.
+Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If the output contains "No workflows found", there are no existing workflows — skip to step 2.
 
-If successful, check if `verify_completed` is `false` in the parsed JSON.
+If workflows are listed, check each workflow's STATUS.md. Find all workflows with `verify_completed: false` (unfinished).
 
-If there is an unfinished active workflow:
-- **Warn the user**: Tell them there is an unfinished workflow `<active_id>` in `.ca/workflows/`.
-- Show what step it was on.
+If there are unfinished workflows:
+- **Warn the user**: List all unfinished workflows with their IDs and current steps.
 - Use `AskUserQuestion` with:
   - header: "Workflow"
-  - question: "There is an unfinished workflow. What would you like to do?"
+  - question: "There are unfinished workflows. What would you like to do?"
   - options:
-    - "Keep and start new" — "Keep existing workflow, create a new one alongside it"
-    - "Archive and start new" — "Archive existing workflow to history, then create new"
-    - "Continue current" — "Continue the existing workflow instead"
-- If **Keep and start new**: Read the existing workflow's STATUS.md, then append `status_note: Switched away during <current_step> phase.` to it. Leave the existing workflow in `workflows/`, continue to create new.
-- If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
-- If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:plan` to continue planning.
+    - "Keep and start new" — "Keep existing workflows, create a new one alongside them"
+    - "Archive and start new" — "Archive all unfinished workflows to history, then create new"
+    - "Continue existing" — "Continue one of the existing workflows instead"
+- If **Keep and start new**: Continue to create new workflow.
+- If **Archive and start new**: For each unfinished workflow, move all files from `.ca/workflows/<id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory. Then continue.
+- If **Continue existing**: If only one unfinished workflow, tell the user to use `/ca:plan` (or `/ca:next`). If multiple, list them and tell the user to run the appropriate next command. Stop.
 
 ### 2. Create directory structure
 
@@ -128,8 +127,6 @@ plan_confirmed: false
 execute_completed: false
 verify_completed: false
 ```
-
-Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
 
 ### 5b. Create git worktree (if enabled)
 

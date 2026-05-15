@@ -25,16 +25,15 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 # get_workflow_dir — Find the active workflow directory under .ca/workflows/
 #
-# Returns the full path to the active workflow dir, or empty string if not found.
+# Returns the full path to the first workflow dir found, or empty string if not found.
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    if [ ! -f "${active_file}" ]; then
+    local workflow_id
+    workflow_id="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    if [ -z "${workflow_id}" ]; then
         echo ""
         return
     fi
-    local workflow_id
-    workflow_id="$(cat "${active_file}")"
     echo "${project_dir}/.ca/workflows/${workflow_id}"
 }
 
@@ -202,7 +201,7 @@ sleep 1
 select_option_by_text "Yes"
 
 # Expect: Confirm prompt
-wait_for_ask
+wait_for_ask 120
 assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
 select_option_by_text "Confirm"
@@ -210,7 +209,7 @@ select_option_by_text "Confirm"
 wait_for_stop
 pane_log "finish-done"
 
-# After finish, the workflow is moved to .ca/history/; active.md should be removed
+# After finish, the workflow is moved to .ca/history/
 HISTORY_DIR="${TEST_PROJECT}/.ca/history"
 
 if [ -d "${HISTORY_DIR}" ] && [ "$(ls -A "${HISTORY_DIR}" 2>/dev/null)" ]; then

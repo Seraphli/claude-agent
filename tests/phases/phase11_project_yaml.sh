@@ -175,7 +175,7 @@ sleep 1
 select_option_by_text "No.*skip|skip"
 
 # Wait for worktree selection question (multi-repo)
-wait_for_ask
+wait_for_ask 120
 assert_ask_header "Worktrees" "quick: multi-repo worktree selection appears"
 sleep 1
 select_option_smart 1

@@ -30,7 +30,6 @@ Display all available CA commands in the user's preferred language:
 | `/ca:verify` | Self-check + user acceptance (uses ca-verifier agent) |
 | `/ca:finish` | Wrap up workflow — version bump, merge worktree, archive |
 | `/ca:next` | Auto-detect current step and execute the next one |
-| `/ca:switch` | Switch active workflow — select from available workflows |
 | `/ca:list` | List all workflows with status summary |
 | `/ca:batch` | Batch execute workflows — serial with branch/checkpoint mode |
 | `/ca:restore` | Restore an archived workflow from history for continued work |

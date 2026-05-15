@@ -9,9 +9,19 @@ description: Proposes an implementation plan. Triple confirmation for standard/q
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
-## Prerequisites
+### Resolve workflow ID
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
+Determine which workflow to operate on using this priority:
+
+1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
+2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
+3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
+   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to plan?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
+
+After resolving `<active_id>`:
+
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root> --workflow-id <active_id>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick` or `workflow_type: instant`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
@@ -97,7 +107,7 @@ Mark "Auto-fix: generate plan" as `completed`. Mark "Write PLAN.md" as `in_progr
 Mark "Write PLAN.md" as `completed`.
 
 7. Keep existing CRITERIA.md unchanged (same criteria need to pass).
-8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
+8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> --workflow-id <active_id> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
 9. **Auto-proceed**: Call `Skill(ca:execute)`.
 
 **Do NOT proceed to steps 1a, 1b, 1c, or 3 when auto_fix_mode is true.**
@@ -262,8 +272,33 @@ Mark "Confirmation 1: Requirements" as `completed`. Mark "Create/Read SPEC" as `
 
 Based on the confirmed requirements (BRIEF.md) and any research findings from step 1b, draft a SPEC document with two sections:
 
-1. **Desired Result / User Experience**: Describe what the user expects to see, use, or experience after implementation. For new features: how to trigger/use it, interaction flow, expected system response, key boundary/exception behavior visible to the user. For fixes: what behavior changes the user will observe.
-2. **Verification Design**: List test cases as action + assertion pairs. Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. Do NOT write complete bash scripts — describe actions and assertions clearly enough to be converted into E2E test phases later.
+**CRITICAL — SPEC Detail Requirements**: The SPEC MUST be detailed and specific. A SPEC that could be replaced by a single sentence summary is NOT acceptable. Follow these minimum requirements:
+
+1. **Desired Result / User Experience**: For EACH feature or fix in the requirement:
+   - **Trigger**: How does the user trigger this? (exact command, action, or condition)
+   - **Interaction flow**: Step-by-step description of each interaction point, what the user does, and what the system responds with
+   - **System response**: Exact outputs, prompts, file changes, or UI updates the user will see
+   - **Edge cases**: Boundary conditions and error scenarios — what happens when input is missing, invalid, or conflicts arise
+   - **Before/after comparison** (for fixes): What behavior exists now vs. what it will be after the fix
+
+   **FORBIDDEN** (too vague):
+   > "Users can create parallel workflows without interference."
+
+   **CORRECT** (specific and actionable):
+   > "When user runs `/ca:quick` while another workflow exists, the command scans `.ca/workflows/` to find unfinished workflows. If found, it shows an AskUserQuestion with Keep/Archive/Continue options. After creating the new workflow, no `active.md` is written. When user then runs `/ca:plan`, the command checks how many workflows exist: if exactly one, it auto-selects; if multiple, it presents an AskUserQuestion listing all workflows with their IDs, types, and current steps for user to choose."
+
+2. **Verification Design**: Each test case MUST include:
+   - **Precondition**: What state must exist before the test (files, config, prior actions)
+   - **Action**: Exact operation to perform (command to run, input to provide)
+   - **Assertion**: Specific expected result that can be verified (file content, command output, state change)
+
+   **FORBIDDEN** (too vague):
+   > "Verify that SPEC creation produces detailed output."
+
+   **CORRECT** (specific and verifiable):
+   > "Precondition: `plan.md` file exists in `commands/ca/`. Action: grep `plan.md` for 'CRITICAL.*SPEC Detail' and 'FORBIDDEN'. Assertion: Both patterns match, confirming the detail enforcement instructions are present."
+
+Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. Do NOT write complete bash scripts — describe actions and assertions clearly enough to be converted into E2E test phases later.
 
 Present the draft SPEC to the user:
 

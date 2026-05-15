@@ -58,8 +58,6 @@ cat > "${WF1_DIR}/CRITERIA.md" << 'EOF'
 - File `batch-result-1.js` must exist in the project root and export a `multiply` function
 EOF
 
-printf '%s' "batch-task-1" > "${TEST_PROJECT}/.ca/active.md"
-
 start_claude
 sleep 5
 pane_log "startup"

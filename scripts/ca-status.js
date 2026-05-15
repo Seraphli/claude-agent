@@ -70,16 +70,10 @@ const workflowIdIdx = args.indexOf("--workflow-id");
 
 const homeDir = os.homedir();
 const caDir = path.join(projectRoot, ".ca");
-const activeFile = path.join(caDir, "active.md");
-
-function getActiveWorkflowId() {
-  if (!fs.existsSync(activeFile)) return null;
-  return fs.readFileSync(activeFile, "utf8").trim();
-}
 
 function getWorkflowId() {
   if (workflowIdIdx !== -1) return args[workflowIdIdx + 1];
-  return getActiveWorkflowId();
+  return null;
 }
 
 function getStatusPath(workflowId) {
@@ -113,13 +107,10 @@ function formatStatus(status) {
   return lines.join("\n");
 }
 
-if (subcommand === "active") {
-  const workflowId = getActiveWorkflowId();
-  process.stdout.write(workflowId ? `Active workflow: ${workflowId}\n` : "No active workflow.\n");
-} else if (subcommand === "read") {
+if (subcommand === "read") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stdout.write("No active workflow. Run /ca:new first.\n");
+    process.stdout.write("No workflow specified. Use --workflow-id.\n");
     return;
   }
   const statusPath = getStatusPath(workflowId);
@@ -132,7 +123,7 @@ if (subcommand === "active") {
 } else if (subcommand === "update") {
   const workflowId = getWorkflowId();
   if (!workflowId) {
-    process.stdout.write("No active workflow. Run /ca:new first.\n");
+    process.stdout.write("No workflow specified. Use --workflow-id.\n");
     return;
   }
   const statusPath = getStatusPath(workflowId);
@@ -160,7 +151,6 @@ if (subcommand === "active") {
     process.stdout.write("No workflows found.\n");
     return;
   }
-  const activeId = getActiveWorkflowId();
   const entries = [];
   for (const entry of fs.readdirSync(workflowsDir)) {
     const entryPath = path.join(workflowsDir, entry);
@@ -175,7 +165,6 @@ if (subcommand === "active") {
       workflow_type: status.workflow_type || "",
       current_step: status.current_step || "",
       brief,
-      active: entry === activeId,
     });
   }
   if (entries.length === 0) {
@@ -183,8 +172,7 @@ if (subcommand === "active") {
   } else {
     const lines = ["# Workflows", ""];
     entries.forEach((e, i) => {
-      const active = e.active ? " [active]" : "";
-      lines.push(`${i + 1}.${active} ${e.workflow_id} (${e.workflow_type}, step: ${e.current_step})`);
+      lines.push(`${i + 1}. ${e.workflow_id} (${e.workflow_type}, step: ${e.current_step})`);
       if (e.brief) lines.push(`   Brief: ${e.brief}`);
     });
     process.stdout.write(lines.join("\n") + "\n");

@@ -8,9 +8,8 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    [ ! -f "${active_file}" ] && { echo ""; return; }
-    local wid; wid="$(cat "${active_file}")"
+    local wid; wid="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    [ -z "${wid}" ] && { echo ""; return; }
     echo "${project_dir}/.ca/workflows/${wid}"
 }
 
@@ -32,7 +31,6 @@ CONFIG
 WORKFLOW_ID="autofix-test"
 WF_DIR="${TEST_PROJECT}/.ca/workflows/${WORKFLOW_ID}"
 mkdir -p "${WF_DIR}"
-printf '%s' "${WORKFLOW_ID}" > "${TEST_PROJECT}/.ca/active.md"
 
 cat > "${WF_DIR}/STATUS.md" << 'EOF'
 # Workflow Status
@@ -103,7 +101,8 @@ else
     fail "autofix: file created by auto-fix"
 fi
 
-STATUS_TEXT="$(node "${CA_REPO_ROOT}/scripts/ca-status.js" read --project-root "${TEST_PROJECT}" 2>/dev/null)" || true
+WF_ID="$(ls "${TEST_PROJECT}/.ca/workflows/" 2>/dev/null | head -1)"
+STATUS_TEXT="$(node "${CA_REPO_ROOT}/scripts/ca-status.js" read --project-root "${TEST_PROJECT}" --workflow-id "${WF_ID}" 2>/dev/null)" || true
 FIX_ROUND="$(echo "${STATUS_TEXT}" | grep -oP '^fix_round:\s*\K\d+' || echo "0")"
 if [ -n "${FIX_ROUND}" ] && [ "${FIX_ROUND}" -ge 1 ] 2>/dev/null; then
     pass "autofix: fix_round >= 1"

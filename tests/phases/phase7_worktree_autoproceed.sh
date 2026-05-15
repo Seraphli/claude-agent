@@ -8,9 +8,8 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    [ ! -f "${active_file}" ] && { echo ""; return; }
-    local wid; wid="$(cat "${active_file}")"
+    local wid; wid="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    [ -z "${wid}" ] && { echo ""; return; }
     echo "${project_dir}/.ca/workflows/${wid}"
 }
 

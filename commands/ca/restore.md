@@ -70,8 +70,6 @@ Mark "Scan archived workflows" as `completed`. Mark "Restore workflow files" as 
    - Remove `branch_name` line (set to empty or remove)
    - Remove `base_branch` line (set to empty or remove)
    - Set `status_note: Restored from archive <archive_dir_name>. Fix round <N> — ready for planning.`
-5. Write the workflow ID to `.ca/active.md`.
-
 Mark "Restore workflow files" as `completed`. Mark "Create git worktree" as `in_progress`.
 
 ### 3. Create git worktree (if enabled)

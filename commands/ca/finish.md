@@ -14,7 +14,19 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 ## Prerequisites
 
-1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
+### Resolve workflow ID
+
+Determine which workflow to operate on using this priority:
+
+1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
+2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
+3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
+   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to finish?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
+
+After resolving `<active_id>`:
+
+1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root> --workflow-id <active_id>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
 2. Verify `verify_completed: true` from the parsed JSON. If not, tell the user to run `/ca:verify` first. **Stop immediately.**
 
@@ -265,7 +277,7 @@ Mark "Update todo" as `completed`. Mark "Archive workflow" as `in_progress`.
 
 1. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
 2. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md, VERIFY-REPORT.md, rounds/ directory if exists, and any other files).
-3. Remove the `.ca/workflows/<active_id>/` directory after archiving. If other workflows exist in `.ca/workflows/`, set `active.md` to one of them. If no workflows remain, delete `.ca/active.md`.
+3. Remove the `.ca/workflows/<active_id>/` directory after archiving.
 
 Mark "Archive workflow" as `completed`.
 
