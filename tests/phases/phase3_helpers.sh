@@ -37,7 +37,7 @@ pane_log "after-start"
 echo ""
 echo "[test] 1: /ca:todo add item"
 inject_command "/ca:todo add fix login bug"
-wait_for_stop 300
+wait_for_stop
 pane_log "after-todo-add"
 assert_file_exists "${PROJECT_DIR}/.ca/todos.md" "todo: todos.md created"
 assert_file_contains "${PROJECT_DIR}/.ca/todos.md" "fix login bug" "todo: item added to todos.md"
@@ -46,7 +46,7 @@ assert_file_contains "${PROJECT_DIR}/.ca/todos.md" "fix login bug" "todo: item a
 echo ""
 echo "[test] 2: /ca:todos list"
 inject_command "/ca:todos"
-wait_for_stop 300
+wait_for_stop
 pane_log "after-todos-list"
 
 # Capture pane output and check that it contains todo content
@@ -64,7 +64,7 @@ fi
 echo ""
 echo "[test] 3: /ca:map create map"
 inject_command "/ca:map"
-wait_for_stop 300
+wait_for_stop
 pane_log "after-map"
 assert_file_exists "${PROJECT_DIR}/.ca/map.md" "map: .ca/map.md created"
 
@@ -72,17 +72,17 @@ assert_file_exists "${PROJECT_DIR}/.ca/map.md" "map: .ca/map.md created"
 echo ""
 echo "[test] 4a: /ca:quick to create a workflow"
 inject_command "/ca:quick add hello world feature"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Add Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick-done"
 
 echo ""
 echo "[test] 4b: /ca:status"
 inject_command "/ca:status"
-wait_for_stop 300
+wait_for_stop
 pane_log "after-status"
 
 PANE_STATUS="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
@@ -99,7 +99,7 @@ fi
 echo ""
 echo "[test] 5: /ca:list"
 inject_command "/ca:list"
-wait_for_stop 300
+wait_for_stop
 pane_log "after-list"
 
 PANE_LIST="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"

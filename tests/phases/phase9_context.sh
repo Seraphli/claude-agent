@@ -19,12 +19,12 @@ pane_log "startup"
 
 echo "[test] 1: /ca:remember"
 inject_command "/ca:remember test-context-data-12345"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Level" "remember: Level prompt"
 sleep 1
 select_option_by_text "Project"
 accept_write_permission 30
-wait_for_stop 300
+wait_for_stop
 pane_log "remember-done"
 
 CONTEXT_FILE="${TEST_PROJECT}/.claude/rules/ca:context.md"
@@ -37,7 +37,7 @@ fi
 
 echo "[test] 2: /ca:context"
 inject_command "/ca:context"
-wait_for_stop 300
+wait_for_stop
 pane_log "context-done"
 
 PANE_CONTENT="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p 2>/dev/null)"
@@ -49,12 +49,12 @@ fi
 
 echo "[test] 3: /ca:forget"
 inject_command "/ca:forget test-context-data-12345"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Level" "forget: Level prompt"
 sleep 1
 select_option_by_text "Project"
 accept_write_permission 30
-wait_for_stop 300
+wait_for_stop
 pane_log "forget-done"
 
 if [ -f "${CONTEXT_FILE}" ] && grep -q "test-context-data-12345" "${CONTEXT_FILE}"; then

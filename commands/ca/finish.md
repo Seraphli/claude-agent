@@ -1,6 +1,6 @@
 ---
 name: ca-finish
-description: Wraps up a workflow with version bump, branch merge, and archive. Use when verification has passed.
+description: Wraps up a workflow with version bump, worktree merge, and archive. Use when verification has passed.
 disable-model-invocation: true
 ---
 
@@ -115,13 +115,13 @@ Find the project's version location. Search in order:
 3. If still not found, ask the user where the version is defined
 
 Read from the config JSON already loaded:
-- `use_branches`
+- `use_worktrees`
 - `merge_strategy`
-- `auto_delete_branch`
+- `auto_delete_worktree`
 
 Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
-**If `use_branches` is `true` AND `branch_name` exists** (branch mode):
+**If `use_worktrees` is `true` AND `branch_name` exists** (worktree mode):
 
 #### 2a. Ensure branch changes are committed
 1. `git -C <worktree_path> status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
@@ -185,7 +185,7 @@ Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
      5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
 3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
 
-#### 2b-multi. Multi-repo merge (if project_branches exists)
+#### 2b-multi. Multi-repo merge (if project_worktrees exists)
 
 Read `project_worktrees` from STATUS.md. If present:
 1. Parse the comma-separated `label:original_path:worktree_path` triples.
@@ -195,21 +195,21 @@ Read `project_worktrees` from STATUS.md. If present:
         - `squash`: `git -C <original_path> merge --squash ca/<workflow-id> && git -C <original_path> commit -m "<same commit message as main repo>"`
         - `merge`: `git -C <original_path> merge ca/<workflow-id> --no-ff -m "<same commit message>"`
    d. Remove worktree: `git -C <original_path> worktree remove <worktree_path>`
-   e. If `auto_delete_branch` is true:
+   e. If `auto_delete_worktree` is true:
         - `squash`: `git -C <original_path> branch -D ca/<workflow-id>`
         - `merge`: `git -C <original_path> branch -d ca/<workflow-id>`
 3. Report which repos were merged.
 
 #### 2c. Delete branch
-1. If `auto_delete_branch` is `true`:
+1. If `auto_delete_worktree` is `true`:
    - First remove the worktree (if it still exists): `git worktree remove <worktree_path>`
    - Then delete the branch:
      - If `merge_strategy` is `squash`: Run `git branch -D <branch_name>` (squash merge does not preserve original branch commits, so `-d` reachability check fails; `-D` is safe because the squash commit already contains all changes).
      - If `merge_strategy` is `merge`: Run `git branch -d <branch_name>`.
    - Inform user worktree was removed and branch was deleted.
-2. If `auto_delete_branch` is `false`: Keep branch, inform user.
+2. If `auto_delete_worktree` is `false`: Keep worktree and branch, inform user.
 
-**If `use_branches` is `false` OR `branch_name` does not exist** (non-branch mode):
+**If `use_worktrees` is `false` OR `branch_name` does not exist** (non-worktree mode):
 
 Use original commit logic:
 **CRITICAL — Two-Step Confirmation Required**: The commit decision (header "Commit") and the commit message confirmation (header "Confirm") MUST be two separate AskUserQuestion calls. Do NOT combine them into a single question. Always ask "Commit" first, wait for response, then ask "Confirm".

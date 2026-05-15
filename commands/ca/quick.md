@@ -19,7 +19,7 @@ Create initial tasks for this phase:
 1. `TaskCreate`: subject "Check existing workflows", activeForm "Checking existing workflows"
 2. `TaskCreate`: subject "Collect requirement & link todo", activeForm "Collecting requirement"
 3. `TaskCreate`: subject "Create workflow files", activeForm "Creating workflow files"
-4. `TaskCreate`: subject "Create git branch", activeForm "Creating git branch"
+4. `TaskCreate`: subject "Create git worktree", activeForm "Creating git worktree"
 
 Mark "Check existing workflows" as `in_progress`.
 
@@ -145,14 +145,14 @@ verify_completed: false
 
 Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
 
-Mark "Create workflow files" as completed. Mark "Create git branch" as in_progress.
+Mark "Create workflow files" as completed. Mark "Create git worktree" as in_progress.
 
 ### 5b. Create git worktree (if enabled)
 
-Read `use_branches` from the config JSON already loaded.
+Read `use_worktrees` from the config JSON already loaded.
 
 1. Check uncommitted changes: `git status --porcelain`. If not clean:
-   - If `use_branches` is `true`:
+   - If `use_worktrees` is `true`:
      - Check current branch: `git branch --show-current`.
      - If current branch starts with `ca/` (workflow branch in a worktree): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
      - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
@@ -160,14 +160,14 @@ Read `use_branches` from the config JSON already loaded.
        - "Skip worktree" — "Don't create a worktree for this workflow"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
      - If **Skip worktree**: Skip worktree creation, do not add worktree fields to STATUS.md. Continue to step 7.
-   - If `use_branches` is `false`:
+   - If `use_worktrees` is `false`:
      - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes before starting workflow"
        - "Ignore" — "Continue without handling uncommitted changes"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
      - If **Ignore**: Continue to step 7.
 
-If `use_branches` is `true`:
+If `use_worktrees` is `true`:
 1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, **warn the user**: "Current project is not a git repository. Worktree/branch will not be created — workflow will proceed without git isolation." Do not add worktree fields to STATUS.md. Continue to step 7.
 2. Resolve base branch: default to `main`. Verify it exists: `git rev-parse --verify main 2>/dev/null`. If not, try `master`. Save as `base_branch`.
 3. Determine worktree path: `<parent-of-project-root>/<project-dirname>-wt/ca-<workflow-id>/`
@@ -205,7 +205,7 @@ If the config output contains `## Project` with `project_dirs`:
    ```
    (comma-separated list of label:original_path:worktree_path triples for repos where worktrees were created)
 
-Mark "Create git branch" as completed.
+Mark "Create git worktree" as completed.
 
 ### 6. Confirm completion
 

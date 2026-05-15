@@ -102,7 +102,7 @@ Options: `true`, `false`.
 
 Default: `false`. When `true`, command suggestions will also show Telegram-compatible format (replace colons with underscores, e.g., `/ca:plan` → `/ca_plan`).
 
-#### `use_branches` — Git worktree per workflow
+#### `use_worktrees` — Git worktree per workflow
 
 Options: `true`, `false`.
 
@@ -114,11 +114,11 @@ Options: `squash`, `merge`.
 
 Default: `squash`. `squash` compresses all branch commits into one on the base branch. `merge` preserves full commit history.
 
-#### `auto_delete_branch` — Auto-delete branch after merge
+#### `auto_delete_worktree` — Auto-delete worktree after merge
 
 Options: `true`, `false`.
 
-Default: `true`. Automatically delete the workflow branch after successful merge. When `false`, keep the branch.
+Default: `true`. Automatically delete the worktree and its branch after successful merge. When `false`, keep the branch.
 
 #### `auto_fix` — Auto-fix loop on verify failure
 
@@ -151,14 +151,14 @@ auto_proceed_to_verify: <value>
 max_concurrency: <value>
 track_ca_files: <value>
 show_tg_commands: <value>
-use_branches: <value>
+use_worktrees: <value>
 merge_strategy: <value>
-auto_delete_branch: <value>
+auto_delete_worktree: <value>
 auto_fix: <value>
 max_fix_rounds: <value>
 ```
 
-Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (false, 4, none, 3, true for use_branches/auto_delete_branch, squash for merge_strategy).
+Omit: inherited workspace settings, empty per-agent overrides, and settings at default values (false, 4, none, 3, true for use_worktrees/auto_delete_worktree, squash for merge_strategy).
 
 ### 5. Sync rules file
 

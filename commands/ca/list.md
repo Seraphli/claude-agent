@@ -1,6 +1,6 @@
 ---
 name: ca-list
-description: Lists all active workflows with status flags and branch info. Use when reviewing multiple workflows.
+description: Lists all active workflows with status flags and worktree info. Use when reviewing multiple workflows.
 ---
 
 # /ca:list — List All Workflows

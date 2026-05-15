@@ -12,8 +12,8 @@ auto_proceed_to_verify: false
 max_concurrency: 4
 track_ca_files: none
 show_tg_commands: false
-use_branches: true
+use_worktrees: true
 merge_strategy: squash
-auto_delete_branch: true
+auto_delete_worktree: true
 auto_fix: false
 max_fix_rounds: 3

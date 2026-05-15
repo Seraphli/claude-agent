@@ -127,7 +127,7 @@ pane_log "startup"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:verify"
-wait_for_stop 600
+wait_for_stop 120
 pane_log "verify-done"
 
 # Refresh workflow dir pointer

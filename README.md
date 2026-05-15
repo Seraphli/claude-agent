@@ -34,7 +34,7 @@ Removes commands, agents, and hooks from `~/.claude/`. Project `.ca/` directorie
 
 ## Workflow
 
-Three workflow modes are available:
+Four workflow modes are available:
 
 **Full workflow** — for requirements that need discussion:
 
@@ -48,13 +48,19 @@ Three workflow modes are available:
 /ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 
+**Instant workflow** — for small fixes and trivial changes (single-confirmation planning):
+
+```
+/ca:instant → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+```
+
 **Write workflow** — for creative writing and document tasks:
 
 ```
 /ca:write → /ca:discuss → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
 
-Each workflow optionally creates a dedicated git branch (`ca/<workflow-id>`) for isolated development.
+Each workflow optionally creates a dedicated git worktree (`ca/<workflow-id>`) for isolated development.
 
 Use `/ca:next` at any point to automatically detect and run the next step.
 
@@ -66,14 +72,14 @@ Use `/ca:next` at any point to automatically detect and run the next step.
 /ca:batch                           (batch execute all confirmed plans)
 ```
 
-### Branch Management
+### Worktree Management
 
-When `use_branches` is enabled (default), each workflow operates on a dedicated branch:
+When `use_worktrees` is enabled (default), each workflow operates on a dedicated worktree:
 
-- **Branch creation** — `/ca:new` or `/ca:quick` creates a `ca/<workflow-id>` branch from the current base branch
-- **Auto-commit** — after execution, changes are automatically committed to the workflow branch
-- **Finish** — `/ca:finish` squash-merges (or regular merge, based on `merge_strategy`) the workflow branch back to the base branch
-- **Cleanup** — the workflow branch is automatically deleted after merge when `auto_delete_branch` is true (default)
+- **Worktree creation** — `/ca:new` or `/ca:quick` creates a `ca/<workflow-id>` branch from the current base branch
+- **Auto-commit** — after execution, changes are automatically committed to the workflow worktree
+- **Finish** — `/ca:finish` squash-merges (or regular merge, based on `merge_strategy`) the workflow worktree back to the base branch
+- **Cleanup** — the workflow worktree is automatically deleted after merge when `auto_delete_worktree` is true (default)
 
 This keeps your main branch clean and gives each requirement its own isolated history.
 
@@ -97,7 +103,7 @@ If changes at a later step affect earlier confirmations, the system backtracks a
 
 ### 4. Execute — `/ca:execute`
 
-Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary. When branch management is enabled, changes are auto-committed to the workflow branch after execution.
+Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary. When worktree management is enabled, changes are auto-committed to the workflow worktree after execution.
 
 ### 5. Verify — `/ca:verify`
 
@@ -105,7 +111,7 @@ Auto criteria are verified by independent verifier agents (optionally in paralle
 
 ### 6. Finish — `/ca:finish`
 
-Merges the workflow branch back to the base branch and cleans up. When `use_branches` is enabled, squash-merges (or regular merge based on `merge_strategy`) the `ca/<workflow-id>` branch into the base branch, then deletes the workflow branch if `auto_delete_branch` is true.
+Merges the workflow worktree back to the base branch and cleans up. When `use_worktrees` is enabled, squash-merges (or regular merge based on `merge_strategy`) the `ca/<workflow-id>` branch into the base branch, then deletes the workflow worktree if `auto_delete_worktree` is true.
 
 ### Quick Mode — `/ca:quick [description]`
 
@@ -116,6 +122,7 @@ Skips the discuss phase. Creates a brief and goes straight to planning. Research
 | Command | Description |
 |---------|-------------|
 | `/ca:quick [desc]` | Start a quick workflow (skip discuss) |
+| `/ca:instant [desc]` | Start an instant workflow (fastest, single-confirmation planning) |
 | `/ca:write [desc]` | Start a writing workflow (writing-specific dimensions) |
 | `/ca:next` | Auto-detect and run the next workflow step |
 | `/ca:map` | Scan and record project structure |
@@ -156,9 +163,9 @@ Additional settings:
 | `auto_proceed_to_verify` | Skip manual verify trigger after execution |
 | `max_concurrency` | Max parallel agents in execute/verify (default: `4`) |
 | `track_ca_files` | Version control for CA files: `none` (default), `all`, `.ca/`, or `.claude/rules/ca*` |
-| `use_branches` | Git branch per workflow: `true` (default) or `false` |
-| `merge_strategy` | How to merge workflow branch at finish: `squash` (default) or `merge` |
-| `auto_delete_branch` | Auto-delete workflow branch after merge: `true` (default) or `false` |
+| `use_worktrees` | Git worktree per workflow: `true` (default) or `false` |
+| `merge_strategy` | How to merge workflow worktree at finish: `squash` (default) or `merge` |
+| `auto_delete_worktree` | Auto-delete workflow worktree after merge: `true` (default) or `false` |
 | `auto_fix` | Auto-fix loop on verify failure: `true` or `false` (default) |
 | `max_fix_rounds` | Maximum auto-fix retry rounds (default: `3`) |
 

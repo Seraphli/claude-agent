@@ -23,7 +23,7 @@ Create initial tasks for this phase:
 
 1. `TaskCreate`: subject "Scan archived workflows", activeForm "Scanning archives"
 2. `TaskCreate`: subject "Restore workflow files", activeForm "Restoring workflow"
-3. `TaskCreate`: subject "Create git branch", activeForm "Creating git branch"
+3. `TaskCreate`: subject "Create git worktree", activeForm "Creating git worktree"
 
 Mark "Scan archived workflows" as `in_progress`.
 
@@ -72,11 +72,11 @@ Mark "Scan archived workflows" as `completed`. Mark "Restore workflow files" as 
    - Set `status_note: Restored from archive <archive_dir_name>. Fix round <N> — ready for planning.`
 5. Write the workflow ID to `.ca/active.md`.
 
-Mark "Restore workflow files" as `completed`. Mark "Create git branch" as `in_progress`.
+Mark "Restore workflow files" as `completed`. Mark "Create git worktree" as `in_progress`.
 
 ### 3. Create git worktree (if enabled)
 
-Read `use_branches` from the config JSON already loaded.
+Read `use_worktrees` from the config JSON already loaded.
 
 1. Check uncommitted changes: `git status --porcelain`. If not clean:
    - If current branch starts with `ca/`: auto-commit `git add -A && git commit -m "wip: save uncommitted changes"`.
@@ -86,7 +86,7 @@ Read `use_branches` from the config JSON already loaded.
    - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
    - If **Skip worktree**: Skip worktree creation. Continue to step 4.
 
-If `use_branches` is `true`:
+If `use_worktrees` is `true`:
 1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not, **warn the user**: "Current project is not a git repository. Worktree/branch will not be created for the restored workflow." Continue to step 4 without worktree.
 2. Resolve base branch: default to `main`, fallback to `master`. Save as `base_branch`.
 3. Determine worktree path: `<parent-of-project-root>/<project-dirname>-wt/ca-<workflow-id>/`
@@ -97,7 +97,7 @@ If `use_branches` is `true`:
    - Set `base_branch: <base_branch>`
    - Set `worktree_path: <absolute-worktree-path>`
 
-Mark "Create git branch" as `completed`.
+Mark "Create git worktree" as `completed`.
 
 ### 4. Confirm completion
 

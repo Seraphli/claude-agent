@@ -61,11 +61,11 @@ pane_log "startup"
 # ============================================================
 
 inject_command "/ca:new Add a goodbye(name) function to utils.js that returns 'Goodbye, name!'. All success criteria must be auto-verifiable via bash commands"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Add Todo" "new: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "new-done"
 
 # --- Assertions: new ---
@@ -89,7 +89,7 @@ inject_command "/ca:discuss"
 
 # discuss has variable clarifying questions before final "Requirements" confirmation
 for i in $(seq 1 10); do
-    wait_for_ask 300
+    wait_for_ask 120
     if echo "${LAST_ASK_HEADER}" | grep -qE "Requirements"; then
         assert_ask_header "Requirements" "discuss: Requirements prompt"
         sleep 1
@@ -102,12 +102,12 @@ for i in $(seq 1 10); do
 done
 
 # Expect: SPEC confirmation after requirements
-wait_for_ask 300
+wait_for_ask
 assert_ask_header "SPEC" "discuss: SPEC prompt"
 sleep 1
 select_option_by_text "Accurate"
 
-wait_for_stop 300
+wait_for_stop
 pane_log "discuss-done"
 
 # --- Assertions: discuss ---
@@ -134,13 +134,13 @@ assert_status_field "discuss_completed" "true" "discuss: discuss_completed=true"
 inject_command "/ca:plan"
 
 # Expect: Requirements confirmation
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Requirements" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
 # Expect: Rough Plan confirmation directly; standard workflow must not re-confirm SPEC
-wait_for_ask 300
+wait_for_ask
 if echo "${LAST_ASK_HEADER}" | grep -qE "SPEC"; then
     fail "plan: standard workflow must not re-confirm SPEC"
 fi
@@ -149,12 +149,12 @@ sleep 1
 select_option_by_text "Feasible"
 
 # Expect: Step-by-step plan confirmation (Confirmation 2b)
-wait_for_step_confirmations "Results" "plan" 300
+wait_for_step_confirmations "Results" "plan" 90
 assert_ask_header "Results" "plan: Results prompt"
 sleep 1
 select_option_by_text "Yes"
 
-wait_for_stop 300
+wait_for_stop 120
 pane_log "plan-done"
 
 # --- Assertions: plan ---
@@ -177,7 +177,7 @@ assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 # ============================================================
 
 inject_command "/ca:execute"
-wait_for_stop 600
+wait_for_stop 180
 pane_log "execute-done"
 
 # --- Assertions: execute ---
@@ -196,11 +196,11 @@ assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 # ============================================================
 
 inject_command "/ca:verify"
-wait_for_ask 600
+wait_for_ask 120
 assert_ask_header "Results" "verify: Results prompt"
 sleep 1
 select_option_by_text "Accept"
-wait_for_stop 600
+wait_for_stop 120
 pane_log "verify-done"
 
 # --- Assertions: verify ---
@@ -228,12 +228,12 @@ sleep 1
 select_option_by_text "Yes"
 
 # Expect: Confirm prompt
-wait_for_ask 120
+wait_for_ask
 assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop 300
+wait_for_stop
 pane_log "finish-done"
 
 # --- Assertions: finish ---

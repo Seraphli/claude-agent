@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# phase7_branch_autoproceed.sh — E2E test for branch mode + auto-proceed
+# phase7_worktree_autoproceed.sh — E2E test for worktree mode + auto-proceed
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CA_REPO_ROOT="${CA_REPO_ROOT:-"$(cd "${SCRIPT_DIR}/../.." && pwd)"}"
@@ -24,19 +24,19 @@ cat > "${TEST_PROJECT}/.ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_verify: true
 auto_proceed_to_plan: false
-auto_delete_branch: true
+auto_delete_worktree: true
 CONFIG
 
 cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_verify: true
-auto_delete_branch: true
+auto_delete_worktree: true
 CONFIG
 
 start_claude
@@ -45,11 +45,11 @@ pane_log "startup"
 
 # /ca:quick
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Add Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -83,38 +83,38 @@ fi
 
 # /ca:plan
 inject_command "/ca:next"
-wait_for_ask 300
+wait_for_ask 120
 if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
     pass "plan: Research prompt"
     sleep 1
     select_option_by_text "Skip"
-    wait_for_ask 300
+    wait_for_ask
 fi
 assert_ask_header "Requirements" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
-wait_for_ask_expect "Rough Plan" "" 300
+wait_for_ask_expect "Rough Plan" "" 90
 assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
 # Expect: Step-by-step plan confirmation (Confirmation 2b)
-wait_for_step_confirmations "Results" "plan" 300
+wait_for_step_confirmations "Results" "plan" 90
 assert_ask_header "Results" "plan: Results prompt"
 sleep 1
 select_option_by_text "Yes"
 
-wait_for_stop 300
+wait_for_stop 120
 pane_log "plan-done"
 
 # /ca:execute (auto-proceeds to verify)
 inject_command "/ca:execute"
-wait_for_ask 900
+wait_for_ask 240
 assert_ask_header "Results" "verify: Results prompt (auto-proceed)"
 sleep 1
 select_option_by_text "Accept"
-wait_for_stop 600
+wait_for_stop 120
 pane_log "verify-done"
 
 # WIP commit lands in the worktree branch; check worktree dir if it exists, else main repo
@@ -134,12 +134,12 @@ assert_status_field "verify_completed" "true" "verify: verify_completed=true"
 
 # /ca:finish
 inject_command "/ca:finish"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Commit" "finish: Commit prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop 300
+wait_for_stop 120
 pane_log "finish-done"
 
 # Verify worktree removed after finish

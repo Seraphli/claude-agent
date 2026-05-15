@@ -139,12 +139,16 @@ syncDir(srcScriptsDir, targetScriptsDir);
 const scriptCount = fs.readdirSync(targetScriptsDir).filter((f) => f.endsWith(".js")).length;
 console.log(`  ${green}✓${reset} Installed ${scriptCount} scripts`);
 
-// Copy node_modules (js-yaml dependency)
+// Ensure js-yaml dependency is available
 const srcNodeModules = path.join(srcDir, "node_modules", "js-yaml");
+const targetNodeModules = path.join(caConfigDir, "node_modules", "js-yaml");
 if (fs.existsSync(srcNodeModules)) {
-  const targetNodeModules = path.join(caConfigDir, "node_modules", "js-yaml");
   syncDir(srcNodeModules, targetNodeModules);
   console.log(`  ${green}✓${reset} Installed js-yaml dependency`);
+} else if (!fs.existsSync(targetNodeModules)) {
+  const { execSync } = require("child_process");
+  execSync("npm install js-yaml --no-save", { cwd: caConfigDir, stdio: "ignore" });
+  console.log(`  ${green}✓${reset} Installed js-yaml via npm`);
 }
 
 if (!customHome) {

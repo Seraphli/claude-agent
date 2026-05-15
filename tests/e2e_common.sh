@@ -80,7 +80,7 @@ setup_test_env() {
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: false
+use_worktrees: false
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 CONFIG
@@ -130,7 +130,7 @@ SETTINGS
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: false
+use_worktrees: false
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 WSCONFIG
@@ -255,7 +255,7 @@ inject_command() {
 # Returns 0 on match, 1 on timeout.
 wait_for_event() {
     local pattern="$1"
-    local timeout="${2:-300}"
+    local timeout="${2:-45}"
     local start_lines="${EVENT_LINE_COUNT:-0}"
     local start=$SECONDS
     while (( SECONDS - start < timeout )); do
@@ -284,7 +284,7 @@ wait_for_event() {
 # Sets LAST_ASK_HEADER to the header value from the event.
 # Returns 0 if AskUserQuestion received, 1 if timeout.
 wait_for_ask() {
-    local timeout="${1:-300}"
+    local timeout="${1:-45}"
     if wait_for_event '"tool_name":"AskUserQuestion"' "${timeout}"; then
         LAST_ASK_HEADER=$(echo "${LAST_EVENT}" | grep -oP '"header"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"header"\s*:\s*"\([^"]*\)".*/\1/')
         local ask_question ask_options
@@ -326,7 +326,7 @@ assert_ask_header() {
 wait_for_ask_expect() {
     local expected="$1"
     local fallback_answer="${2:-.*}"
-    local timeout="${3:-300}"
+    local timeout="${3:-45}"
     local retries=0
     while [ ${retries} -lt 3 ]; do
         wait_for_ask "${timeout}" || return 1
@@ -355,7 +355,7 @@ wait_for_ask_expect() {
 wait_for_step_confirmations() {
     local next_expected="$1"
     local name_prefix="$2"
-    local timeout="${3:-300}"
+    local timeout="${3:-45}"
     local step_count=0
     while true; do
         wait_for_ask "${timeout}" || return 1
@@ -383,7 +383,7 @@ wait_for_step_confirmations() {
 #
 # Returns 0 if Stop detected, 1 if timeout.
 wait_for_stop() {
-    local timeout="${1:-600}"
+    local timeout="${1:-60}"
     wait_for_event '"event":"Stop"' "${timeout}"
 }
 

@@ -38,7 +38,7 @@ cat > "${TEST_DIR}/project/.ca/config.md" << 'CNCONFIG'
 interaction_language: 中文
 comment_language: English
 code_language: English
-use_branches: false
+use_worktrees: false
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 CNCONFIG
@@ -52,11 +52,11 @@ pane_log "startup"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!'"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "添加|Add Todo" "quick: todo prompt (中文)"
 sleep 1
 select_option_by_text "跳过|No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -73,29 +73,29 @@ fi
 inject_command "/ca:plan"
 
 # Research is optional — model may skip directly to Requirements
-wait_for_ask 300
+wait_for_ask 120
 if echo "${LAST_ASK_HEADER}" | grep -qE "研究|Research"; then
     pass "plan: Research prompt (中文)"
     sleep 1
     select_option_by_text "跳过|Skip"
-    wait_for_ask 300
+    wait_for_ask
 fi
 assert_ask_header "需求|Requirements" "plan: Requirements prompt (中文)"
 sleep 1
 select_option_by_text "正确|Correct"
 
-wait_for_ask_expect "粗略方案|Rough Plan" "" 300
+wait_for_ask_expect "粗略方案|Rough Plan" "" 90
 assert_ask_header "粗略方案|Rough Plan" "plan: Rough Plan prompt (中文)"
 sleep 1
 select_option_by_text "可行|Feasible"
 
 # Expect: Step-by-step plan confirmation (Confirmation 2b)
-wait_for_step_confirmations "结果|Results" "plan" 300
+wait_for_step_confirmations "结果|Results" "plan" 90
 assert_ask_header "结果|Results" "plan: Results prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"
 
-wait_for_stop 300
+wait_for_stop 120
 pane_log "plan-done"
 
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -105,7 +105,7 @@ assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:execute"
-wait_for_stop 600
+wait_for_stop 180
 pane_log "execute-done"
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
@@ -115,11 +115,11 @@ assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:verify"
-wait_for_ask 600
+wait_for_ask 120
 assert_ask_header "结果|Results" "verify: Results prompt (中文)"
 sleep 1
 select_option_by_text "接受|Accept"
-wait_for_stop 600
+wait_for_stop 120
 pane_log "verify-done"
 
 assert_status_field "verify_completed" "true" "verify: verify_completed=true"
@@ -135,12 +135,12 @@ assert_ask_header "提交|Commit" "finish: Commit prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"
 
-wait_for_ask 120
+wait_for_ask
 assert_ask_header "确认|Confirm" "finish: Confirm prompt (中文)"
 sleep 1
 select_option_by_text "确认|Confirm|是|Yes"
 
-wait_for_stop 300
+wait_for_stop
 pane_log "finish-done"
 
 # Assert workflow archived

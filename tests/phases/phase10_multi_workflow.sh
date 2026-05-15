@@ -21,27 +21,27 @@ pane_log "startup"
 
 echo "[test] 1: Create workflow 1"
 inject_command "/ca:quick add a hello function. All success criteria must be [auto], no [manual] items."
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Add Todo" "quick1: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick1-done"
 
 ACTIVE_1="$(get_active_id)"
 
 echo "[test] 2: Create workflow 2"
 inject_command "/ca:quick add a goodbye function. All success criteria must be [auto], no [manual] items."
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Workflow" "quick2: Workflow prompt (existing)"
 sleep 1
 select_option_by_text "Keep"
 
-wait_for_ask 300
+wait_for_ask
 assert_ask_header "Add Todo" "quick2: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick2-done"
 
 ACTIVE_2="$(get_active_id)"
@@ -59,7 +59,7 @@ if wait_for_ask 30 2>/dev/null; then
     sleep 1
     select_option 1
 fi
-wait_for_stop 300
+wait_for_stop
 pane_log "switch-done"
 
 ACTIVE_AFTER="$(get_active_id)"

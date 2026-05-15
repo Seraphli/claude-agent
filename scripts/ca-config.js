@@ -32,9 +32,20 @@ const workspaceConfig = path.join(projectRoot, ".ca", "config.md");
 const globalConfig = path.join(claudeDir, "ca", "config.md");
 const defaultsConfig = path.join(claudeDir, "ca", "references", "config-defaults.md");
 
-const defaults = parseConfigFile(defaultsConfig);
-const global_ = parseConfigFile(globalConfig);
-const workspace = parseConfigFile(workspaceConfig);
+// Migrate old key names to new key names for backward compatibility
+function normalizeConfigKeys(cfg) {
+  if (cfg.use_worktrees === undefined && cfg.use_branches !== undefined) {
+    cfg.use_worktrees = cfg.use_branches;
+  }
+  if (cfg.auto_delete_worktree === undefined && cfg.auto_delete_branch !== undefined) {
+    cfg.auto_delete_worktree = cfg.auto_delete_branch;
+  }
+  return cfg;
+}
+
+const defaults = normalizeConfigKeys(parseConfigFile(defaultsConfig));
+const global_ = normalizeConfigKeys(parseConfigFile(globalConfig));
+const workspace = normalizeConfigKeys(parseConfigFile(workspaceConfig));
 
 // Workspace > global > defaults priority
 const resolved = Object.assign({}, defaults, global_, workspace);
@@ -108,19 +119,19 @@ function formatOutput(cfg) {
   lines.push(`  → Maximum number of auto-fix rounds before requiring manual intervention.`);
   lines.push("");
   lines.push("## Git");
-  lines.push(`use_branches: ${cfg.use_branches}`);
-  if (cfg.use_branches) {
+  lines.push(`use_worktrees: ${cfg.use_worktrees}`);
+  if (cfg.use_worktrees) {
     lines.push(`  → Create a git worktree with dedicated branch (ca/<workflow-id>) for each workflow. Code changes in isolated worktree directory, merge on finish.`);
   } else {
     lines.push(`  → Do NOT create git worktrees for workflows. Work on the current branch.`);
   }
   lines.push(`merge_strategy: ${cfg.merge_strategy}`);
   lines.push(`  → Use ${cfg.merge_strategy} merge when finishing a workflow.`);
-  lines.push(`auto_delete_branch: ${cfg.auto_delete_branch}`);
-  if (cfg.auto_delete_branch) {
-    lines.push(`  → Automatically delete the workflow branch after merge.`);
+  lines.push(`auto_delete_worktree: ${cfg.auto_delete_worktree}`);
+  if (cfg.auto_delete_worktree) {
+    lines.push(`  → Automatically delete the worktree and its branch after merge.`);
   } else {
-    lines.push(`  → Keep the workflow branch after merge.`);
+    lines.push(`  → Keep the worktree branch after merge.`);
   }
   lines.push("");
   lines.push("## Display");

@@ -14,7 +14,7 @@ cat > "${TEST_PROJECT}/.ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: false
+use_worktrees: false
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 CONFIG
@@ -65,12 +65,12 @@ sleep 5
 pane_log "startup"
 
 inject_command "/ca:batch"
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Batch" "batch: Batch prompt"
 sleep 1
 select_option_by_text "Execute"
 
-wait_for_stop 900
+wait_for_stop 180
 pane_log "batch-done"
 
 if [ -f "${TEST_PROJECT}/batch-result-1.js" ]; then

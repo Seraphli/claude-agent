@@ -57,7 +57,7 @@ You are the verification orchestrator. You delegate the actual verification to t
 Read `fix_round` from STATUS.md (default: 0 if not present).
 
 Read these files and collect their full content:
-- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
 - `.ca/workflows/<active_id>/CRITERIA.md` (if exists)
 
 If `fix_round` == 0:
@@ -132,6 +132,9 @@ Check `batch_mode` in STATUS.md:
 - The batch orchestrator (batch.md) will handle rollback and continue to the next workflow.
 
 **If `batch_mode` is false or not set (normal mode)**:
+
+**CRITICAL — Clean up tasks before entering fix round**: Call `TaskList` and mark ALL remaining tasks (pending or in_progress) as `deleted` using `TaskUpdate`. This prevents the next phase (plan) from seeing stale tasks and prompting "uncompleted tasks from the previous phase".
+
 1. **Determine fix round**: Read `fix_round` from STATUS.md (default: 0). Set N = fix_round + 1.
 2. **Create round directory**: Create `.ca/workflows/<active_id>/rounds/<N>/`.
 3. **Write ISSUES.md**: Write `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`:
@@ -248,6 +251,7 @@ Use `AskUserQuestion` with:
 - If the user **cancels and communicates directly**: Treat as Reject. Record feedback in VERIFY-REPORT.md, suggest `/ca:plan`. **Stop immediately.**
 - If **Reject**:
   1. Ask what's wrong.
+  1b. **Clean up tasks**: Call `TaskList` and mark ALL remaining tasks (pending or in_progress) as `deleted` using `TaskUpdate`.
   2. **Determine fix round**: Read `fix_round` from STATUS.md (default: 0). Set N = fix_round + 1.
   3. **Create round directory**: Create `.ca/workflows/<active_id>/rounds/<N>/`.
   4. **Write ISSUES.md**: Write `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`:

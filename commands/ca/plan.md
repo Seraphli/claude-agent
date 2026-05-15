@@ -1,9 +1,9 @@
 ---
 name: ca-plan
-description: Proposes an implementation plan with triple confirmation. Use when a discussed requirement is ready for planning.
+description: Proposes an implementation plan. Triple confirmation for standard/quick/write workflows; single confirmation for instant workflows.
 ---
 
-# /ca:plan — Propose Implementation Plan (Triple Confirmation)
+# /ca:plan — Propose Implementation Plan
 
 **CRITICAL — Code Modification Policy**: This command is for planning ONLY. Do NOT modify any source code or project files, regardless of whether this is a normal flow or fix round.
 
@@ -13,13 +13,13 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
+2. Check `workflow_type` from the parsed JSON. If `workflow_type: quick` or `workflow_type: instant`, skip the REQUIREMENT.md check. Otherwise, check `.ca/workflows/<active_id>/REQUIREMENT.md` exists. If not, tell the user to run `/ca:discuss` first and stop.
 
 ## Behavior
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
-Get **three separate confirmations** before finalizing.
+Get **three separate confirmations** before finalizing (for standard/quick/write workflows). For `workflow_type: instant`, use single confirmation — see section 3-instant.
 
 ### 0. Task cleanup and initialization
 
@@ -35,7 +35,18 @@ Get **three separate confirmations** before finalizing.
       - "Stop" — "Pause to investigate the previous phase's issues"
    e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
    f. If "Stop": stop current command immediately.
-5. Create initial tasks (skip if `auto_fix_mode: true` — see step 1-auto for auto-fix tasks):
+5. Create initial tasks based on workflow mode (mutually exclusive — pick ONE branch):
+
+   **If `auto_fix_mode: true`** (auto-fix round — see step 1-auto, applies to ALL workflow types including instant):
+   - `TaskCreate`: subject "Auto-fix: generate plan", activeForm "Generating fix plan"
+   - `TaskCreate`: subject "Write PLAN.md", activeForm "Writing plan"
+
+   **Else if `workflow_type: instant`** (single confirmation — see step 3-instant):
+   - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
+   - `TaskCreate`: subject "Draft & confirm plan", activeForm "Drafting plan"
+   - `TaskCreate`: subject "Write PLAN.md & CRITERIA.md", activeForm "Writing plan files"
+
+   **Else** (default triple confirmation for quick/standard/write):
    - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
    - `TaskCreate`: subject "Confirmation 1: Requirements", activeForm "Confirming requirements"
    - `TaskCreate`: subject "Create/Read SPEC", activeForm "Handling SPEC"
@@ -46,18 +57,14 @@ Get **three separate confirmations** before finalizing.
 
    Note: "Confirm Step N" tasks for Confirmation 2b are created dynamically after 2a passes.
 
-   If `auto_fix_mode: true`, create only:
-   - `TaskCreate`: subject "Auto-fix: generate plan", activeForm "Generating fix plan"
-   - `TaskCreate`: subject "Write PLAN.md", activeForm "Writing plan"
-
 Mark the first task as `in_progress` ("Read context & research" or "Auto-fix: generate plan").
 
 ### 1. Read context
 
 Read these files:
-- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
-- `.ca/workflows/<active_id>/SPEC.md` (if exists — contains confirmed desired result and verification design)
+- `.ca/workflows/<active_id>/SPEC.md` (read only when `workflow_type` is NOT `instant`. Instant workflows do not use SPEC.)
 - `.ca/workflows/<active_id>/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
 
 Also read `fix_round` from STATUS.md (default: 0).
@@ -123,7 +130,7 @@ If fix_round > 0, skip this step (handled in 1a).
 
 If `workflow_type: standard`, skip this step (research was already done in discuss).
 
-If `workflow_type: quick`:
+If `workflow_type: quick` or `workflow_type: instant`:
 
 #### 1b-i. Assess requirement and approach
 
@@ -164,12 +171,14 @@ Use `AskUserQuestion`:
   - "Skip research" — "Go straight to planning"
 
 **If Run all**: Proceed to launch all.
-**If Skip research**: Skip rest of 1b AND 1c. Go to step 3 (Confirmation & Planning).
+**If Skip research**: Mark "Read context & research" as `completed`. Skip rest of 1b AND 1c. Go to step 3 (Confirmation & Planning).
 **If Select directions**: `AskUserQuestion` with `multiSelect: true`, header "Directions", question "Select which directions to research:", options = proposed directions. If none selected, treat as skip.
 
 #### 1b-iii. Launch and present
 
 Read `ca-researcher_model` from the config JSON already loaded. Launch agents only for confirmed directions, each with BRIEF.md content, project root, map, and direction-specific prompt. Pass the resolved model to each agent. Launch in parallel (up to `max_concurrency`). Present findings to user.
+
+**CRITICAL — Log-First Analysis**: When investigating issues or understanding behavior, ALWAYS prioritize analyzing available logs before reading code. Search for: test output files, error logs, VERIFY-REPORT.md, /tmp/*.log, command output files. Logs provide ground truth of actual runtime behavior. Only fall back to pure code analysis if no logs exist. Do NOT skip log analysis and jump to code-only conclusions.
 
 **IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
 
@@ -184,6 +193,50 @@ Check for uncertain items from research. If any:
 3. Proceed only after all resolved — no "needs further research" or "TBD" in the plan.
 
 Mark "Read context & research" as `completed`.
+
+### 3-instant. Single Confirmation (instant workflow only)
+
+If `workflow_type: instant`:
+
+Skip the triple confirmation entirely (steps Confirmation 1, SPEC Handling, Confirmation 2a, 2b, Confirmation 3). Instead, use the following streamlined flow:
+
+Mark "Draft & confirm plan" as `in_progress`.
+
+#### Draft the plan
+
+**CRITICAL — Complete Code Reading**: Before presenting the plan, you MUST:
+1. Read ALL source files that will be modified or referenced
+2. Design the COMPLETE solution with exact code changes, line numbers, and before/after examples
+
+**CRITICAL — Log-First Analysis**: When analyzing code to understand current behavior or diagnose issues:
+1. Search for available logs: VERIFY-REPORT.md, test output files, /tmp/*.log, command output files
+2. If logs exist, read and analyze them first — logs provide ground truth of actual runtime behavior
+3. Cross-reference log evidence with code to identify root cause
+4. Only if no logs exist, fall back to pure code analysis
+Do NOT skip log analysis and jump to code-only conclusions.
+
+Prepare a plan covering:
+- **Approach**: What method/strategy will be used
+- **Files to modify/create**: List each file and what changes
+- **Implementation steps**: Numbered, ordered steps with step details
+- **Success criteria**: Verifiable conditions tagged `[auto]` or `[manual]`
+
+**Execution Order**: ordered list = sequential, unordered list = parallel.
+
+**IMPORTANT — Plan Detail Requirement**: Each step MUST include exact text/code to add or change, precise location, and before/after examples.
+
+#### Present and confirm
+
+Present the complete plan in a single output, then ask for confirmation:
+
+`AskUserQuestion`: header "Plan", question "Confirm this plan?", options:
+- "Confirm" — "Plan looks good, proceed to execution"
+- "Not feasible" — "Needs changes"
+
+If **Not feasible**: ask what to change, revise, re-present, re-confirm.
+If **Confirm**: Mark "Draft & confirm plan" as `completed`. Proceed to step 4 (Write PLAN.md) and step 4b (Write CRITERIA.md).
+
+**Fix round behavior**: When `fix_round` > 0 and `auto_fix_mode` is NOT set, the instant single confirmation applies. Read ISSUES.md and research findings, draft a focused fix plan, present for single confirmation (header "Plan"). No upgrade to triple confirmation. When `auto_fix_mode: true` is set (by verify.md when `auto_fix: true` config), the standard auto-fix zero-confirmation path (step 1-auto) takes over — auto_fix is an automatic repair mechanism that applies to all workflow types including instant.
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
@@ -249,6 +302,12 @@ Tell the user: "SPEC.md is missing. The discuss phase should have created it. Pl
 Read SPEC.md. Present a brief summary of its key points to the user (1-2 sentences covering desired result and verification approach). No confirmation needed — SPEC was already confirmed during discuss or a previous plan session. If the user identifies SPEC issues during the later Results confirmation (Confirmation 3), the SPEC revision path in Confirmation 3 handles it.
 
 Mark "Create/Read SPEC" as `completed`. Mark "Draft plan" as `in_progress`.
+
+**If `workflow_type: instant`** (no SPEC needed):
+
+Instant workflows skip SPEC entirely. Do NOT create, read, or confirm SPEC.md. Proceed directly to the plan drafting step.
+
+If a "Create/Read SPEC" task exists, mark it as `completed`. Mark "Draft & confirm plan" as `in_progress`.
 
 #### Draft the plan
 
@@ -389,15 +448,15 @@ If any lacks coverage: **stop**, alert user, ask whether to add or exclude. Proc
 
 Mark "Write PLAN.md & CRITERIA.md" as `in_progress`.
 
-Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
+Only after all confirmations pass (triple confirmation for standard/quick/write, or single "Plan" confirmation for instant), write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
 
-**CRITICAL — Verbatim Copy**: The PLAN.md content MUST be an exact copy of the confirmed detailed plan from Confirmation 2b, including ALL code blocks, before/after examples, line numbers, and step details. Do NOT regenerate, summarize, abbreviate, or rewrite any part of the confirmed plan. The user confirmed a specific version — that exact version must be written to the file.
+**CRITICAL — Verbatim Copy**: The PLAN.md content MUST be an exact copy of the confirmed plan — from Confirmation 2b for standard/quick/write workflows, or from the confirmed 3-instant Plan content for instant workflows, including ALL code blocks, before/after examples, line numbers, and step details. Do NOT regenerate, summarize, abbreviate, or rewrite any part of the confirmed plan. The user confirmed a specific version — that exact version must be written to the file.
 
 ```markdown
 # Implementation Plan
 
 ## Requirement Summary
-<from REQUIREMENT.md, or from BRIEF.md if quick workflow>
+<from REQUIREMENT.md, or from BRIEF.md if quick/instant workflow>
 
 ## Approach
 <confirmed approach>
@@ -425,7 +484,7 @@ Only after ALL THREE confirmations pass, write the complete plan to `.ca/workflo
 
 ### 4b. Write/Update CRITERIA.md
 
-Derive success criteria from SPEC.md's Verification Design section. Convert each test case into a verifiable criterion tagged `[auto]` or `[manual]`.
+Derive success criteria from SPEC.md's Verification Design section (for standard/quick/write workflows). For `workflow_type: instant`, derive criteria from the success criteria confirmed in the single "Plan" confirmation (step 3-instant) — there is no SPEC.md. Convert each test case into a verifiable criterion tagged `[auto]` or `[manual]`.
 
 If file exists and fix_round > 0, append new fix-specific criteria below existing ones.
 If the file does not exist, create it:
@@ -433,7 +492,7 @@ If the file does not exist, create it:
 ```
 # Success Criteria
 
-Derived from SPEC.md Verification Design.
+Derived from SPEC.md Verification Design (or from confirmed Plan criteria for instant workflows).
 
 Tag each criterion `[auto]` or `[manual]`:
 

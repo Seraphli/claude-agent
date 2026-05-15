@@ -51,11 +51,12 @@ PHASES=(
     "4|${CA_REPO_ROOT}/tests/phases/phase4_i18n.sh|i18n (Chinese)"
     "5|${CA_REPO_ROOT}/tests/phases/phase5_verify_fail.sh|Verify Failure Flow"
     "6|${CA_REPO_ROOT}/tests/phases/phase6_autofix.sh|Auto-fix Loop"
-    "7|${CA_REPO_ROOT}/tests/phases/phase7_branch_autoproceed.sh|Branch + Auto-proceed"
+    "7|${CA_REPO_ROOT}/tests/phases/phase7_worktree_autoproceed.sh|Worktree + Auto-proceed"
     "8|${CA_REPO_ROOT}/tests/phases/phase8_batch.sh|Batch Execution"
     "9|${CA_REPO_ROOT}/tests/phases/phase9_context.sh|Context Management"
     "10|${CA_REPO_ROOT}/tests/phases/phase10_multi_workflow.sh|Multi-workflow"
     "11|${CA_REPO_ROOT}/tests/phases/phase11_project_yaml.sh|Project YAML"
+    "12|${CA_REPO_ROOT}/tests/phases/phase12_instant.sh|Instant Workflow"
 )
 
 # Filter phases
@@ -69,7 +70,7 @@ if [ -n "${PHASE_FILTER}" ]; then
         fi
     done
     if [ ${#SELECTED_PHASES[@]} -eq 0 ]; then
-        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-11."
+        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-12."
         exit 1
     fi
 else

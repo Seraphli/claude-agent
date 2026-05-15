@@ -52,10 +52,10 @@ For each workflow in order:
 #### 3a. Set active and prepare
 1. Write the workflow ID to `.ca/active.md` (set as active).
 2. Write `batch_mode: true` to the workflow's STATUS.md. Also set `status_note` for the workflow being processed.
-3. Read `use_branches` from the config JSON already loaded.
+3. Read `use_worktrees` from the config JSON already loaded.
    Read STATUS.md for `branch_name`.
 4. **If worktree mode** (`worktree_path` exists): no checkout needed. Read `worktree_path` from STATUS.md — executor/verifier will use this as code working directory.
-5. **If non-branch mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
+5. **If non-worktree mode**: Create git checkpoint: `git tag ca-batch-checkpoint-<workflow_id>`.
 
 #### 3b. Execute (if needed)
 If `execute_completed: false`: Execute `Skill(ca:execute)` for the current workflow.
@@ -67,12 +67,12 @@ Execute `Skill(ca:verify)`. `batch_mode: true` → skip manual criteria, skip us
 #### 3d. Handle results
 
 **If verify succeeds** (verify_completed: true):
-1. **If branch mode**: Execute auto-commit already handled by execute step 7b. No additional commit needed. Remove `batch_mode` from STATUS.md. Record success.
-2. **If non-branch mode**: Stage changed files and commit (generate message from PLAN.md/SUMMARY.md). Remove `batch_mode`. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`. Record success.
+1. **If worktree mode**: Execute auto-commit already handled by execute step 7b. No additional commit needed. Remove `batch_mode` from STATUS.md. Record success.
+2. **If non-worktree mode**: Stage changed files and commit (generate message from PLAN.md/SUMMARY.md). Remove `batch_mode`. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`. Record success.
 
 **If verify fails**:
 1. **If worktree mode**: no checkout needed — main repo is already on base branch. Reset STATUS.md flags. Remove `batch_mode`. Record failure. Worktree and branch retain their state for later fix.
-2. **If non-branch mode**: `git reset --hard ca-batch-checkpoint-<workflow_id>`. Clean up tag. Reset STATUS.md. Remove `batch_mode`. Record failure.
+2. **If non-worktree mode**: `git reset --hard ca-batch-checkpoint-<workflow_id>`. Clean up tag. Reset STATUS.md. Remove `batch_mode`. Record failure.
 3. Continue to next workflow.
 
 ### 4. Post-batch analysis

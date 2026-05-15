@@ -1,6 +1,6 @@
 ---
 name: ca-status
-description: Shows current workflow status including step progress and branch info. Use when checking workflow progress.
+description: Shows current workflow status including step progress and worktree info. Use when checking workflow progress.
 ---
 
 # /ca:status — Show Workflow Status

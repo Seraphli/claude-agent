@@ -1,6 +1,6 @@
 ---
 name: ca-execute
-description: Executes the confirmed implementation plan using isolated executor agents. Use when a plan has been triple-confirmed.
+description: Executes the confirmed implementation plan using isolated executor agents. Use when a plan has been confirmed (triple or single confirmation).
 ---
 
 # /ca:execute — Execute Confirmed Plan
@@ -13,7 +13,7 @@ Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-
 
 1. Run: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js read --project-root <project-root>`.
    - If output contains `"error"`, tell the user to run `/ca:new` first and stop.
-2. Verify `plan_confirmed: true` from the parsed JSON. If not, tell the user to run `/ca:plan` first and get all three confirmations. **Stop immediately.**
+2. Verify `plan_confirmed: true` from the parsed JSON. If not, tell the user to run `/ca:plan` first and get the plan confirmed. **Stop immediately.**
 
 ### 0. Task cleanup and initialization
 
@@ -44,7 +44,7 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 
 Read these files and collect their full content:
 - `.ca/workflows/<active_id>/PLAN.md`
-- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick`)
+- `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
 
 Read `fix_round` from STATUS.md (default: 0).
 If `fix_round` > 0 (fix round N):
@@ -140,17 +140,21 @@ Also set `status_note` to a context-aware summary of what was executed, e.g.: "E
 If `.ca/map.md` exists: update it directly using Read/Write tools to reflect changes and update the date.
 If missing (empty project): create it directly using Glob/Read/Write tools. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
 
-### 7b. Auto-commit in worktree (if enabled)
+### 7b. Auto-commit after execution
 
-Read `use_branches` from the config JSON already loaded.
-Read STATUS.md for `worktree_path`.
+Read `use_worktrees` from the config JSON already loaded.
+Read STATUS.md for `worktree_path` and `workflow_type`.
 
-If `use_branches` is `true` AND `worktree_path` exists in STATUS.md:
-1. Check worktree exists: `test -d <worktree_path>`. If not, warn user and skip commit.
-2. Check for changes: `git -C <worktree_path> status --porcelain`. If no changes, skip.
-3. Stage all changes: `git -C <worktree_path> add -A`.
-4. Read BRIEF.md first line (after `# Brief`) for title.
-5. Commit: `git -C <worktree_path> commit -m "wip: <brief title>"`.
+Determine whether to auto-commit and which directory to use:
+- If `worktree_path` exists in STATUS.md: commit in `<worktree_path>` (worktree mode — all workflow types)
+- Else if `workflow_type: instant`: commit in `<project-root>` (instant always commits, even without worktree)
+- Else: skip auto-commit (non-worktree mode for quick/standard/write — no execute-time commit)
+
+If committing:
+1. Check for changes: `git -C <code_dir> status --porcelain`. If no changes, skip.
+2. Stage all changes: `git -C <code_dir> add -A`.
+3. Read BRIEF.md first line (after `# Brief`) for title.
+4. Commit: `git -C <code_dir> commit -m "wip: <brief title>"`.
 
 Mark "Commit & update map" as `completed`.
 

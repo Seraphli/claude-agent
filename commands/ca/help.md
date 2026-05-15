@@ -22,6 +22,7 @@ Display all available CA commands in the user's preferred language:
 |---------|-------------|
 | `/ca:new [description]` | Start a new requirement — gather brief, create workflow + worktree |
 | `/ca:quick [description]` | Quick workflow — brief + worktree, skip discuss |
+| `/ca:instant [description]` | Instant workflow — fastest mode for small fixes, single-confirmation planning |
 | `/ca:write [description]` | Writing workflow — brief + worktree, writing-specific discuss dimensions |
 | `/ca:discuss` | Discuss requirements — ask clarifying questions, produce confirmed requirement summary |
 | `/ca:plan` | Propose implementation plan with **triple confirmation** |
@@ -75,6 +76,13 @@ Display all available CA commands in the user's preferred language:
 ```
 /ca:quick → /ca:plan → /ca:execute → /ca:verify → /ca:finish
 ```
+**Or use `/ca:next` repeatedly to auto-advance through each step.**
+
+**Instant:**
+```
+/ca:instant → /ca:plan → /ca:execute → /ca:verify → /ca:finish
+```
+Single confirmation in plan — no triple confirmation, no SPEC.
 **Or use `/ca:next` repeatedly to auto-advance through each step.**
 
 **Write:**

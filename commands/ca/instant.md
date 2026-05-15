@@ -1,9 +1,8 @@
 ---
-name: ca-new
-description: Creates a new requirement workflow with brief and git worktree. Use when user says "new requirement", "新需求", or wants to start a new task.
+name: ca-instant
+description: Creates the fastest workflow for small fixes and trivial changes. Use when user says "instant", "快速修复", or has a trivial 1-2 line change.
 ---
-
-# /ca:new — Start a New Requirement
+# /ca:instant — Instant Workflow
 
 **CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, active.md). Do NOT read, analyze, or modify source code.
 
@@ -44,7 +43,7 @@ If there is an unfinished active workflow:
 - If **Archive and start new**: Move all files from `.ca/workflows/<active_id>/` to `.ca/history/<next-number>-unfinished/`, remove the workflow directory, then continue.
 - If **Continue current**: Stop. Tell the user to finish the current workflow or use `/ca:plan` to continue planning.
 
-Mark "Check existing workflows" as `completed`. Mark "Collect requirement & link todo" as `in_progress`.
+Mark "Check existing workflows" as completed. Mark "Collect requirement & link todo" as in_progress.
 
 ### 2. Create directory structure
 
@@ -108,7 +107,7 @@ Before reading `.ca/todos.md`, if the file exists and contains a line matching `
 3. If the user selects a todo, use that as the requirement description and save it for linking in step 4.
 4. If the user provides a new description instead, use it and proceed to match/add logic as above.
 
-Mark "Collect requirement & link todo" as `completed`. Mark "Create workflow files" as `in_progress`.
+Mark "Collect requirement & link todo" as completed. Mark "Create workflow files" as in_progress.
 
 ### 4. Write BRIEF.md
 
@@ -134,10 +133,10 @@ Write `.ca/workflows/<id>/STATUS.md` with:
 # Workflow Status
 
 workflow_id: <id>
-workflow_type: standard
-current_step: new
+workflow_type: instant
+current_step: instant
 init_completed: true
-discuss_completed: false
+discuss_completed: true
 plan_completed: false
 plan_confirmed: false
 execute_completed: false
@@ -146,7 +145,7 @@ verify_completed: false
 
 Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
 
-Mark "Create workflow files" as `completed`. Mark "Create git worktree" as `in_progress`.
+Mark "Create workflow files" as completed. Mark "Create git worktree" as in_progress.
 
 ### 5b. Create git worktree (if enabled)
 
@@ -206,16 +205,22 @@ If the config output contains `## Project` with `project_dirs`:
    ```
    (comma-separated list of label:original_path:worktree_path triples for repos where worktrees were created)
 
-Mark "Create git worktree" as `completed`.
+Mark "Create git worktree" as completed.
 
 ### 6. Confirm completion
 
-**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
+**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, active.md) and records the user's requirement description. You MUST NOT:
+- Read source code files or project files (other than todos.md and workflow management files)
+- Analyze, summarize, or research the codebase
+- Generate any content beyond what the user provided
+- Execute any part of the requirement task
 
-Also set `status_note: Workflow created. Ready for discussion.` in this workflow's STATUS.md (append the line after the last existing line).
+All research, analysis, and implementation belong to later phases (`/ca:plan`, `/ca:execute`). Simply record the user's description verbatim and create the workflow files.
 
-Tell the user the new requirement has been created. Show the brief and the workflow ID. Suggest next steps:
-- `/ca:discuss` (or `/ca:next`)
+Also set `status_note: Instant workflow created. Ready for planning.` in this workflow's STATUS.md (append the line after the last existing line).
+
+Tell the user the instant workflow has been created. Show the brief and the workflow ID. Suggest next steps:
+- `/ca:plan` (or `/ca:next`)
 - `/clear` to free context
 
 If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/clear`) excluded.

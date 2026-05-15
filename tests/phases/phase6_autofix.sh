@@ -22,7 +22,7 @@ cat > "${TEST_PROJECT}/.ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: false
+use_worktrees: false
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 auto_fix: true
@@ -85,7 +85,7 @@ sleep 5
 pane_log "startup"
 
 inject_command "/ca:verify"
-wait_for_stop 900
+wait_for_stop 600
 pane_log "autofix-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"

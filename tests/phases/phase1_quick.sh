@@ -63,11 +63,11 @@ pane_log "startup"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Add Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop 300
+wait_for_stop
 pane_log "quick-done"
 
 # Assert BRIEF.md and STATUS.md were created in the workflow directory
@@ -88,38 +88,38 @@ fi
 inject_command "/ca:plan"
 
 # Expect: Research confirmation (optional — model may skip directly to Requirements)
-wait_for_ask 300
+wait_for_ask 120
 if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
     pass "plan: Research prompt"
     sleep 1
     select_option_by_text "Skip"
     # Now wait for Requirements
-    wait_for_ask 300
+    wait_for_ask
 fi
 assert_ask_header "Requirements" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
 # Expect: SPEC confirmation (quick workflow creates SPEC during plan)
-wait_for_ask 300
+wait_for_ask
 assert_ask_header "SPEC" "plan: SPEC prompt"
 sleep 1
 select_option_by_text "Accurate"
 
 # Expect: Rough Plan confirmation
-wait_for_ask_expect "Rough Plan" "" 300
+wait_for_ask_expect "Rough Plan" "" 45
 assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
 # Expect: Step-by-step plan confirmation (Confirmation 2b)
 # Loops through "Step N" prompts, auto-confirming each, until "Results" header appears
-wait_for_step_confirmations "Results" "plan" 300
+wait_for_step_confirmations "Results" "plan" 45
 assert_ask_header "Results" "plan: Results prompt"
 sleep 1
 select_option_by_text "Yes"
 
-wait_for_stop 300
+wait_for_stop 120
 pane_log "plan-done"
 
 # Refresh workflow dir in case it changed
@@ -148,7 +148,7 @@ assert_status_field "plan_completed" "true" "plan: plan_completed=true"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:execute"
-wait_for_stop 600
+wait_for_stop 180
 pane_log "execute-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -169,12 +169,12 @@ assert_file_exists "${TEST_DIR}/project/.ca/map.md" "execute: map.md exists afte
 inject_command "/ca:verify"
 
 # Expect: Results acceptance prompt
-wait_for_ask 600
+wait_for_ask 120
 assert_ask_header "Results" "verify: Results prompt"
 sleep 1
 select_option_by_text "Accept"
 
-wait_for_stop 600
+wait_for_stop 120
 pane_log "verify-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -202,12 +202,12 @@ sleep 1
 select_option_by_text "Yes"
 
 # Expect: Confirm prompt
-wait_for_ask 120
+wait_for_ask
 assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop 300
+wait_for_stop
 pane_log "finish-done"
 
 # After finish, the workflow is moved to .ca/history/; active.md should be removed
@@ -226,12 +226,12 @@ fi
 inject_command "/ca:restore"
 
 # Expect: archive selection prompt
-wait_for_ask 300
+wait_for_ask 120
 assert_ask_header "Restore|恢复" "restore: archive selection prompt"
 sleep 1
 select_option 1
 
-wait_for_stop 600
+wait_for_stop
 pane_log "restore-done"
 
 # Refresh workflow dir

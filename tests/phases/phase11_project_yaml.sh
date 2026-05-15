@@ -24,7 +24,7 @@ cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 WSCONFIG
@@ -34,7 +34,7 @@ cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 CONFIG
@@ -84,7 +84,7 @@ sleep 1
 select_option_smart 1
 
 # Wait for stop (workflow created)
-wait_for_stop 120
+wait_for_stop
 
 # Verify STATUS.md has project_worktrees
 assert_file_contains "${TEST_DIR}/project/.ca/workflows/test-multi-repo-requirement/STATUS.md" "project_worktrees" "new: STATUS.md has project_worktrees"
@@ -120,7 +120,7 @@ cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 WSCONFIG
@@ -129,7 +129,7 @@ cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
 interaction_language: English
 comment_language: English
 code_language: English
-use_branches: true
+use_worktrees: true
 auto_proceed_to_plan: false
 auto_proceed_to_verify: false
 CONFIG
@@ -175,13 +175,13 @@ sleep 1
 select_option_by_text "No.*skip|skip"
 
 # Wait for worktree selection question (multi-repo)
-wait_for_ask 120
+wait_for_ask
 assert_ask_header "Worktrees" "quick: multi-repo worktree selection appears"
 sleep 1
 select_option_smart 1
 
 # Wait for stop (workflow created)
-wait_for_stop 120
+wait_for_stop
 
 # Verify STATUS.md has project_worktrees
 assert_file_contains "${TEST_DIR}/project/.ca/workflows/quick-multi-repo-test/STATUS.md" "project_worktrees" "quick: STATUS.md has project_worktrees"

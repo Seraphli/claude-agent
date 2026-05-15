@@ -1,6 +1,6 @@
 ---
 name: ca-switch
-description: Switches the active workflow and optionally the git branch. Use when working with multiple workflows.
+description: Switches the active workflow and optionally the git worktree. Use when working with multiple workflows.
 ---
 
 # /ca:switch — Switch Active Workflow
@@ -51,13 +51,13 @@ If `show_tg_commands: true`, also show `/ca_xxx` format. Built-in commands (`/cl
 
 ### 4b. Switch git context (if enabled)
 
-Read `use_branches` from the config JSON already loaded.
+Read `use_worktrees` from the config JSON already loaded.
 Read the **target** workflow's STATUS.md for `worktree_path`.
 
-1. If `use_branches` is `true` AND target workflow has `worktree_path`:
+1. If `use_worktrees` is `true` AND target workflow has `worktree_path`:
    - Tell the user the worktree path: "Code for this workflow is at: `<worktree_path>`"
    - No `git checkout` needed — worktree mode uses separate directories, not branch switching.
-2. If `use_branches` is `true` AND target workflow does NOT have `worktree_path` (legacy branch mode):
+2. If `use_worktrees` is `true` AND target workflow does NOT have `worktree_path` (legacy branch mode):
    - Handle uncommitted changes:
      - Check current branch: `git branch --show-current`.
      - If current branch starts with `ca/`: auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
