@@ -204,6 +204,240 @@ fi
 
 cleanup
 
+# --- Test 3: /ca:new non-git umbrella root → 5c multi-repo ---
+echo ""
+echo "--- Test 3: /ca:new non-git umbrella root ---"
+setup_test_env
+RESULTS_FILE="${PERSISTENT_RESULTS}"
+
+# Make the project root a NON-git umbrella directory
+rm -rf "${TEST_DIR}/project/.git"
+
+# Enable worktrees in both configs
+cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+WSCONFIG
+cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+CONFIG
+
+# Two git sub-repos
+REPO1="${TEST_DIR}/repo1"
+REPO2="${TEST_DIR}/repo2"
+mkdir -p "${REPO1}" "${REPO2}"
+git -C "${REPO1}" init -q; git -C "${REPO1}" config user.email "t@e.com"; git -C "${REPO1}" config user.name "T"; touch "${REPO1}/README.md"; git -C "${REPO1}" add -A; git -C "${REPO1}" commit -q -m init
+git -C "${REPO2}" init -q; git -C "${REPO2}" config user.email "t@e.com"; git -C "${REPO2}" config user.name "T"; touch "${REPO2}/README.md"; git -C "${REPO2}" add -A; git -C "${REPO2}" commit -q -m init
+
+cat > "${TEST_DIR}/project/.ca/project.yaml" << YAML
+project_name: umbrella-new
+description: non-git umbrella root
+dirs:
+  - label: repo1
+    path: ${REPO1}
+  - label: repo2
+    path: ${REPO2}
+YAML
+touch "${TEST_DIR}/project/.ca/todos.md"
+
+start_claude
+inject_command "/ca:new umbrella new requirement"
+
+wait_for_ask 120
+assert_ask_header "Link Todo|Add Todo|Todo" "new non-git: todo question"
+sleep 1
+select_option_by_text "No.*skip|skip"
+
+wait_for_ask 120
+assert_ask_header "Worktrees" "new non-git: 5c reached despite non-git root"
+sleep 1
+select_option_smart 1
+
+wait_for_stop
+
+WF_STATUS="$(ls "${TEST_DIR}/project/.ca/workflows/"*/STATUS.md 2>/dev/null | head -1)"
+if [ -n "${WF_STATUS}" ]; then
+  assert_file_contains "${WF_STATUS}" "project_worktrees" "new non-git: project_worktrees in STATUS"
+  if grep -q "^worktree_path:" "${WF_STATUS}"; then
+    fail "new non-git: STATUS should have NO root worktree_path"
+  else
+    pass "new non-git: no root worktree_path (root is non-git)"
+  fi
+else
+  fail "new non-git: workflow STATUS.md not found"
+fi
+
+REPO1_WT_DIR=$(find "${TEST_DIR}" -type d -name "repo1-wt" 2>/dev/null | head -1)
+if [ -n "${REPO1_WT_DIR}" ] && [ -d "${REPO1_WT_DIR}" ]; then
+  pass "new non-git: sub-repo worktree created for repo1"
+else
+  fail "new non-git: sub-repo worktree not created for repo1"
+fi
+cleanup
+
+# --- Test 4: /ca:quick non-git umbrella root → 5c multi-repo ---
+echo ""
+echo "--- Test 4: /ca:quick non-git umbrella root ---"
+setup_test_env
+RESULTS_FILE="${PERSISTENT_RESULTS}"
+
+rm -rf "${TEST_DIR}/project/.git"
+
+cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+WSCONFIG
+cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+CONFIG
+
+REPO1="${TEST_DIR}/repo1"
+REPO2="${TEST_DIR}/repo2"
+mkdir -p "${REPO1}" "${REPO2}"
+git -C "${REPO1}" init -q; git -C "${REPO1}" config user.email "t@e.com"; git -C "${REPO1}" config user.name "T"; touch "${REPO1}/README.md"; git -C "${REPO1}" add -A; git -C "${REPO1}" commit -q -m init
+git -C "${REPO2}" init -q; git -C "${REPO2}" config user.email "t@e.com"; git -C "${REPO2}" config user.name "T"; touch "${REPO2}/README.md"; git -C "${REPO2}" add -A; git -C "${REPO2}" commit -q -m init
+
+cat > "${TEST_DIR}/project/.ca/project.yaml" << YAML
+project_name: umbrella-quick
+description: non-git umbrella root
+dirs:
+  - label: repo1
+    path: ${REPO1}
+  - label: repo2
+    path: ${REPO2}
+YAML
+touch "${TEST_DIR}/project/.ca/todos.md"
+
+start_claude
+inject_command "/ca:quick umbrella quick requirement"
+
+wait_for_ask 120
+assert_ask_header "Link Todo|Add Todo|Todo" "quick non-git: todo question"
+sleep 1
+select_option_by_text "No.*skip|skip"
+
+wait_for_ask 120
+assert_ask_header "Worktrees" "quick non-git: 5c reached despite non-git root"
+sleep 1
+select_option_smart 1
+
+wait_for_stop
+
+WF_STATUS="$(ls "${TEST_DIR}/project/.ca/workflows/"*/STATUS.md 2>/dev/null | head -1)"
+if [ -n "${WF_STATUS}" ]; then
+  assert_file_contains "${WF_STATUS}" "project_worktrees" "quick non-git: project_worktrees in STATUS"
+  if grep -q "^worktree_path:" "${WF_STATUS}"; then
+    fail "quick non-git: STATUS should have NO root worktree_path"
+  else
+    pass "quick non-git: no root worktree_path (root is non-git)"
+  fi
+else
+  fail "quick non-git: workflow STATUS.md not found"
+fi
+
+REPO1_WT_DIR=$(find "${TEST_DIR}" -type d -name "repo1-wt" 2>/dev/null | head -1)
+if [ -n "${REPO1_WT_DIR}" ] && [ -d "${REPO1_WT_DIR}" ]; then
+  pass "quick non-git: sub-repo worktree created for repo1"
+else
+  fail "quick non-git: sub-repo worktree not created for repo1"
+fi
+cleanup
+
+# --- Test 5: /ca:instant non-git umbrella root → 5c multi-repo ---
+echo ""
+echo "--- Test 5: /ca:instant non-git umbrella root ---"
+setup_test_env
+RESULTS_FILE="${PERSISTENT_RESULTS}"
+
+rm -rf "${TEST_DIR}/project/.git"
+
+cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+WSCONFIG
+cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+CONFIG
+
+REPO1="${TEST_DIR}/repo1"
+REPO2="${TEST_DIR}/repo2"
+mkdir -p "${REPO1}" "${REPO2}"
+git -C "${REPO1}" init -q; git -C "${REPO1}" config user.email "t@e.com"; git -C "${REPO1}" config user.name "T"; touch "${REPO1}/README.md"; git -C "${REPO1}" add -A; git -C "${REPO1}" commit -q -m init
+git -C "${REPO2}" init -q; git -C "${REPO2}" config user.email "t@e.com"; git -C "${REPO2}" config user.name "T"; touch "${REPO2}/README.md"; git -C "${REPO2}" add -A; git -C "${REPO2}" commit -q -m init
+
+cat > "${TEST_DIR}/project/.ca/project.yaml" << YAML
+project_name: umbrella-instant
+description: non-git umbrella root
+dirs:
+  - label: repo1
+    path: ${REPO1}
+  - label: repo2
+    path: ${REPO2}
+YAML
+touch "${TEST_DIR}/project/.ca/todos.md"
+
+start_claude
+inject_command "/ca:instant umbrella instant requirement"
+
+wait_for_ask 120
+assert_ask_header "Link Todo|Add Todo|Todo" "instant non-git: todo question"
+sleep 1
+select_option_by_text "No.*skip|skip"
+
+wait_for_ask 120
+assert_ask_header "Worktrees" "instant non-git: 5c reached despite non-git root"
+sleep 1
+select_option_smart 1
+
+wait_for_stop
+
+WF_STATUS="$(ls "${TEST_DIR}/project/.ca/workflows/"*/STATUS.md 2>/dev/null | head -1)"
+if [ -n "${WF_STATUS}" ]; then
+  assert_file_contains "${WF_STATUS}" "project_worktrees" "instant non-git: project_worktrees in STATUS"
+  if grep -q "^worktree_path:" "${WF_STATUS}"; then
+    fail "instant non-git: STATUS should have NO root worktree_path"
+  else
+    pass "instant non-git: no root worktree_path (root is non-git)"
+  fi
+else
+  fail "instant non-git: workflow STATUS.md not found"
+fi
+
+REPO1_WT_DIR=$(find "${TEST_DIR}" -type d -name "repo1-wt" 2>/dev/null | head -1)
+if [ -n "${REPO1_WT_DIR}" ] && [ -d "${REPO1_WT_DIR}" ]; then
+  pass "instant non-git: sub-repo worktree created for repo1"
+else
+  fail "instant non-git: sub-repo worktree not created for repo1"
+fi
+cleanup
+
 # --- Summary ---
 summarize_results
 result=$?

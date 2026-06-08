@@ -15,6 +15,7 @@ Display all available CA commands in the user's preferred language:
 | Command | Description |
 |---------|-------------|
 | `/ca:settings` | Configure language settings (global or workspace) |
+| `/ca:init` | Initialize `.ca/project.yaml` for multi-repo projects (interactive) |
 
 ## Workflow Commands
 

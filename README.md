@@ -126,6 +126,7 @@ Skips the discuss phase. Creates a brief and goes straight to planning. Research
 | `/ca:next` | Auto-detect and run the next workflow step |
 | `/ca:map` | Scan and record project structure |
 | `/ca:settings` | Configure language, model, and auto-proceed settings |
+| `/ca:init` | Initialize `.ca/project.yaml` for multi-repo projects (interactive) |
 | `/ca:status` | Show current workflow state |
 | `/ca:list` | List all workflows with status summary |
 | `/ca:batch` | Batch execute all plan-confirmed workflows |
@@ -193,6 +194,7 @@ Use `/ca:settings` to configure.
   todos.md                       # Active todo items (uncompleted)
   todos-archive.md               # Archived todo items (completed/cancelled)
   map.md                         # Codebase structure map (/ca:map)
+  project.yaml                   # Multi-repo project config (created by /ca:init)
   workflows/
     <workflow-id>/
       STATUS.md                  # Workflow state

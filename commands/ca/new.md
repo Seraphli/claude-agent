@@ -166,7 +166,7 @@ Read `use_worktrees` from the config JSON already loaded.
      - If **Ignore**: Continue to step 7.
 
 If `use_worktrees` is `true`:
-1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, **warn the user**: "Current project is not a git repository. Worktree/branch will not be created — workflow will proceed without git isolation." Do not add worktree fields to STATUS.md. Continue to step 7.
+1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, **warn the user**: "Current project root is not a git repository. No root worktree/branch will be created." Do not add root worktree fields to STATUS.md, and skip steps 2-5 below (no root worktree). Then check the config output: if it contains a `## Project` section, proceed to section 5c to create per-repo worktrees from the `.ca/project.yaml` directories; otherwise **mark the "Create git worktree" task as `completed`**, **also surface this tip** to the user — "Tip: For multi-repo projects spanning several git repositories, run `/ca:init` to generate `.ca/project.yaml` and enable per-repo worktree creation." — and continue to step 6.
 2. Resolve base branch: default to `main`. Verify it exists: `git rev-parse --verify main 2>/dev/null`. If not, try `master`. Save as `base_branch`.
 3. Determine worktree path: `<parent-of-project-root>/<project-dirname>-wt/ca-<workflow-id>/`
    - Example: project at `/home/user/myproject/` → worktree at `/home/user/myproject-wt/ca-feature-x/`
@@ -197,7 +197,7 @@ If the config output contains `## Project` with `project_dirs`:
    - Determine worktree path: `<parent-of-dir_path>/<dir-dirname>-wt/ca-<workflow-id>/`
    - Create parent directory: `mkdir -p <parent-of-dir_path>/<dir-dirname>-wt/`
    - `git -C <dir_path> worktree add <worktree-path> -b ca/<workflow-id> <base_branch>`
-6. Append to STATUS.md after `worktree_path` line:
+6. Append to STATUS.md after the `worktree_path` line if present, otherwise after the `verify_completed` line (an umbrella project whose root is not a git repository has no `worktree_path` line):
    ```
    project_worktrees: <dir_label_1>:<dir_original_path_1>:<worktree_path_1>, <dir_label_2>:<dir_original_path_2>:<worktree_path_2>
    ```

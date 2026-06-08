@@ -2,8 +2,8 @@
 # e2e.sh — Main E2E test orchestrator for claude-agent
 #
 # Usage:
-#   bash tests/e2e.sh            — Run all phases (1-11) sequentially
-#   bash tests/e2e.sh --phase N  — Run only phase N (1-11)
+#   bash tests/e2e.sh            — Run all phases (1-13) sequentially
+#   bash tests/e2e.sh --phase N  — Run only phase N (1-13)
 #
 # Requires: tmux, claude CLI, jq, node
 
@@ -57,6 +57,7 @@ PHASES=(
     "10|${CA_REPO_ROOT}/tests/phases/phase10_multi_workflow.sh|Multi-workflow"
     "11|${CA_REPO_ROOT}/tests/phases/phase11_project_yaml.sh|Project YAML"
     "12|${CA_REPO_ROOT}/tests/phases/phase12_instant.sh|Instant Workflow"
+    "13|${CA_REPO_ROOT}/tests/phases/phase13_init.sh|Init Command"
 )
 
 # Filter phases
@@ -70,7 +71,7 @@ if [ -n "${PHASE_FILTER}" ]; then
         fi
     done
     if [ ${#SELECTED_PHASES[@]} -eq 0 ]; then
-        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-12."
+        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-13."
         exit 1
     fi
 else

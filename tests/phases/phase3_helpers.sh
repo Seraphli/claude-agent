@@ -112,6 +112,23 @@ else
     fail "list: output contains workflow listing"
 fi
 
+# --- Test 6: /ca:help — lists /ca:init ---
+echo ""
+echo "[test] 6: /ca:help lists /ca:init"
+inject_command "/ca:help"
+wait_for_stop
+pane_log "after-help"
+
+# /ca:help prints a long table; /ca:init is near the top (Setup), so capture scrollback (-S -)
+PANE_HELP="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p -S - 2>/dev/null)"
+if echo "${PANE_HELP}" | grep -q "/ca:init"; then
+    pass "help: output lists /ca:init"
+else
+    echo "[assert] FAIL: /ca:help output does not list /ca:init"
+    echo "${PANE_HELP}" | tail -50
+    fail "help: output lists /ca:init"
+fi
+
 # --- Summary ---
 summarize_results
 exit $?
