@@ -88,7 +88,7 @@ Creates a workflow in `.ca/workflows/<id>/`. If an unfinished workflow exists, o
 
 ### 2. Discuss — `/ca:discuss`
 
-Starts with adaptive research using parallel researcher agents, then performs a systematic dimension scan (10 dimensions for standard, 6 for write workflows) to identify gaps, and clarifies requirements through focused Q&A (one question at a time). Produces a requirement summary that you must confirm before moving on.
+Starts with adaptive research using parallel researcher agents, then conducts a **grill interview** — a systematic scan across 10 dimensions (6 for write workflows) to identify gaps, asking one targeted question at a time with a `(Recommended)` skip option. Builds a `CONTEXT.md` with domain terms, constraints, and resolved unknowns. Produces a requirement summary that you must confirm before moving on.
 
 ### 3. Plan — `/ca:plan`
 
@@ -98,15 +98,15 @@ For quick workflows, assesses requirement complexity — simple requirements can
 2. **Approach and method** — "I'll modify these files using this approach, agreed?"
 3. **Expected results** — "The end result will be X, is that what you want?"
 
-If changes at a later step affect earlier confirmations, the system backtracks and re-confirms affected steps. Success criteria are tagged `[auto]` or `[manual]` for verification.
+If changes at a later step affect earlier confirmations, the system backtracks and re-confirms affected steps. The confirmed plan is stored in `rounds/0/PLAN.md` with a `TASKS.csv` task ledger (one row per executor task) and a root `VERIFY.csv` verification ledger (one row per criterion, tagged `[auto]` or `[manual]`). Both CSV ledgers are read and written through the `scripts/ca-csv.js` helper — a single-writer, RFC4180-safe CSV engine — so parallel executors never corrupt them.
 
 ### 4. Execute — `/ca:execute`
 
-Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Returns an execution summary. When worktree management is enabled, changes are auto-committed to the workflow worktree after execution.
+Runs the confirmed plan using isolated executor agents. Implementation steps use ordered/unordered list structure to express execution order — ordered items run sequentially, unordered items run in parallel. Only proceeds if the plan has been triple-confirmed. Task rows in `TASKS.csv` are updated as each task completes. Returns an execution summary stored in `rounds/0/SUMMARY.md`. When worktree management is enabled, changes are auto-committed to the workflow worktree after execution.
 
 ### 5. Verify — `/ca:verify`
 
-Auto criteria are verified by independent verifier agents (optionally in parallel). If auto verification fails and `auto_fix` is enabled, the system assesses whether failures are implementation bugs or approach issues. Implementation bugs trigger an automatic plan→execute→verify loop (up to `max_fix_rounds` times) without user interaction. Approach/plan issues require manual intervention. In batch mode, verification runs fully automated — skips manual criteria, user acceptance, and gitignore check; auto-commits on success; fails immediately without retry on failure. Manual criteria are confirmed with you one at a time. After all criteria pass, proceed to `/ca:finish`.
+Auto criteria are verified by independent verifier agents (optionally in parallel) using the `VERIFY.csv` ledger as the source of truth. Results are written back to `VERIFY.csv` (pass/fail per row) and a `VERIFY-REPORT.md` is stored under the current round. If auto verification fails and `auto_fix` is enabled, the system assesses whether failures are implementation bugs or approach issues. Implementation bugs trigger an automatic plan→execute→verify loop (up to `max_fix_rounds` times) without user interaction — each retry increments the round number. Approach/plan issues require manual intervention. In batch mode, verification runs fully automated — skips manual criteria, user acceptance, and gitignore check; auto-commits on success; fails immediately without retry on failure. Manual criteria are confirmed with you one at a time. After all criteria pass, proceed to `/ca:finish`.
 
 ### 6. Finish — `/ca:finish`
 
@@ -200,9 +200,18 @@ Use `/ca:settings` to configure.
       STATUS.md                  # Workflow state
       BRIEF.md                   # Initial requirement brief
       REQUIREMENT.md             # Finalized requirement from /ca:discuss
-      PLAN.md                    # Confirmed plan from /ca:plan
-      SUMMARY.md                 # Execution summary from /ca:execute
-      CRITERIA.md                # Success criteria from /ca:plan
+      TRACKING.md                # Round-by-round fix history
+      VERIFY.csv                 # Verification ledger (all criteria, one row each)
+      rounds/
+        0/                       # Round 0: initial plan + execution
+          PLAN.md                # Confirmed plan from /ca:plan
+          TASKS.csv              # Task ledger (one row per executor task)
+          SUMMARY.md             # Execution summary from /ca:execute
+          VERIFY-REPORT.md       # Verifier output for this round
+          ISSUES.md              # Issues found in this round (if any)
+  docs/                          # Project-level docs for CA context
+    CONTEXT.md                   # Domain context built during /ca:discuss
+    adr/                         # Architecture decision records
   history/
     0001-feature-slug/           # Archived workflow cycles
 

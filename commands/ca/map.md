@@ -14,7 +14,7 @@ description: Scans project structure and generates a codebase map. Use when need
 ### 1. Check existing map
 
 If `.ca/map.md` already exists, use `AskUserQuestion` with:
-- header: "Map"
+- header: "[W.Map]"
 - question: "A codebase map already exists. What would you like to do?"
 - options:
   - "Update" — "Refresh the existing map"

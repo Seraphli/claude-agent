@@ -2,8 +2,9 @@
 # e2e.sh — Main E2E test orchestrator for claude-agent
 #
 # Usage:
-#   bash tests/e2e.sh            — Run all phases (1-13) sequentially
-#   bash tests/e2e.sh --phase N  — Run only phase N (1-13)
+#   bash tests/e2e.sh            — Run all phases (1-19) sequentially, fail-fast
+#   bash tests/e2e.sh --phase N  — Run only phase N (1-19)
+#   bash tests/e2e.sh --all      — Run all phases without stopping on failure
 #
 # Requires: tmux, claude CLI, jq, node
 
@@ -13,17 +14,22 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CA_REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-# Parse --phase argument
+# Parse arguments
 PHASE_FILTER=""
+FAIL_FAST=true
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --phase)
             PHASE_FILTER="$2"
             shift 2
             ;;
+        --all)
+            FAIL_FAST=false
+            shift
+            ;;
         *)
             echo "Unknown argument: $1"
-            echo "Usage: bash tests/e2e.sh [--phase N]"
+            echo "Usage: bash tests/e2e.sh [--phase N] [--all]"
             exit 1
             ;;
     esac
@@ -57,7 +63,13 @@ PHASES=(
     "10|${CA_REPO_ROOT}/tests/phases/phase10_multi_workflow.sh|Multi-workflow"
     "11|${CA_REPO_ROOT}/tests/phases/phase11_project_yaml.sh|Project YAML"
     "12|${CA_REPO_ROOT}/tests/phases/phase12_instant.sh|Instant Workflow"
-    "13|${CA_REPO_ROOT}/tests/phases/phase13_init.sh|Init Command"
+    "13|${CA_REPO_ROOT}/tests/phases/phase13_terminology.sh|Terminology Grill"
+    "14|${CA_REPO_ROOT}/tests/phases/phase14_adr.sh|ADR Generation"
+    "15|${CA_REPO_ROOT}/tests/phases/phase15_csv_robustness.sh|CSV Robustness"
+    "16|${CA_REPO_ROOT}/tests/phases/phase16_round_structure.sh|Round Structure"
+    "17|${CA_REPO_ROOT}/tests/phases/phase17_verify_semantics.sh|Verify Semantics"
+    "18|${CA_REPO_ROOT}/tests/phases/phase18_harness_timeout_dump.sh|Harness Timeout Dump"
+    "19|${CA_REPO_ROOT}/tests/phases/phase13_init.sh|Init Command"
 )
 
 # Filter phases
@@ -71,7 +83,7 @@ if [ -n "${PHASE_FILTER}" ]; then
         fi
     done
     if [ ${#SELECTED_PHASES[@]} -eq 0 ]; then
-        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-13."
+        echo "Invalid phase: ${PHASE_FILTER}. Must be 1-19."
         exit 1
     fi
 else
@@ -131,6 +143,11 @@ for phase in "${SELECTED_PHASES[@]}"; do
     else
         echo "  [fail] Phase ${num}: ${label} (exit=${phase_exit})"
         echo "  Log: ${log_file}"
+        if [ "${FAIL_FAST}" = true ]; then
+            echo ""
+            echo "  Stopping on first failure (use --all to run all phases)."
+            break
+        fi
     fi
 done
 

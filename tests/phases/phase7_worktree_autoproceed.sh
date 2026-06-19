@@ -45,10 +45,10 @@ pane_log "startup"
 # /ca:quick
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
 wait_for_ask 120
-assert_ask_header "Add Todo" "quick: Add Todo prompt"
+assert_ask_header "Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
-wait_for_stop
+wait_for_stop 120
 pane_log "quick-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -82,19 +82,14 @@ fi
 
 # /ca:plan
 inject_command "/ca:next"
-wait_for_ask 120
-if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
-    pass "plan: Research prompt"
-    sleep 1
-    select_option_by_text "Skip"
-    wait_for_ask
-fi
-assert_ask_header "Requirements" "plan: Requirements prompt"
+# Research optional; quick-plan grill may ask [P.Clarify] questions before the gate.
+drive_grill_to_gate "Reqs" 120
+assert_ask_header "Reqs" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
-wait_for_ask_expect "Rough Plan" "" 90
-assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
+wait_for_ask_expect "Rough" "" 90
+assert_ask_header "Rough" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
@@ -109,11 +104,11 @@ pane_log "plan-done"
 
 # /ca:execute (auto-proceeds to verify)
 inject_command "/ca:execute"
-wait_for_ask 240
+wait_for_ask 420
 assert_ask_header "Results" "verify: Results prompt (auto-proceed)"
 sleep 1
 select_option_by_text "Accept"
-wait_for_stop 120
+wait_for_stop 180
 pane_log "verify-done"
 
 # WIP commit lands in the worktree branch; check worktree dir if it exists, else main repo
@@ -138,7 +133,7 @@ assert_ask_header "Commit" "finish: Commit prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop 120
+wait_for_stop 180
 pane_log "finish-done"
 
 # Verify worktree removed after finish

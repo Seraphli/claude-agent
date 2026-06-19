@@ -48,6 +48,9 @@ trap 'cleanup' EXIT
 # Create isolated environment (sets TEST_DIR, TEST_CONFIG_DIR, RESULTS_FILE)
 setup_test_env
 
+# Define the project dir (set by setup_test_env)
+TEST_PROJECT="${TEST_DIR}/project"
+
 # Start Claude in a tmux session inside the project directory
 start_claude
 
@@ -59,9 +62,9 @@ pane_log "startup"
 # Step 1: /ca:new — create a new standard workflow
 # ============================================================
 
-inject_command "/ca:new Add a goodbye(name) function to utils.js that returns 'Goodbye, name!'. All success criteria must be auto-verifiable via bash commands"
+inject_command "/ca:new Add a goodbye helper to utils.js for signing a user off — I haven't decided whether it takes a name argument or reads a default. Use 'Farewell' as the canonical term for this exit-greeting concept (avoid the aliases 'Signoff' and 'Bye message'). All success criteria must be auto-verifiable via bash commands"
 wait_for_ask 120
-assert_ask_header "Add Todo" "new: Add Todo prompt"
+assert_ask_header "Todo" "new: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop
@@ -86,11 +89,21 @@ fi
 
 inject_command "/ca:discuss"
 
-# discuss has variable clarifying questions before final "Requirements" confirmation
+# discuss has variable clarifying questions before the final [D.Reqs] confirmation
+# TC8: detect the grill clarification stage by its stable header ([D.Clarify]),
+# NOT by option content.
+FOUND_CLARIFY=0
+CLARIFY_MULTI=0
 for i in $(seq 1 10); do
     wait_for_ask 120
-    if echo "${LAST_ASK_HEADER}" | grep -qE "Requirements"; then
-        assert_ask_header "Requirements" "discuss: Requirements prompt"
+    if echo "${LAST_ASK_HEADER}" | grep -qE "Clarify"; then
+        FOUND_CLARIFY=1
+        nq=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions | length' 2>/dev/null || echo 1)
+        if [ "${nq}" != "1" ]; then CLARIFY_MULTI=1; fi
+        echo "[discuss] TC8: Clarify-stage question at ${i} (${nq} q): ${LAST_ASK_HEADER}"
+    fi
+    if echo "${LAST_ASK_HEADER}" | grep -qE "Reqs"; then
+        assert_ask_header "Reqs" "discuss: Requirements prompt"
         sleep 1
         select_option_by_text "Accurate"
         break
@@ -99,6 +112,14 @@ for i in $(seq 1 10); do
     sleep 1
     select_option_smart 1
 done
+
+# TC8: ≥1 [D.Clarify]-header question AND each Clarify event carried exactly one
+# question (one-at-a-time, no multi-question dump)
+if [ "${FOUND_CLARIFY}" -eq 1 ] && [ "${CLARIFY_MULTI}" -eq 0 ]; then
+    pass "discuss: TC8 grill conducted one-at-a-time Clarify-stage questioning"
+else
+    fail "discuss: TC8 grill conducted one-at-a-time Clarify-stage questioning"
+fi
 
 # Expect: SPEC confirmation after requirements
 wait_for_ask
@@ -124,7 +145,15 @@ else
     fail "discuss: SPEC has Verification Design section"
 fi
 
+# TC1: CONTEXT.md created under .ca/docs/ and contains _Avoid_ entry
+assert_file_exists "${TEST_PROJECT}/.ca/docs/CONTEXT.md" "discuss: CONTEXT.md created"
+assert_file_contains "${TEST_PROJECT}/.ca/docs/CONTEXT.md" "_Avoid_" "discuss: TC1 CONTEXT.md has _Avoid_ entry"
+
 assert_status_field "discuss_completed" "true" "discuss: discuss_completed=true"
+
+# Clear context between discuss and plan to reduce memory pressure
+inject_command "/clear"
+sleep 3
 
 # ============================================================
 # Step 3: /ca:plan — create plan and criteria
@@ -134,7 +163,7 @@ inject_command "/ca:plan"
 
 # Expect: Requirements confirmation
 wait_for_ask 120
-assert_ask_header "Requirements" "plan: Requirements prompt"
+assert_ask_header "Reqs" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
@@ -143,7 +172,7 @@ wait_for_ask
 if echo "${LAST_ASK_HEADER}" | grep -qE "SPEC"; then
     fail "plan: standard workflow must not re-confirm SPEC"
 fi
-assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
+assert_ask_header "Rough" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
@@ -160,13 +189,36 @@ pane_log "plan-done"
 WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/PLAN.md"     "plan: PLAN.md exists"
-    assert_file_exists "${WORKFLOW_DIR}/CRITERIA.md" "plan: CRITERIA.md exists"
-    assert_file_contains "${WORKFLOW_DIR}/CRITERIA.md" "\\[auto\\]" "plan: CRITERIA.md has [auto] tag"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/PLAN.md"   "plan: rounds/0/PLAN.md exists"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/TASKS.csv" "plan: rounds/0/TASKS.csv exists"
+    assert_file_exists "${WORKFLOW_DIR}/VERIFY.csv"         "plan: root VERIFY.csv exists"
+    assert_file_contains "${WORKFLOW_DIR}/VERIFY.csv" "self_check|test" "plan: TC11 VERIFY.csv has self_check/test type"
+    # Assert CRITERIA.md was NOT created (superseded by VERIFY.csv)
+    if [ ! -f "${WORKFLOW_DIR}/CRITERIA.md" ]; then
+        pass "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    else
+        echo "[assert] FAIL: CRITERIA.md should not exist; VERIFY.csv is used instead"
+        fail "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    fi
+
+    # cpa4 Blocker fix — behavior-level boilerplate regression guard:
+    # plan must derive criteria only from the SPEC, NOT auto-append the fixed 4-item self_check set.
+    # This trivial task's SPEC has no generic imports/unused/comments/conventions checks, so those
+    # boilerplate phrasings must be absent. (Targets the boilerplate signature, not all self_checks.)
+    if grep -iE "imports?.{0,15}at[ -](the[ -])?top|no[- ]?unused|comments?.{0,20}(in |are )?english|matches.{0,15}(existing )?conventions" "${WORKFLOW_DIR}/VERIFY.csv"; then
+        echo "[assert] FAIL: VERIFY.csv contains boilerplate self_check criteria (fixed 4-item set was auto-appended)"
+        cat "${WORKFLOW_DIR}/VERIFY.csv"
+        fail "plan: no boilerplate self_check set in VERIFY.csv (regression)"
+    else
+        pass "plan: no boilerplate self_check set in VERIFY.csv (regression)"
+    fi
 else
-    fail "plan: PLAN.md exists"
-    fail "plan: CRITERIA.md exists"
-    fail "plan: CRITERIA.md has [auto] tag"
+    fail "plan: rounds/0/PLAN.md exists"
+    fail "plan: rounds/0/TASKS.csv exists"
+    fail "plan: root VERIFY.csv exists"
+    fail "plan: TC11 VERIFY.csv has self_check/test type"
+    fail "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    fail "plan: no boilerplate self_check set in VERIFY.csv (regression)"
 fi
 
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -183,9 +235,19 @@ pane_log "execute-done"
 WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/SUMMARY.md" "execute: SUMMARY.md exists"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/SUMMARY.md" "execute: rounds/0/SUMMARY.md exists"
+    # TC10: verify that TASKS.csv dev fields are marked done after execute
+    csv_get_out=$(node "${CA_REPO_ROOT}/scripts/ca-csv.js" get --file "${WORKFLOW_DIR}/rounds/0/TASKS.csv" 2>/dev/null || true)
+    if echo "${csv_get_out}" | grep -qv "pending"; then
+        pass "execute: TC10 TASKS.csv dev=done after execute"
+    else
+        echo "[assert] FAIL: TC10 TASKS.csv still has pending dev rows after execute"
+        echo "[assert] TASKS.csv content: ${csv_get_out}"
+        fail "execute: TC10 TASKS.csv dev=done after execute"
+    fi
 else
-    fail "execute: SUMMARY.md exists"
+    fail "execute: rounds/0/SUMMARY.md exists"
+    fail "execute: TC10 TASKS.csv dev=done after execute"
 fi
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
@@ -195,11 +257,11 @@ assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 # ============================================================
 
 inject_command "/ca:verify"
-wait_for_ask 120
+wait_for_ask 180
 assert_ask_header "Results" "verify: Results prompt"
 sleep 1
 select_option_by_text "Accept"
-wait_for_stop 120
+wait_for_stop 180
 pane_log "verify-done"
 
 # --- Assertions: verify ---
@@ -232,7 +294,7 @@ assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop
+wait_for_stop 180
 pane_log "finish-done"
 
 # --- Assertions: finish ---

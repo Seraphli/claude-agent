@@ -81,7 +81,7 @@ function formatOutput(cfg) {
   lines.push("## Language");
   lines.push(`interaction_language: ${cfg.interaction_language}`);
   lines.push(`  → Communicate with the user in ${cfg.interaction_language}. All markdown headings, AskUserQuestion headers/questions/options, and table headers in user-facing output MUST use this language.`);
-  lines.push(`  Exception: Headings inside file templates (PLAN.md, CRITERIA.md, SUMMARY.md, etc.) MUST remain in English as structural keys for cross-command parsing.`);
+  lines.push(`  Exception: Headings inside file templates (PLAN.md, SUMMARY.md, etc.) MUST remain in English as structural keys for cross-command parsing. Stored CSV structural values (TASKS.csv/VERIFY.csv enums) are also English keys, not localized.`);
   lines.push(`comment_language: ${cfg.comment_language}`);
   lines.push(`  → Write all code comments in ${cfg.comment_language}.`);
   lines.push(`code_language: ${cfg.code_language}`);

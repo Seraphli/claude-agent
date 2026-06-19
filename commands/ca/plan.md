@@ -16,7 +16,7 @@ Determine which workflow to operate on using this priority:
 1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
 2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
 3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
-   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to plan?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+   - `AskUserQuestion`: header "[W.Workflow]", question "Which workflow do you want to plan?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
 4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
 
 After resolving `<active_id>`:
@@ -29,6 +29,8 @@ After resolving `<active_id>`:
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
+**Flow-gate header prefix**: Every `AskUserQuestion` in this command uses a structural header prefix. Both the prefix AND the stage word are ALWAYS English — never localized, regardless of `interaction_language`. Plan gates: `[P.Clarify]`, `[P.Reqs]`, `[P.SPEC]`, `[P.Rough]`, `[P.Step N]`, `[P.Results]`, `[P.Plan]`, `[P.Research]`, `[P.Directions]`, `[P.ADR]`. Shared gates: `[W.Workflow]`, `[W.Tasks]`.
+
 Get **three separate confirmations** before finalizing (for standard/quick/write workflows). For `workflow_type: instant`, use single confirmation — see section 3-instant.
 
 ### 0. Task cleanup and initialization
@@ -40,7 +42,7 @@ Get **three separate confirmations** before finalizing (for standard/quick/write
    a. Call `TaskGet` for each uncompleted task.
    b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
    c. Present to user: list each uncompleted task with subject, status, and possible cause.
-   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+   d. `AskUserQuestion`: header "[W.Tasks]", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
       - "Clear and continue" — "Delete all old tasks and start current phase"
       - "Stop" — "Pause to investigate the previous phase's issues"
    e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
@@ -54,7 +56,7 @@ Get **three separate confirmations** before finalizing (for standard/quick/write
    **Else if `workflow_type: instant`** (single confirmation — see step 3-instant):
    - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
    - `TaskCreate`: subject "Draft & confirm plan", activeForm "Drafting plan"
-   - `TaskCreate`: subject "Write PLAN.md & CRITERIA.md", activeForm "Writing plan files"
+   - `TaskCreate`: subject "Write PLAN.md & VERIFY.csv", activeForm "Writing plan files"
 
    **Else** (default triple confirmation for quick/standard/write):
    - `TaskCreate`: subject "Read context & research", activeForm "Reading context"
@@ -63,7 +65,7 @@ Get **three separate confirmations** before finalizing (for standard/quick/write
    - `TaskCreate`: subject "Draft plan", activeForm "Drafting plan"
    - `TaskCreate`: subject "Confirmation 2a: Rough Plan", activeForm "Confirming rough plan"
    - `TaskCreate`: subject "Confirmation 3: Expected Results", activeForm "Confirming results"
-   - `TaskCreate`: subject "Write PLAN.md & CRITERIA.md", activeForm "Writing plan files"
+   - `TaskCreate`: subject "Write PLAN.md & VERIFY.csv", activeForm "Writing plan files"
 
    Note: "Confirm Step N" tasks for Confirmation 2b are created dynamically after 2a passes.
 
@@ -74,12 +76,13 @@ Mark the first task as `in_progress` ("Read context & research" or "Auto-fix: ge
 Read these files:
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
 - `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.ca/docs/CONTEXT.md` (if exists — project terminology glossary)
 - `.ca/workflows/<active_id>/SPEC.md` (read only when `workflow_type` is NOT `instant`. Instant workflows do not use SPEC.)
-- `.ca/workflows/<active_id>/CRITERIA.md` (if exists — from previous cycle, for fix append mode)
+- `.ca/workflows/<active_id>/VERIFY.csv` (if exists — root verification ledger, for fix append / verify_refs reference)
 
 Also read `fix_round` from STATUS.md (default: 0).
 If `fix_round` > 0 (fix round N):
-- Read `.ca/workflows/<active_id>/rounds/<N>/ISSUES.md`
+- Read `.ca/workflows/<active_id>/rounds/<fix_round-1>/ISSUES.md`
 - This is a fix planning session
 
 ### 1-auto. Auto-fix mode
@@ -87,10 +90,8 @@ If `fix_round` > 0 (fix round N):
 Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
 
 1. This is an automated fix round. Skip ALL research (steps 1a/1b), clarification (step 1c), and triple confirmation (step 3).
-2. Read `rounds/<fix_round>/ISSUES.md` to understand what failed.
-3. Read the previous plan and summary:
-   - If fix_round == 1: read `PLAN.md` and `SUMMARY.md` from workflow root.
-   - If fix_round > 1: read `rounds/<fix_round-1>/PLAN.md` and `rounds/<fix_round-1>/SUMMARY.md`.
+2. Read `rounds/<fix_round-1>/ISSUES.md` to understand what failed.
+3. Read the previous plan and summary: always read `rounds/<fix_round-1>/PLAN.md` and `rounds/<fix_round-1>/SUMMARY.md` (round 0 lives in `rounds/0/`).
 4. Read ALL source files referenced in the issues to understand the current code state.
    **CRITICAL — Log-First Analysis**: Before analyzing code to draw conclusions:
    1. Search for available logs: VERIFY-REPORT.md, test output files, /tmp/*.log, command output files
@@ -102,11 +103,11 @@ Read `auto_fix_mode` from STATUS.md. If `auto_fix_mode: true`:
 
 Mark "Auto-fix: generate plan" as `completed`. Mark "Write PLAN.md" as `in_progress`.
 
-6. Write the plan to `.ca/workflows/<active_id>/rounds/<fix_round>/PLAN.md` (same format as normal PLAN.md).
+6. Write the plan to `.ca/workflows/<active_id>/rounds/<fix_round>/PLAN.md` (same slim format as normal PLAN.md).
 
 Mark "Write PLAN.md" as `completed`.
 
-7. Keep existing CRITERIA.md unchanged (same criteria need to pass).
+7. Keep existing root `VERIFY.csv`; do not reinitialize; append only new criteria surfaced by ISSUES (before writing TASKS.csv) when needed. Then generate `rounds/<fix_round>/TASKS.csv` via the same §4a/§4b sequence (init-tasks + add-task calls for each fix task).
 8. Update STATUS.md: run `node ... ca-status.js update --project-root <project-root> --workflow-id <active_id> plan_completed=true plan_confirmed=true current_step=plan "status_note=Auto-fix round <fix_round> plan generated. Auto-proceeding to execution."`
 9. **Auto-proceed**: Call `Skill(ca:execute)`.
 
@@ -117,11 +118,11 @@ Mark "Write PLAN.md" as `completed`.
 If `fix_round` == 0, skip this step.
 
 If `fix_round` > 0 (fix round N):
-1. Parse issues from `rounds/<N>/ISSUES.md`.
+1. Parse issues from `rounds/<fix_round-1>/ISSUES.md`.
 2. Read `ca-researcher_model` from the config JSON already loaded. This is the resolved model name (opus/sonnet/haiku).
 3. Present the issues to the user and propose research directions for each.
 4. Use `AskUserQuestion`:
-   - header: "Research"
+   - header: "[P.Research]"
    - question: "Research these issues before planning the fix?"
    - options:
      - "Run all" — "Research all issues"
@@ -173,7 +174,7 @@ Present directions to the user with context:
 - If uncertain: explain what you need to learn and why.
 
 Use `AskUserQuestion`:
-- header: "Research"
+- header: "[P.Research]"
 - question: "Here are the research directions I'd suggest. How would you like to proceed?"
 - options:
   - "Run all (<N>)" — "Research all <N> proposed directions"
@@ -181,8 +182,8 @@ Use `AskUserQuestion`:
   - "Skip research" — "Go straight to planning"
 
 **If Run all**: Proceed to launch all.
-**If Skip research**: Mark "Read context & research" as `completed`. Skip rest of 1b AND 1c. Go to step 3 (Confirmation & Planning).
-**If Select directions**: `AskUserQuestion` with `multiSelect: true`, header "Directions", question "Select which directions to research:", options = proposed directions. If none selected, treat as skip.
+**If Skip research**: Mark "Read context & research" as `completed`. Skip rest of 1b. For `workflow_type: quick`, proceed to step 1c (grill interview — only the research launch is skipped, not the grill). For `workflow_type: instant`, go directly to step 3-instant (no grill).
+**If Select directions**: `AskUserQuestion` with `multiSelect: true`, header "[P.Directions]", question "Select which directions to research:", options = proposed directions. If none selected, treat as skip.
 
 #### 1b-iii. Launch and present
 
@@ -192,15 +193,27 @@ Read `ca-researcher_model` from the config JSON already loaded. Launch agents on
 
 **IMPORTANT**: Research MUST prioritize `ca-researcher` agents (via the Task tool with subagent_type ca-researcher). Do NOT default to using Explore agents or general-purpose agents as a substitute for ca-researcher during this research phase.
 
-### 1c. Clarify uncertain items
+### 1c. Clarify uncertain items / Grill interview (quick)
 
-**Note**: If research was skipped in step 1b, skip this step entirely and proceed to step 3.
+Read `.ca/docs/CONTEXT.md` at the start (if exists — project terminology glossary).
 
-Check for uncertain items from research. If any:
+**Note**: If research was skipped in step 1b, skip the uncertainty list below. For `workflow_type: quick` (which skips discuss), conduct the grill interview here as the requirement-clarification core — same directive and session behaviors as discuss.md §3 (one-at-a-time, recommended answer, explore-instead-of-ask, challenge CONTEXT.md conflicts, sharpen terms, update `.ca/docs/CONTEXT.md` inline per the write-criteria, record decisions in TRACKING.md). For standard/write, requirement clarification already happened in discuss — only resolve leftover research uncertainties one at a time. Proceed only after all resolved (no "TBD" in the plan).
 
-1. List them to the user.
-2. Clarify each one at a time.
-3. Proceed only after all resolved — no "needs further research" or "TBD" in the plan.
+**Grill directive (for `workflow_type: quick`):**
+
+> Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer. Ask the questions one at a time, waiting for feedback on each question before continuing. If a question can be answered by exploring the codebase, explore the codebase instead.
+
+**Session behaviors (apply throughout for quick grill):**
+1. **Challenge term conflicts** against `.ca/docs/CONTEXT.md` immediately.
+2. **Sharpen fuzzy/overloaded language** — propose a precise canonical term.
+3. **Stress-test domain boundaries** with concrete invented scenarios that force precision.
+4. **Cross-reference claims against actual code**; surface contradictions you find.
+5. **Update CONTEXT.md inline** as each term resolves (do NOT batch) — per `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/context-format.md`.
+6. **Record decisions** in TRACKING.md under `## Decisions` as they crystallize.
+
+**Ask ONE question at a time.** Each grill clarification `AskUserQuestion` MUST use the exact header `[P.Clarify]` (English only, never localized) so the clarification stage is identifiable by header; put the topic-specific content in the question text, NOT the header. Always provide a recommended answer (put `(Recommended)` at the end of the suggested option label; reserve plain text for open-ended questions). For code-answerable questions, do quick Read/Grep point lookups inline; for large unknowns, dispatch a `ca-researcher` agent.
+
+For standard/write with leftover uncertainties from research: list them to the user, clarify each one at a time.
 
 Mark "Read context & research" as `completed`.
 
@@ -229,7 +242,7 @@ Prepare a plan covering:
 - **Approach**: What method/strategy will be used
 - **Files to modify/create**: List each file and what changes
 - **Implementation steps**: Numbered, ordered steps with step details
-- **Success criteria**: Verifiable conditions tagged `[auto]` or `[manual]`
+- **Success criteria**: Verifiable conditions with `type` (`self_check`/`test`) and `method` (`auto`/`manual`) — these will be written to `VERIFY.csv` rows (not CRITERIA.md)
 
 **Execution Order**: ordered list = sequential, unordered list = parallel.
 
@@ -239,18 +252,18 @@ Prepare a plan covering:
 
 Present the complete plan in a single output, then ask for confirmation:
 
-`AskUserQuestion`: header "Plan", question "Confirm this plan?", options:
+`AskUserQuestion`: header "[P.Plan]", question "Confirm this plan?", options:
 - "Confirm" — "Plan looks good, proceed to execution"
 - "Not feasible" — "Needs changes"
 
 If **Not feasible**: ask what to change, revise, re-present, re-confirm.
-If **Confirm**: Mark "Draft & confirm plan" as `completed`. Proceed to step 4 (Write PLAN.md) and step 4b (Write CRITERIA.md).
+If **Confirm**: Mark "Draft & confirm plan" as `completed`. Proceed to step 4 (Write PLAN.md), then §4a (Write/Update VERIFY.csv), then §4b (Write TASKS.csv) — writing to the unified `rounds/0/` structure.
 
-**Fix round behavior**: When `fix_round` > 0 and `auto_fix_mode` is NOT set, the instant single confirmation applies. Read ISSUES.md and research findings, draft a focused fix plan, present for single confirmation (header "Plan"). No upgrade to triple confirmation. When `auto_fix_mode: true` is set (by verify.md when `auto_fix: true` config), the standard auto-fix zero-confirmation path (step 1-auto) takes over — auto_fix is an automatic repair mechanism that applies to all workflow types including instant.
+**Fix round behavior**: When `fix_round` > 0 and `auto_fix_mode` is NOT set, the instant single confirmation applies. Read ISSUES.md and research findings, draft a focused fix plan, present for single confirmation (header "[P.Plan]"). No upgrade to triple confirmation. When `auto_fix_mode: true` is set (by verify.md when `auto_fix: true` config), the standard auto-fix zero-confirmation path (step 1-auto) takes over — auto_fix is an automatic repair mechanism that applies to all workflow types including instant.
 
 ### 3. TRIPLE CONFIRMATION (execute each in order, stop if any fails)
 
-**CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: Requirements → Rough Plan → Detailed Plan → Results, each asked once.
+**CRITICAL — No Duplicate Questions**: Each AskUserQuestion in the triple confirmation MUST be asked exactly ONCE. After receiving the user's answer, proceed immediately to the NEXT confirmation step. Do NOT re-ask the same question or re-send the same AskUserQuestion header. The sequence is strictly: [P.Reqs] → [P.Rough] → [P.Step N] (detailed) → [P.Results], each asked once.
 
 #### Confirmation 1: Requirement Understanding
 
@@ -260,7 +273,7 @@ Mark "Confirmation 1: Requirements" as `in_progress`.
 
 Present: "I understand you want: [concise summary]"
 
-`AskUserQuestion`: header "Requirements", question "Is my understanding correct?", options "Correct"/"Not correct".
+`AskUserQuestion`: header "[P.Reqs]", question "Is my understanding correct?", options "Correct"/"Not correct".
 
 If **Not correct**: ask what's wrong, correct, re-ask.
 
@@ -312,7 +325,7 @@ Present the draft SPEC to the user:
 <test cases as action + assertion>
 ```
 
-`AskUserQuestion`: header "SPEC", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
+`AskUserQuestion`: header "[P.SPEC]", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
 
 If **Needs changes**: ask what to change, revise, re-confirm.
 If **Accurate**: Write to `.ca/workflows/<active_id>/SPEC.md`:
@@ -372,7 +385,7 @@ Prepare a plan covering:
 
 Use the simplest structure that matches actual dependencies.
 
-After the outline, provide `## Step Details` with implementation content for each step.
+For each step, prepare the full implementation detail (location, before/after, exact changes). This detail will be written verbatim to TASKS.csv `description` cells (§4b) — NOT re-inlined into PLAN.md. The internal draft must contain the same mechanically-executable detail that previously went into `## Step Details`.
 
 **IMPORTANT — Plan Detail Requirement**: Each step MUST include:
 - Exact text/code to add or change (code blocks or quoted text)
@@ -381,7 +394,9 @@ After the outline, provide `## Step Details` with implementation content for eac
 
 The executor must be able to follow mechanically without design decisions.
 
-**Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<N>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
+**Fix mode**: If `fix_round` > 0, the plan addresses issues from `rounds/<fix_round-1>/ISSUES.md` and research findings from step 1a. Same plan structure, focused on fixing identified issues.
+
+**ADR offer:** if a design decision in this plan meets ALL THREE conditions in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/adr-format.md` (hard to reverse + surprising without context + a real trade-off), first check if this decision was already offered/created as an ADR during discuss (search TRACKING.md for "[ADR]" entries and `.ca/docs/adr/` for existing files on the same topic). If already covered, skip. Otherwise, OFFER to record an ADR via `AskUserQuestion` (header `"[P.ADR]"`, question "Record this decision as an ADR?", options "Yes"/"No"). On "Yes", write `.ca/docs/adr/NNNN-slug.md` (next sequential number, grill format). Do NOT auto-create; trivial decisions are not offered. Record the offered/created ADR in TRACKING.md.
 
 Mark "Draft plan" as `completed`. Mark "Confirmation 2a: Rough Plan" as `in_progress`.
 
@@ -403,9 +418,9 @@ Present a rough plan with 3 sections:
    - Example bad: "`ca-config.js` — 添加模型解析功能"
 3. **Expected Effect**: What the end result looks like — describe the observable behavior or output after implementation
 
-**CRITICAL**: The `header` parameter MUST be exactly `"Rough Plan"`. Do NOT use alternative headers like "Approach", "Plan Overview", etc.
+**CRITICAL**: The `header` parameter MUST be exactly `"[P.Rough]"`. Do NOT use alternative headers like "Approach", "Plan Overview", etc.
 
-`AskUserQuestion`: header "Rough Plan", question "Is this rough plan feasible?", options "Feasible"/"Not feasible".
+`AskUserQuestion`: header "[P.Rough]", question "Is this rough plan feasible?", options "Feasible"/"Not feasible".
 
 **CRITICAL — After-Answer Actions (MUST execute in order)**:
 
@@ -427,7 +442,7 @@ Only generate detailed plan AFTER Confirmation 2a passes.
    a. `TaskCreate`: subject "Confirm Step N: <step title>", activeForm "Confirming step N".
    b. Mark the task as `in_progress`.
    c. Present that step's **Step Details** content (location, before/after, exact changes).
-   d. `AskUserQuestion`: header "Step N", question "Does this step look correct?", options:
+   d. `AskUserQuestion`: header "[P.Step N]", question "Does this step look correct?", options:
       - "Correct" — "This step is fine"
       - "Needs changes" — "I want to revise this step"
    e. If **Needs changes**: ask what to change, revise, re-present, re-confirm.
@@ -467,9 +482,9 @@ Present **two separate sections**:
    - **`[manual]`**: requires UI interaction, subjective judgment, external services, or real-time observation.
    - **Default to `[auto]`** — verifier has Read, Bash, Grep, Glob.
 
-`AskUserQuestion`: header "Results", question "Are these the expected results?", options "Yes"/"No".
+`AskUserQuestion`: header "[P.Results]", question "Are these the expected results?", options "Yes"/"No".
 
-If **No**: ask what is wrong. If the feedback affects SPEC.md content (Desired Result or Verification Design), revise SPEC.md through the SPEC confirmation flow first (re-present draft, AskUserQuestion header "SPEC"), then re-run affected confirmations in order: 2a Rough Plan → 2b Detailed Plan → Results. If the feedback only affects implementation details or criterion tagging, revise the affected plan confirmations in order without re-opening SPEC.
+If **No**: ask what is wrong. If the feedback affects SPEC.md content (Desired Result or Verification Design), revise SPEC.md through the SPEC confirmation flow first (re-present draft, AskUserQuestion header "[P.SPEC]"), then re-run affected confirmations in order: 2a [P.Rough] → 2b [P.Step N] → [P.Results]. If the feedback only affects implementation details or criterion tagging, revise the affected plan confirmations in order without re-opening SPEC.
 
 Mark "Confirmation 3: Expected Results" as `completed`.
 
@@ -481,11 +496,11 @@ If any lacks coverage: **stop**, alert user, ask whether to add or exclude. Proc
 
 ### 4. Write PLAN.md
 
-Mark "Write PLAN.md & CRITERIA.md" as `in_progress`.
+Mark "Write PLAN.md & VERIFY.csv" as `in_progress`.
 
-Only after all confirmations pass (triple confirmation for standard/quick/write, or single "Plan" confirmation for instant), write the complete plan to `.ca/workflows/<active_id>/PLAN.md`. If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`.
+Only after all confirmations pass (triple confirmation for standard/quick/write, or single "Plan" confirmation for instant), write the complete plan to `.ca/workflows/<active_id>/rounds/<N>/PLAN.md` (N = fix_round, default 0; round 0 → `rounds/0/PLAN.md`).
 
-**CRITICAL — Verbatim Copy**: The PLAN.md content MUST be an exact copy of the confirmed plan — from Confirmation 2b for standard/quick/write workflows, or from the confirmed 3-instant Plan content for instant workflows, including ALL code blocks, before/after examples, line numbers, and step details. Do NOT regenerate, summarize, abbreviate, or rewrite any part of the confirmed plan. The user confirmed a specific version — that exact version must be written to the file.
+**CRITICAL — Verbatim Copy**: The PLAN.md content MUST be an exact copy of the confirmed plan summary — the Requirement Summary / Approach / Files / Expected Results from the confirmed plan. Do NOT regenerate, summarize, abbreviate, or rewrite. The confirmed detailed task rows (the old Step Details) go verbatim into TASKS.csv `description` cells (§4b), NOT re-inlined into PLAN.md. The "exact copy of what the user confirmed" guarantee spans PLAN.md (summary) + TASKS.csv (task details).
 
 ```markdown
 # Implementation Plan
@@ -502,52 +517,40 @@ Only after all confirmations pass (triple confirmation for standard/quick/write,
 ## Files to Create
 - ...
 
-## Implementation Steps
-<multi-level ordered/unordered list outline>
-
-## Step Details
-### Step 1: <title>
-<detailed instructions>
-
-### Step 2a: <title>
-<detailed instructions>
-...
-
 ## Expected Results
 <confirmed expected results>
 ```
 
-### 4b. Write/Update CRITERIA.md
+**Write sequence (CRITICAL ordering): PLAN.md → §4a VERIFY.csv → §4b TASKS.csv.** VERIFY.csv must exist before TASKS.csv so that stable criterion ids are available for `verify_refs` validation.
 
-Derive success criteria from SPEC.md's Verification Design section (for standard/quick/write workflows). For `workflow_type: instant`, derive criteria from the success criteria confirmed in the single "Plan" confirmation (step 3-instant) — there is no SPEC.md. Convert each test case into a verifiable criterion tagged `[auto]` or `[manual]`.
+### 4a. Write/Update VERIFY.csv
 
-If file exists and fix_round > 0, append new fix-specific criteria below existing ones.
-If the file does not exist, create it:
+The verification ledger is a single cross-round file at the workflow root: `.ca/workflows/<active_id>/VERIFY.csv`. It REPLACES CRITERIA.md. Schema in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/csv-schemas.md`.
+
+If it does not exist, initialize: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js init-verify --file .ca/workflows/<active_id>/VERIFY.csv`.
+
+Derive the verification criteria from SPEC.md's Verification Design (for instant: from the confirmed Plan criteria — no SPEC). Each test case in the verification design becomes ONE criterion. For EACH criterion, classify its `type` by HOW it is verified:
+- `self_check` — confirmable by static inspection of the code/file(s) (read/grep, no execution). E.g. a symbol is exported, a required comment/string is present, imports are at the top.
+- `test` — requires running code/tests/commands to confirm. E.g. calling `f(x)` returns `y`, an E2E phase passes.
+Then `ca-csv.js add-criterion --file <VERIFY.csv> --type self_check|test --method auto|manual --criterion "<action + assertion>"`. Default `method` to `auto` (verifier has Read/Bash/Grep/Glob); use `manual` only for UI/subjective/external/real-time checks. Add ONLY the criteria the SPEC's verification design calls for — do NOT append any fixed/boilerplate `self_check` set.
+
+Fix rounds (fix_round > 0): do NOT reinitialize. Append only NEW criteria that ISSUES surfaced (append-only ids); existing criteria are re-verified by verify.md, not rewritten here.
+
+### 4b. Write TASKS.csv
+
+Write the round's task ledger to `.ca/workflows/<active_id>/rounds/<N>/TASKS.csv` (N = fix_round, default 0). Initialize: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js init-tasks --file <path>`. For each implementation task (the items that previously were Implementation Steps), call:
 
 ```
-# Success Criteria
-
-Derived from SPEC.md Verification Design (or from confirmed Plan criteria for instant workflows).
-
-Tag each criterion `[auto]` or `[manual]`:
-
-**`[auto]`**: verifier checks by reading files, running commands, grep/glob, comparing structures.
-**`[manual]`**: requires UI interaction, subjective judgment, external services, or real-time observation.
-
-**Default to `[auto]`** — verifier has Read, Bash, Grep, Glob. Group by type; unordered = parallel, ordered = sequential.
-
-**[auto]**
-
-- criterion 1
-- criterion 2
-
-**[manual]**
-
-- criterion 3
-- criterion 4
+ca-csv.js add-task --file <path> --phase <P> --title <T> --description "<full confirmed step detail, verbatim>" --verify-refs "<stable VERIFY.csv ids from §4a>" --verify-file <root VERIFY.csv> --notes <X>
 ```
 
-Mark "Write PLAN.md & CRITERIA.md" as `completed`.
+Use `phase` to encode order: same phase = parallel, increasing phase numbers = sequential. The `description` carries the exact, mechanically-executable detail (location, before/after, exact changes) — same detail bar as the old Step Details. The `--verify-refs` argument is space-separated VERIFY.csv criterion ids (e.g., `"v1 v3"`); `ca-csv.js` validates each ref against the VERIFY.csv file.
+
+Mark "Write PLAN.md & VERIFY.csv" as `completed`.
+
+### 4c. Append TRACKING.md (plan)
+
+After writing PLAN.md + VERIFY.csv + TASKS.csv, append to `.ca/workflows/<active_id>/TRACKING.md` (create lazily) under `## Rounds → ### Round <N>` a Plan line: the chosen approach summary + any plan-time decisions/ADRs offered. Fix rounds append their own `### Round <N>` Plan line. Per `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/tracking-format.md`; do not duplicate PLAN.md content.
 
 ### 5. Update STATUS.md
 

@@ -20,6 +20,7 @@ When auto-triggered (config missing): save to global, only ask 3 language settin
 ### 1. Choose save location
 
 Ask the user where to save the configuration using `AskUserQuestion`:
+- header: `"[W.Settings]"`
 - **Global** (`~/.claude/ca/config.md`) — applies to all projects
 - **Workspace** (`.ca/config.md`) — applies to this project only, overrides global
 
@@ -30,6 +31,7 @@ Read the config file for the chosen location (if it exists). Also read the globa
 ### 3. Configure each setting
 
 For each setting, ask the user ONE AT A TIME using `AskUserQuestion`:
+- header: `"[W.Settings]"`
 
 #### `interaction_language` — Language for conversations
 

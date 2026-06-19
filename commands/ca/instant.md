@@ -4,9 +4,11 @@ description: Creates the fastest workflow for small fixes and trivial changes. U
 ---
 # /ca:instant — Instant Workflow
 
-**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, active.md). Do NOT read, analyze, or modify source code.
+**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md). Do NOT read, analyze, or modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
+
+**CRITICAL — Fresh Config**: You MUST run the `ca-config.js` command above on EVERY `/ca:instant` invocation and use ONLY the output from THIS run. Do NOT reuse config output from a prior invocation or earlier in the conversation — the user may have changed settings (e.g., `use_worktrees`) between invocations.
 
 ## Behavior
 
@@ -33,7 +35,7 @@ If there is an unfinished active workflow:
 - **Warn the user**: Tell them there is an unfinished workflow `<active_id>` in `.ca/workflows/`.
 - Show what step it was on.
 - Use `AskUserQuestion` with:
-  - header: "Workflow"
+  - header: "[W.Workflow]"
   - question: "There is an unfinished workflow. What would you like to do?"
   - options:
     - "Keep and start new" — "Keep existing workflow, create a new one alongside it"
@@ -84,7 +86,7 @@ Before reading `.ca/todos.md`, if the file exists and contains a line matching `
 1. Read `.ca/todos.md` and find all uncompleted todo items (all items in `.ca/todos.md` are active — archived items live in `.ca/todos-archive.md`).
 2. Analyze the user's description and see if it matches any existing todo item.
 3. If a match is found, **MANDATORY**: use `AskUserQuestion` with:
-   - header: "Link Todo"
+   - header: "[W.Todo]"
    - question: "I found a matching todo: <todo text>. Link this requirement to it?"
    - options:
      - "Yes, link" — "Link to this todo"
@@ -92,7 +94,7 @@ Before reading `.ca/todos.md`, if the file exists and contains a line matching `
    - If **Yes, link**: Save the todo text for linking in step 4.
    - If **No, skip**: Continue without linking.
 4. If no match is found, **MANDATORY**: use `AskUserQuestion` with:
-   - header: "Add Todo"
+   - header: "[W.Todo]"
    - question: "This requirement doesn't match any existing todo. Add it as a new todo item?"
    - options:
      - "Yes, add" — "Add to todo list"
@@ -143,29 +145,29 @@ execute_completed: false
 verify_completed: false
 ```
 
-Write `.ca/active.md` with the workflow ID (plain text, no markdown formatting, just the ID string).
-
 Mark "Create workflow files" as completed. Mark "Create git worktree" as in_progress.
 
 ### 5b. Create git worktree (if enabled)
 
-Read `use_worktrees` from the config JSON already loaded.
+Read `use_worktrees` from the fresh config output produced by `ca-config.js` in THIS `/ca:instant` invocation (see CRITICAL — Fresh Config at the top).
 
 1. Check uncommitted changes: `git status --porcelain`. If not clean:
    - If `use_worktrees` is `true`:
      - Check current branch: `git branch --show-current`.
      - If current branch starts with `ca/` (workflow branch in a worktree): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
-     - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+     - Otherwise: `AskUserQuestion`: header "[W.Git]", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes to current branch before proceeding"
        - "Skip worktree" — "Don't create a worktree for this workflow"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
-     - If **Skip worktree**: Skip worktree creation, do not add worktree fields to STATUS.md. Continue to step 7.
+     - If **Skip worktree**: Skip worktree creation, do not add worktree fields to STATUS.md. Continue to step 6 (Confirm completion).
    - If `use_worktrees` is `false`:
-     - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+     - `AskUserQuestion`: header "[W.Git]", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes before starting workflow"
        - "Ignore" — "Continue without handling uncommitted changes"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
-     - If **Ignore**: Continue to step 7.
+     - If **Ignore**: Continue to step 6 (Confirm completion).
+
+If `use_worktrees` is `false`: skip worktree creation entirely. Do NOT add `branch_name`, `base_branch`, or `worktree_path` to STATUS.md. Continue to step 6 (Confirm completion).
 
 If `use_worktrees` is `true`:
 1. Check if in a git repository: `git rev-parse --is-inside-work-tree`. If not a git repo, **warn the user**: "Current project root is not a git repository. No root worktree/branch will be created." Do not add root worktree fields to STATUS.md, and skip steps 2-5 below (no root worktree). Then check the config output: if it contains a `## Project` section, proceed to section 5c to create per-repo worktrees from the `.ca/project.yaml` directories; otherwise **mark the "Create git worktree" task as `completed`**, **also surface this tip** to the user — "Tip: For multi-repo projects spanning several git repositories, run `/ca:init` to generate `.ca/project.yaml` and enable per-repo worktree creation." — and continue to step 6.
@@ -190,7 +192,7 @@ If the config output contains `## Project` with `project_dirs`:
 2. For each dir, check if it is a git repository: `git -C <dir_path> rev-parse --is-inside-work-tree 2>/dev/null`. Separate into git repos and non-git dirs.
 3. If any dirs are NOT git repos, **list them to the user**: "`<label> (<path>)` is not a git repository; worktree will not be created for it." for each non-git dir.
 4. If there are git repos in project dirs, use `AskUserQuestion` with:
-   - header: "Worktrees"
+   - header: "[W.Worktrees]"
    - question: "project.yaml lists these git repos. Create workflow worktrees in which ones?"
    - multiSelect: true
    - options: one per git repo dir (label: `<dir_label> (<dir_path>)`, description: "Create worktree with ca/<workflow-id> branch here")
@@ -209,7 +211,7 @@ Mark "Create git worktree" as completed.
 
 ### 6. Confirm completion
 
-**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, active.md) and records the user's requirement description. You MUST NOT:
+**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md) and records the user's requirement description. You MUST NOT:
 - Read source code files or project files (other than todos.md and workflow management files)
 - Analyze, summarize, or research the codebase
 - Generate any content beyond what the user provided

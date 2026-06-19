@@ -18,7 +18,7 @@ Determine which workflow to display using this priority:
 1. **Context inference**: If the current conversation has already been working with a specific workflow, use that workflow ID.
 2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
 3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask:
-   - `AskUserQuestion`: header "Workflow", question "Which workflow status do you want to see?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+   - `AskUserQuestion`: header "[W.Workflow]", question "Which workflow status do you want to see?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
 4. **No workflows**: Tell the user to run `/ca:new` or `/ca:quick` first and stop.
 
 After resolving `<active_id>`:
@@ -42,8 +42,11 @@ If STATUS.md contains `branch_name` but NOT `worktree_path` (legacy):
 Check which of these files exist and show their status:
 - `.ca/workflows/<active_id>/BRIEF.md` — initial brief collected?
 - `.ca/workflows/<active_id>/REQUIREMENT.md` — requirement defined?
-- `.ca/workflows/<active_id>/PLAN.md` — plan created?
-- `.ca/workflows/<active_id>/SUMMARY.md` — execution done?
+- `.ca/workflows/<active_id>/rounds/0/PLAN.md` — plan created?
+- `.ca/workflows/<active_id>/rounds/0/SUMMARY.md` — execution done?
+- `.ca/workflows/<active_id>/VERIFY.csv` — verification ledger?
+- `.ca/workflows/<active_id>/TRACKING.md` — tracking doc?
+- `.ca/workflows/<active_id>/rounds/0/TASKS.csv` — task ledger?
 
 ### 5. Suggest next step
 

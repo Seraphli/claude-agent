@@ -1,14 +1,14 @@
 #!/bin/bash
 # phase13_init.sh — E2E tests for /ca:init project.yaml generation
 CA_REPO_ROOT="${CA_REPO_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
-TEST_NAME="phase13"
+TEST_NAME="phase19"
 source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 echo ""
-echo "Phase 13: /ca:init project.yaml generation"
+echo "Phase 19: /ca:init project.yaml generation"
 echo "=========================================="
 
-PERSISTENT_RESULTS="$(mktemp /tmp/ca-e2e-phase13-results-XXXXXX.txt)"
+PERSISTENT_RESULTS="$(mktemp /tmp/ca-e2e-phase19-results-XXXXXX.txt)"
 
 # --- Test 1: /ca:init generates a valid project.yaml ---
 echo ""

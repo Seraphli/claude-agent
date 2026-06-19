@@ -17,7 +17,7 @@ pane_log "startup"
 echo "[test] 1: Create workflow 1"
 inject_command "/ca:quick add a hello function. All success criteria must be [auto], no [manual] items."
 wait_for_ask 120
-assert_ask_header "Add Todo" "quick1: Add Todo prompt"
+assert_ask_header "Todo" "quick1: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop
@@ -43,7 +43,7 @@ sleep 1
 select_option_by_text "Keep"
 
 wait_for_ask
-assert_ask_header "Add Todo" "quick2: Add Todo prompt"
+assert_ask_header "Todo" "quick2: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop

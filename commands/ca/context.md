@@ -42,14 +42,16 @@ For each of the following categories, report whether the file's content is prese
 - `.ca/workflows/<active_id>/STATUS.md`
 - `.ca/workflows/<active_id>/BRIEF.md`
 - `.ca/workflows/<active_id>/REQUIREMENT.md`
-- `.ca/workflows/<active_id>/RESEARCH.md`
-- `.ca/workflows/<active_id>/PLAN.md`
-- `.ca/workflows/<active_id>/SUMMARY.md`
+- `.ca/workflows/<active_id>/rounds/0/PLAN.md`
+- `.ca/workflows/<active_id>/rounds/0/SUMMARY.md`
+- `.ca/workflows/<active_id>/VERIFY.csv`
+- `.ca/workflows/<active_id>/TRACKING.md`
 
 **Other persistent data:**
 - `.ca/todos.md`
 - `.ca/todos-archive.md`
 - `.ca/map.md`
+- `.ca/docs/CONTEXT.md`
 
 Only display files that are loaded in your context. Skip files that are not loaded — do not show them at all.
 For each loaded file, show: ✅ **Loaded** — followed by a 1-line summary.

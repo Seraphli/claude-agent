@@ -100,12 +100,14 @@ cat > "${WORKFLOW_DIR}/SUMMARY.md" << 'EOF'
 - No changes made (test scenario for verify failure)
 EOF
 
-# Write CRITERIA.md with a criterion that will always fail
-cat > "${WORKFLOW_DIR}/CRITERIA.md" << 'EOF'
-# Success Criteria
-**[auto]**
-- File `nonexistent-test-file.js` must exist in the project root
-EOF
+# Write VERIFY.csv with one failing test/auto criterion (discovering round fixture)
+CA_CSV="${TEST_CONFIG_DIR}/.claude/ca/scripts/ca-csv.js"
+node "${CA_CSV}" init-verify --file "${WORKFLOW_DIR}/VERIFY.csv"
+node "${CA_CSV}" add-criterion \
+    --file "${WORKFLOW_DIR}/VERIFY.csv" \
+    --type test \
+    --method auto \
+    --criterion "File nonexistent-test-file.js must exist in the project root"
 
 echo "[setup] workflow files created at ${WORKFLOW_DIR}"
 
@@ -131,9 +133,9 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 
 # Assert ISSUES.md was created (verify failure creates this file)
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/rounds/1/ISSUES.md" "verify-fail: rounds/1/ISSUES.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/ISSUES.md" "verify-fail: rounds/0/ISSUES.md created"
 else
-    fail "verify-fail: rounds/1/ISSUES.md created"
+    fail "verify-fail: rounds/0/ISSUES.md created"
 fi
 
 # Assert fix_round=1 in STATUS.md

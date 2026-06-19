@@ -61,9 +61,9 @@ pane_log "startup"
 # Step 1: /ca:quick — create workflow, expect "Add Todo" prompt
 # ---------------------------------------------------------------------------
 
-inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
+inject_command "/ca:quick add a greeting helper to utils.js for welcoming a user. All success criteria must be [auto], no [manual] items."
 wait_for_ask 120
-assert_ask_header "Add Todo" "quick: Add Todo prompt"
+assert_ask_header "Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop
@@ -86,16 +86,12 @@ fi
 
 inject_command "/ca:plan"
 
-# Expect: Research confirmation (optional — model may skip directly to Requirements)
-wait_for_ask 120
-if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
-    pass "plan: Research prompt"
-    sleep 1
-    select_option_by_text "Skip"
-    # Now wait for Requirements
-    wait_for_ask
-fi
-assert_ask_header "Requirements" "plan: Requirements prompt"
+# TC8: the injected /ca:quick requirement is intentionally under-specified, so plan's
+# grill (§1c) should conduct a clarification stage — at least one [P.Clarify] question.
+# Consume pre-gate Research/Clarify questions until the [P.Reqs] gate; the helper sets
+# GRILL_CLARIFY_SEEN=1 if a Clarify question appeared (asserted by HEADER, not options).
+drive_grill_to_gate "Reqs" 120
+assert_ask_header "Reqs" "plan: Requirements prompt"
 sleep 1
 select_option_by_text "Correct"
 
@@ -106,8 +102,8 @@ sleep 1
 select_option_by_text "Accurate"
 
 # Expect: Rough Plan confirmation
-wait_for_ask_expect "Rough Plan" "" 45
-assert_ask_header "Rough Plan" "plan: Rough Plan prompt"
+wait_for_ask_expect "Rough" "" 45
+assert_ask_header "Rough" "plan: Rough Plan prompt"
 sleep 1
 select_option_by_text "Feasible"
 
@@ -125,19 +121,36 @@ pane_log "plan-done"
 WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/PLAN.md" "plan: PLAN.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/PLAN.md"   "plan: rounds/0/PLAN.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/TASKS.csv" "plan: rounds/0/TASKS.csv created"
     assert_file_exists "${WORKFLOW_DIR}/SPEC.md" "plan: SPEC.md created"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Desired Result / User Experience" "plan: SPEC has Desired Result section"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Verification Design" "plan: SPEC has Verification Design section"
-    assert_file_exists "${WORKFLOW_DIR}/CRITERIA.md" "plan: CRITERIA.md created"
-    assert_file_contains "${WORKFLOW_DIR}/CRITERIA.md" "\\[auto\\]" "plan: CRITERIA.md has [auto] tag"
+    assert_file_exists "${WORKFLOW_DIR}/VERIFY.csv" "plan: root VERIFY.csv created"
+    assert_file_contains "${WORKFLOW_DIR}/VERIFY.csv" "self_check|test" "plan: TC11 VERIFY.csv has self_check/test type"
+    # Assert CRITERIA.md was NOT created (superseded by VERIFY.csv)
+    if [ ! -f "${WORKFLOW_DIR}/CRITERIA.md" ]; then
+        pass "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    else
+        echo "[assert] FAIL: CRITERIA.md should not exist; VERIFY.csv is used instead"
+        fail "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    fi
+    # TC8: assert grill conducted a clarification stage ([P.Clarify] question seen)
+    if [ "${GRILL_CLARIFY_SEEN:-0}" -eq 1 ]; then
+        pass "plan: TC8 grill conducted Clarify-stage questioning"
+    else
+        fail "plan: TC8 grill conducted Clarify-stage questioning"
+    fi
 else
-    fail "plan: PLAN.md created"
+    fail "plan: rounds/0/PLAN.md created"
+    fail "plan: rounds/0/TASKS.csv created"
     fail "plan: SPEC.md created"
     fail "plan: SPEC has Desired Result section"
     fail "plan: SPEC has Verification Design section"
-    fail "plan: CRITERIA.md created"
-    fail "plan: CRITERIA.md has [auto] tag"
+    fail "plan: root VERIFY.csv created"
+    fail "plan: TC11 VERIFY.csv has self_check/test type"
+    fail "plan: CRITERIA.md absent (replaced by VERIFY.csv)"
+    fail "plan: TC8 grill conducted Clarify-stage questioning"
 fi
 
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -153,9 +166,9 @@ pane_log "execute-done"
 WORKFLOW_DIR="$(get_workflow_dir)"
 
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/SUMMARY.md" "execute: SUMMARY.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/SUMMARY.md" "execute: rounds/0/SUMMARY.md created"
 else
-    fail "execute: SUMMARY.md created"
+    fail "execute: rounds/0/SUMMARY.md created"
 fi
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
@@ -168,12 +181,12 @@ assert_file_exists "${TEST_DIR}/project/.ca/map.md" "execute: map.md exists afte
 inject_command "/ca:verify"
 
 # Expect: Results acceptance prompt
-wait_for_ask 120
+wait_for_ask 180
 assert_ask_header "Results" "verify: Results prompt"
 sleep 1
 select_option_by_text "Accept"
 
-wait_for_stop 120
+wait_for_stop 180
 pane_log "verify-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
@@ -206,7 +219,7 @@ assert_ask_header "Confirm" "finish: Confirm prompt"
 sleep 1
 select_option_by_text "Confirm"
 
-wait_for_stop
+wait_for_stop 180
 pane_log "finish-done"
 
 # After finish, the workflow is moved to .ca/history/
@@ -230,7 +243,7 @@ assert_ask_header "Restore|恢复" "restore: archive selection prompt"
 sleep 1
 select_option 1
 
-wait_for_stop
+wait_for_stop 180
 pane_log "restore-done"
 
 # Refresh workflow dir
@@ -258,6 +271,13 @@ if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "verify_completed: false" "restore: verify_completed reset"
     assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "current_step: plan" "restore: current_step is plan"
     assert_file_contains "${WORKFLOW_DIR}/STATUS.md" "fix_round: 1" "restore: fix_round set to 1"
+    # Assert rounds/0/ survived the archive+restore round-trip
+    if [ -d "${WORKFLOW_DIR}/rounds/0" ]; then
+        pass "restore: rounds/0/ survived archive+restore"
+    else
+        echo "[assert] FAIL: rounds/0/ directory missing after restore"
+        fail "restore: rounds/0/ survived archive+restore"
+    fi
 fi
 
 # ---------------------------------------------------------------------------

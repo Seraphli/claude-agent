@@ -16,7 +16,7 @@ Determine which workflow to operate on using this priority:
 1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
 2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
 3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
-   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to execute?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+   - `AskUserQuestion`: header "[W.Workflow]", question "Which workflow do you want to execute?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
 4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
 
 After resolving `<active_id>`:
@@ -34,7 +34,7 @@ After resolving `<active_id>`:
    a. Call `TaskGet` for each uncompleted task.
    b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
    c. Present to user: list each uncompleted task with subject, status, and possible cause.
-   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+   d. `AskUserQuestion`: header "[W.Tasks]", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
       - "Clear and continue" — "Delete all old tasks and start current phase"
       - "Stop" — "Pause to investigate the previous phase's issues"
    e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
@@ -53,12 +53,11 @@ You are the execution orchestrator. You delegate the actual work to the `ca-exec
 ### 1. Read context
 
 Read these files and collect their full content:
-- `.ca/workflows/<active_id>/PLAN.md`
+- `.ca/workflows/<active_id>/rounds/<N>/PLAN.md` (N = fix_round, default 0; round 0 → `rounds/0/PLAN.md`)
+- `.ca/workflows/<active_id>/rounds/<N>/TASKS.csv` (same N)
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
 
-Read `fix_round` from STATUS.md (default: 0).
-If `fix_round` > 0 (fix round N):
-- Read PLAN.md from `.ca/workflows/<active_id>/rounds/<N>/PLAN.md`
+Read `fix_round` from STATUS.md (default: 0). Use N = fix_round for all round-scoped paths above.
 
 Read `worktree_path` from STATUS.md. If present, this is the **code working directory** — executor agents operate on source files here. The orchestrator continues using `<project-root>` for all `.ca/` file operations (reading PLAN.md, writing SUMMARY.md, etc.).
 
@@ -85,38 +84,40 @@ Mark "Prepare execution" as `completed`.
 
 Read `ca-executor_model` from the config JSON already loaded. This is the already-resolved model name (opus/sonnet/haiku). Pass to Task tool.
 
-### 3. Parse execution order
+### 3. Parse execution order from TASKS.csv
 
-Parse `## Implementation Steps` in PLAN.md: ordered = sequential, unordered = parallel, nested = recursive. For each leaf item, find its `## Step Details` entry to pass to the executor.
+Read `rounds/<N>/TASKS.csv` via `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js get --file .ca/workflows/<active_id>/rounds/<N>/TASKS.csv --json`. Group rows by `phase`: rows sharing a `phase` run in parallel; phases run in ascending numeric order (sequential). **Resume:** skip rows whose `dev` is already `done`; start from the first `dev` ≠ `done` row.
 
-For each leaf item in the Implementation Steps outline, `TaskCreate`: subject "Step N: <step title from plan>", activeForm "Executing step N: <title>".
+For each task row, `TaskCreate`: subject "Task <id>: <title>", activeForm "Executing task <id>". Pass the row's `description` (and REQUIREMENT/BRIEF content) to the executor.
 
 ### 3a. Sequential execution
 
-Mark the corresponding "Step N: <title>" task as `in_progress`.
-Launch a single `ca-executor` with step details inlined. Wait for completion before next item.
+Mark the corresponding "Task <id>: <title>" task as `in_progress`.
+Launch a single `ca-executor` with the task row's `description` inlined. Wait for completion before next item.
 If `worktree_path` exists in STATUS.md, pass `worktree_path` as the "Code working directory" to the executor (separate from `<project-root>` which the orchestrator uses for `.ca/` files). If `project_worktrees` exists, pass the worktree paths from the triples as the project directory paths.
-After executor completes: mark as `completed`.
+After executor completes successfully: the ORCHESTRATOR (not the executor) flips the row: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js update --file .ca/workflows/<active_id>/rounds/<N>/TASKS.csv --id <id> --field dev --value done`. Executors return results only; they never write TASKS.csv.
+Mark the task as `completed`.
 
 ### 3b. Parallel execution
 
 Read `max_concurrency` from the config JSON already loaded. If items exceed limit, split into batches. Mark all tasks in the current batch as `in_progress`. Launch multiple `ca-executor` agents **in the same message**, each receiving:
-- Step details inlined
+- Task row `description` inlined
 - REQUIREMENT.md/BRIEF.md content
 - Project root path
 - Output file: `SUMMARY-executor-{N}.md`
   - If `worktree_path` exists: pass `worktree_path` as "Code working directory" instead of project root for code operations
 
 Wait for all to complete before next sequential item. As each executor completes: mark the corresponding task as `completed`.
+After the entire batch completes, the ORCHESTRATOR writes each completed row sequentially (no parallel-write races): `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js update --file .ca/workflows/<active_id>/rounds/<N>/TASKS.csv --id <id> --field dev --value done` for each successfully executed task. Executors return results only; they never write TASKS.csv.
 
 ### 4. Write SUMMARY.md
 
 Mark "Write SUMMARY.md" as `in_progress`.
 
-- **Single mode**: Write agent's summary to SUMMARY.md.
-- **Parallel mode**: Merge all `SUMMARY-executor-*.md` into SUMMARY.md, delete individual files.
+- **Single mode**: Write agent's summary to `.ca/workflows/<active_id>/rounds/<N>/SUMMARY.md` (N = fix_round, default 0).
+- **Parallel mode**: Merge all `SUMMARY-executor-*.md` into `.ca/workflows/<active_id>/rounds/<N>/SUMMARY.md`, delete individual files.
 
-If fix_round > 0, write to `.ca/workflows/<active_id>/rounds/<N>/SUMMARY.md`.
+After writing SUMMARY.md, append a per-round Execute summary line to `.ca/workflows/<active_id>/TRACKING.md` (create lazily) under `## Rounds → ### Round <N>` (Execute: plan-vs-execution divergence if any), per `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/tracking-format.md`. Do not duplicate SUMMARY.md content.
 
 Mark "Write SUMMARY.md" as `completed`. Mark "Commit & update map" as `in_progress`.
 
@@ -165,6 +166,9 @@ If committing:
 2. Stage all changes: `git -C <code_dir> add -A`.
 3. Read BRIEF.md first line (after `# Brief`) for title.
 4. Commit: `git -C <code_dir> commit -m "wip: <brief title>"`.
+5. After a successful commit, flip `git=done` for each executed task in this round: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js update --file .ca/workflows/<active_id>/rounds/<N>/TASKS.csv --id <id> --field git --value done`.
+
+For non-worktree standard/quick/write (no commit here): leave `git`=`pending` for all tasks — finish flips it. **Note:** `git` tracks commit state only; `pending` after execute is normal in non-worktree mode and must not mislead resume/status.
 
 Mark "Commit & update map" as `completed`.
 

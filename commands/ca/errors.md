@@ -40,7 +40,7 @@ Show errors organized by level:
 If the user wants to remove entries:
 1. Show numbered list of entries
 2. Use `AskUserQuestion` to confirm which to remove:
-   - header: "Remove"
+   - header: "[W.Remove]"
    - question: "Which entries do you want to remove?"
    - options: list entries (max 4 at a time, paginate if needed)
 3. Remove selected entries and save the file

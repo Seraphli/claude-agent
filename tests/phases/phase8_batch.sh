@@ -68,7 +68,7 @@ assert_ask_header "Batch" "batch: Batch prompt"
 sleep 1
 select_option_by_text "Execute"
 
-wait_for_stop 180
+wait_for_stop 300
 pane_log "batch-done"
 
 if [ -f "${TEST_PROJECT}/batch-result-1.js" ]; then

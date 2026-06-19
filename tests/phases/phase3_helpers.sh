@@ -73,7 +73,7 @@ echo ""
 echo "[test] 4a: /ca:quick to create a workflow"
 inject_command "/ca:quick add hello world feature"
 wait_for_ask 120
-assert_ask_header "Add Todo" "quick: Add Todo prompt"
+assert_ask_header "Todo" "quick: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop

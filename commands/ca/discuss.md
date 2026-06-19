@@ -15,7 +15,7 @@ Determine which workflow to operate on using this priority:
 1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
 2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
 3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
-   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to discuss?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+   - `AskUserQuestion`: header "[W.Workflow]", question "Which workflow do you want to discuss?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
 4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` first and stop.
 
 After resolving `<active_id>`:
@@ -28,6 +28,8 @@ After resolving `<active_id>`:
 
 **IMPORTANT — AskUserQuestion Fallback**: For ALL `AskUserQuestion` calls in this command: if the user does not select any predefined option (response contains `"__chat"="true"`), you MUST stop the current flow, acknowledge the user's input, and respond appropriately. `"__chat"` is a sentinel value for free-input mode, NOT a valid answer — never treat it as selecting any option. Do NOT ignore unselected options and continue with default behavior.
 
+**Flow-gate header prefix**: Every `AskUserQuestion` in this command uses a structural header prefix. Both the prefix AND the stage word are ALWAYS English — never localized, regardless of `interaction_language`. Discuss gates: `[D.Clarify]`, `[D.Reqs]`, `[D.SPEC]`, `[D.Research]`, `[D.Directions]`, `[D.ADR]`. Shared gates: `[W.Workflow]`, `[W.Tasks]`.
+
 Goal: understand **exactly** what the user wants before code is written.
 
 ### 0. Task cleanup and initialization
@@ -39,7 +41,7 @@ Goal: understand **exactly** what the user wants before code is written.
    a. Call `TaskGet` for each uncompleted task.
    b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
    c. Present to user: list each uncompleted task with subject, status, and possible cause.
-   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+   d. `AskUserQuestion`: header "[W.Tasks]", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
       - "Clear and continue" — "Delete all old tasks and start current phase"
       - "Stop" — "Pause to investigate the previous phase's issues"
    e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
@@ -95,7 +97,7 @@ Present the research directions to the user, along with context:
 - If Path A/B: explain what you're uncertain about and why these directions would help.
 
 Use `AskUserQuestion`:
-- header: "Research"
+- header: "[D.Research]"
 - question: "Here are the research directions I'd suggest. How would you like to proceed?"
 - options:
   - "Run all (<N>)" — "Research all <N> proposed directions"
@@ -105,7 +107,7 @@ Use `AskUserQuestion`:
 **If Run all**: Proceed to step 1d with all directions.
 **If Skip research**: `TaskCreate`: subject "Research (skipped)", activeForm "Skipping research". Mark it immediately as `completed`. Skip steps 1d and 1e. Proceed to step 2.
 **If Select directions**: Use `AskUserQuestion` with `multiSelect: true`:
-  - header: "Directions"
+  - header: "[D.Directions]"
   - question: "Select which directions to research:"
   - options: (the proposed directions, max 4)
   - If user selects none (Other with skip intent): treat as Skip research.
@@ -129,69 +131,49 @@ As each researcher agent returns, mark the corresponding "Research: <direction n
 
 ### 2. Start the discussion
 
-Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want.
+Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want. Also read `.ca/docs/CONTEXT.md` (if exists) — the project terminology glossary. Use it to recognize already-defined terms and to detect conflicts during grilling.
 
-### 3. Systematic dimension scan
+### 3. Grill Interview (relentless, decision-tree)
 
-`TaskCreate`: subject "Dimension scan", activeForm "Scanning dimensions". Mark as `in_progress`.
+`TaskCreate`: subject "Grill interview", activeForm "Grilling requirements". Mark as `in_progress`.
 
-After research findings are available (or after step 2 if research was skipped), scan the requirement against all relevant dimensions.
+Conduct the requirement clarification as a relentless grilling interview, NOT a one-shot dimension dump. Core directive (verbatim):
 
-**Standard workflow (workflow_type: standard) — 10 dimensions:**
+> Interview me relentlessly about every aspect of this plan until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer. Ask the questions one at a time, waiting for feedback on each question before continuing. If a question can be answered by exploring the codebase, explore the codebase instead.
 
-| # | Dimension | Focus |
-|---|-----------|-------|
-| 1 | Functional Scope & Behavior | What exactly should happen? Inputs, outputs, expected behavior |
-| 2 | Domain & Data Model | Entities, data structures, relationships, formats |
-| 3 | Interaction & UX Flow | User interaction paths, UI/CLI flow, feedback |
-| 4 | Non-Functional Quality | Performance, security, reliability, readability |
-| 5 | Integration & Dependencies | External systems, APIs, libraries, file dependencies |
-| 6 | Edge Cases & Error Handling | Boundary conditions, failure modes, error recovery |
-| 7 | Constraints & Tradeoffs | Technical limits, backward compatibility, acceptable compromises |
-| 8 | Terminology & Consistency | Naming conventions, style consistency with existing content |
-| 9 | Completion Signals | How to verify "done"? Measurable acceptance criteria |
-| 10 | Misc & Ambiguity Scan | Vague adjectives ("appropriate", "reasonable"), TODO placeholders |
+**Session behaviors (apply throughout):**
+1. **Challenge term conflicts** against `.ca/docs/CONTEXT.md` immediately. "Your glossary defines X as A, but you seem to mean B — which is it?"
+2. **Sharpen fuzzy/overloaded language** — propose a precise canonical term.
+3. **Stress-test domain boundaries** with concrete invented scenarios that force precision.
+4. **Cross-reference claims against actual code**; surface contradictions you find.
+5. **Update CONTEXT.md inline** as each term resolves (do NOT batch) — see step 3b.
+6. **Capture domain terms for CONTEXT.md** — when the user's requirement or answers introduce a project/domain term that is semantically ambiguous or will be reused across the project (e.g. Salutation as a greeting prefix), proactively confirm it as a canonical glossary term with the user and write it to CONTEXT.md immediately, before continuing to the next clarification question. Do not wait for the user to raise the term — if you see such a term that is not yet in CONTEXT.md, ask about it. Exclude generic programming concepts, language/framework names, and CA workflow terms (e.g. workflow, criterion, phase) unless the user specifies they carry a project-specific meaning.
 
-**Write workflow (workflow_type: write) — 6 dimensions:**
+**Explore-instead-of-ask (hybrid):** for code-answerable questions, do quick Read/Grep point lookups inline; for large unknowns, dispatch a `ca-researcher` agent (resolved model from step 1a); put only genuine preference/tradeoff decisions to the user. Always provide a recommended answer (for `AskUserQuestion`, put `(Recommended)` at the end of the suggested option label; reserve plain text for open-ended questions).
 
-| # | Dimension | Focus |
-|---|-----------|-------|
-| 1 | Scope & Goal | What to write/modify? Core objective |
-| 2 | Audience & Tone | Target reader, style, formality level |
-| 3 | Structure & Flow | Outline, section organization, logical progression |
-| 4 | Research & References | Sources, citations, background material needed |
-| 5 | Terminology & Consistency | Term usage, consistency with existing content |
-| 6 | Constraints | Length limits, format requirements, platform rules |
+**Ask ONE question at a time.** Each grill clarification `AskUserQuestion` MUST use the exact header `[D.Clarify]` (English only, never localized) so the clarification stage is identifiable by header; put the topic-specific content in the question text, NOT the header. For each question, `TaskCreate`: subject "Clarify: <brief>", activeForm "Clarifying <brief>"; mark `in_progress`; after the user answers, mark `completed`. If the user signals they don't understand, STOP and rephrase the current question before moving on (Discussion Completeness Rule).
 
-For each dimension, assess:
-- **Clear**: requirement already covers this sufficiently
-- **Partial**: some information exists but gaps remain
-- **Missing**: no information about this dimension
+**Internal coverage checklist (do NOT present as a table):** ensure the grilling covers — Functional Scope & Behavior; Domain & Data Model; Interaction & UX Flow; Non-Functional Quality; Integration & Dependencies; Edge Cases & Error Handling; Constraints & Tradeoffs; Terminology & Consistency; Completion Signals; Misc & Ambiguity. (Write workflows: Scope & Goal; Audience & Tone; Structure & Flow; Research & References; Terminology & Consistency; Constraints.) Keep grilling until every relevant checklist item is resolved.
 
-Present the assessment as a table to the user:
-```
-| Dimension | Status | Note |
-|-----------|--------|------|
-| Functional Scope & Behavior | Clear | ... |
-| Domain & Data Model | Partial | Need to clarify X |
-| ... | ... | ... |
-```
+**Post-grill CONTEXT.md check**: Before marking the grill interview as completed, verify that every canonical term resolved during grilling has been written to `.ca/docs/CONTEXT.md`. If any resolved term is missing (e.g. because it was discussed but the write was skipped), write it now using the format in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/context-format.md`. This is a safety net — inline writes (behavior 6 / step 3b) should have already captured them, but this check ensures nothing is lost.
 
-Mark "Dimension scan" as `completed`.
+Mark "Grill interview" as `completed`.
 
-### 4. Ask clarifying questions ONE AT A TIME
+### 3b. Update CONTEXT.md inline
 
-Generate questions ONLY from dimensions marked Partial or Missing. Sort by Impact × Uncertainty (highest first). Ask ONE question at a time. Typically 2-5 questions suffice. For each clarifying question, `TaskCreate`: subject "Clarify: <brief question summary>", activeForm "Clarifying <summary>". Mark as `in_progress`. After user answers: mark as `completed`.
+When — and only when — the user confirms a canonical term and its definition during grilling, write/update `.ca/docs/CONTEXT.md` immediately (create lazily on the first resolved term) using the grill glossary format in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/context-format.md`. A merely-recommended-but-unanswered question is NOT written. On conflict resolution, update the affected entry and its `_Avoid_` list in place. CONTEXT.md is a glossary only — no implementation details.
 
-**IMPORTANT**: If the user indicates they don't understand your question, you MUST stop and explain or rephrase the current question. Do NOT move on to the next question until the current one is resolved. Follow the Discussion Completeness Rule in `_rules.md`.
+### 3c. Record decisions in TRACKING.md
 
-Use `AskUserQuestion` for questions with clear options. For questions with clear options, add a recommended option: place `(Recommended)` at the end of the suggested option label.
+As decisions crystallize during grilling, append them to `.ca/workflows/<active_id>/TRACKING.md` (create lazily) under `## Decisions`, per `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/tracking-format.md`: what was chosen, what was rejected, and why (user preferences). Do NOT duplicate content captured elsewhere.
 
-Reserve plain text for open-ended questions.
+### 3d. Offer ADR for significant decisions
 
-**Supplementary Research**: During discussion, if new uncertainties emerge that need investigation, propose additional research directions to the user and launch ca-researcher agents after confirmation. Use the resolved model from step 1a when launching agents. Research is not limited to step 1 — it can happen at any point during discussion when knowledge gaps are identified.
+After recording a decision in TRACKING.md, check if it meets ALL THREE conditions from `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/adr-format.md` (hard to reverse + surprising without context + a real trade-off). If yes, OFFER to record an ADR:
 
-**IMPORTANT**: Research MUST use `ca-researcher` agents (via the Agent tool with subagent_type ca-researcher). Do NOT use Explore agents, claude-code-guide, or general-purpose agents as a substitute for ca-researcher during any research phase in this command.
+`AskUserQuestion`: header `"[D.ADR]"`, question "Record this decision as an ADR?", options "Yes"/"No".
+
+On "Yes": write `.ca/docs/adr/NNNN-slug.md` (next sequential number, grill format). Do NOT auto-create; trivial decisions are not offered. Record the offered/created ADR in TRACKING.md under `## Decisions` (e.g. "[ADR] 0001-rest-vs-graphql.md created").
 
 ### 5. Present requirement summary
 
@@ -216,7 +198,7 @@ Present a structured summary:
 ### 6. MANDATORY CONFIRMATION
 
 Use `AskUserQuestion` with:
-- header: "Requirements"
+- header: "[D.Reqs]"
 - question: "Does this accurately capture your requirements?"
 - options:
   - "Accurate" — "Requirements are correct, proceed"
@@ -270,7 +252,7 @@ Present the draft SPEC to the user:
 <test cases as action + assertion>
 ```
 
-`AskUserQuestion`: header "SPEC", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
+`AskUserQuestion`: header "[D.SPEC]", question "Does this SPEC accurately describe the desired result and verification design?", options "Accurate"/"Needs changes".
 
 If **Needs changes**: ask what needs to change, revise, re-confirm.
 If **Accurate**: Write the SPEC to `.ca/workflows/<active_id>/SPEC.md`:

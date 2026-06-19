@@ -17,10 +17,10 @@ model: inherit
 
 You will receive:
 - The content of REQUIREMENT.md (what was requested)
-- The content of PLAN.md (what was planned)
+- The content of PLAN.md (what was planned — high-level approach)
+- The content of the round's TASKS.csv (the detailed task list for this round)
 - The content of SUMMARY.md (what was executed)
-- The criteria to verify (may be all criteria or a subset for parallel mode)
-- Whether criteria are `[auto]` or `[manual]` tagged — only verify `[auto]` criteria
+- The criteria to verify — rows from VERIFY.csv with columns `type` (`self_check`/`test`) and `method` (`auto`/`manual`); only verify `method: auto` rows (manual criteria are handled by the orchestrator/user)
 - (Optional) An output file path for the report (e.g., `VERIFY-verifier-1.md`). If provided, write your report to this file instead of returning it.
 - The project root path
 
@@ -28,11 +28,15 @@ You will receive:
 
 ### 1. Check each success criterion
 
-Read the success criteria provided to you. Only verify criteria tagged `[auto]`. Skip `[manual]` criteria (those require user confirmation and are handled by the orchestrator).
+Read the criteria rows from VERIFY.csv provided to you. Only verify rows where `method` is `auto`. Skip rows where `method` is `manual` (those require user confirmation and are handled by the orchestrator).
+
+For each `auto` criterion, the verification approach depends on its `type`:
+- **`type: self_check`** — verify by STATIC INSPECTION of the code/file(s): read or grep the relevant files and confirm the specific criterion holds, without running anything (e.g. a symbol is exported, a required comment/string is present, imports are at the top). Check exactly what that criterion states — there is no fixed checklist.
+- **`type: test`** — verify functional or behavioral correctness: run the relevant tests or commands (e.g., `npm test`, `pytest`, CLI invocations) and check actual output against expected behavior.
 
 For each criterion:
-- Verify it's actually met by reading the relevant code/files
-- Record the evidence (what you found)
+- Verify it's actually met by reading the relevant code/files or running the relevant tests/commands
+- Record the evidence (what you found or what the test output showed)
 - Mark as **PASS** or **FAIL** — no other status is allowed
 
 **CRITICAL — Strict PASS/FAIL Rules**:
@@ -47,9 +51,10 @@ For each criterion:
 
 ### 2. Check plan compliance
 
-Compare SUMMARY.md against PLAN.md:
-- Were all planned steps executed?
-- Were there unexpected deviations?
+Compare SUMMARY.md against the round's TASKS.csv and PLAN.md:
+- For each task row in TASKS.csv: was it executed and reflected in SUMMARY.md? (The detailed plan lives in TASKS.csv — verify.md passes the round's TASKS.csv content to you.)
+- Does the overall approach in SUMMARY.md align with PLAN.md's high-level intent?
+- Were there unexpected deviations from the task list?
 - Are the expected results achieved?
 
 ### 3. Basic quality checks
@@ -72,7 +77,7 @@ Return your report in this exact structure:
 ### Success Criteria
 | # | Criterion | Type | Status | Evidence |
 |---|-----------|------|--------|----------|
-| 1 | <criterion> | auto | PASS/FAIL | <what you found> |
+| 1 | <criterion> | self_check/test | PASS/FAIL | <what you found> |
 
 ### Plan Compliance
 | # | Planned Step | Status | Notes |
@@ -96,6 +101,7 @@ Return your report in this exact structure:
 
 - If an output file path is provided, write your verification report to that file.
 - If no output file path is provided, return the report as your response.
+- **Do NOT write to VERIFY.csv.** The orchestrator is the single writer of VERIFY.csv — it records results (e.g., `result`, `last_verified_round`) after reading your report. Return your report only; do not modify any CSV ledger.
 
 ## Rules
 

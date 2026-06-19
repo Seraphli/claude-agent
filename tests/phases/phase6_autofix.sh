@@ -72,11 +72,14 @@ cat > "${WF_DIR}/SUMMARY.md" << 'EOF'
 - No changes made (simulated incomplete execution)
 EOF
 
-cat > "${WF_DIR}/CRITERIA.md" << 'EOF'
-# Success Criteria
-**[auto]**
-- File `autofix-result.js` must exist in the project root and must export an `add` function that returns the sum of two arguments
-EOF
+# Seed root VERIFY.csv with one failing test/auto criterion
+CA_CSV="${TEST_CONFIG_DIR}/.claude/ca/scripts/ca-csv.js"
+node "${CA_CSV}" init-verify --file "${WF_DIR}/VERIFY.csv"
+node "${CA_CSV}" add-criterion \
+    --file "${WF_DIR}/VERIFY.csv" \
+    --type test \
+    --method auto \
+    --criterion "File autofix-result.js must exist in the project root and must export an add function that returns the sum of two arguments"
 
 start_claude
 sleep 5
@@ -88,10 +91,10 @@ pane_log "autofix-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/rounds/1/ISSUES.md" "autofix: rounds/1/ISSUES.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/ISSUES.md" "autofix: rounds/0/ISSUES.md created"
     assert_file_exists "${WORKFLOW_DIR}/rounds/1/PLAN.md" "autofix: rounds/1/PLAN.md created"
 else
-    fail "autofix: rounds/1/ISSUES.md created"
+    fail "autofix: rounds/0/ISSUES.md created"
     fail "autofix: rounds/1/PLAN.md created"
 fi
 
@@ -109,6 +112,28 @@ if [ -n "${FIX_ROUND}" ] && [ "${FIX_ROUND}" -ge 1 ] 2>/dev/null; then
 else
     echo "[assert] FAIL: fix_round=${FIX_ROUND:-unknown}, expected >= 1"
     fail "autofix: fix_round >= 1"
+fi
+
+# TC12: assert VERIFY.csv result/last_verified_round refreshed after the auto-fix round
+VERIFY_CSV="${WORKFLOW_DIR}/VERIFY.csv"
+if [ -f "${VERIFY_CSV}" ]; then
+    VERIFY_RESULT="$(node "${CA_CSV}" get --file "${VERIFY_CSV}" --json 2>/dev/null | jq -r '.[0].result // ""' 2>/dev/null || echo "")"
+    VERIFY_ROUND="$(node "${CA_CSV}" get --file "${VERIFY_CSV}" --json 2>/dev/null | jq -r '.[0].last_verified_round // ""' 2>/dev/null || echo "")"
+    if [ "${VERIFY_RESULT}" = "pass" ]; then
+        pass "autofix: VERIFY.csv result=pass after fix round (TC12)"
+    else
+        echo "[assert] FAIL: VERIFY.csv result='${VERIFY_RESULT}', expected 'pass'"
+        fail "autofix: VERIFY.csv result=pass after fix round (TC12)"
+    fi
+    if [ -n "${VERIFY_ROUND}" ]; then
+        pass "autofix: VERIFY.csv last_verified_round set after fix round (TC12)"
+    else
+        echo "[assert] FAIL: VERIFY.csv last_verified_round is empty"
+        fail "autofix: VERIFY.csv last_verified_round set after fix round (TC12)"
+    fi
+else
+    fail "autofix: VERIFY.csv result=pass after fix round (TC12)"
+    fail "autofix: VERIFY.csv last_verified_round set after fix round (TC12)"
 fi
 
 summarize_results

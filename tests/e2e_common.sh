@@ -168,6 +168,25 @@ dump_debug() {
     echo ""
 }
 
+# preserve_transcripts — Copy transcript JSONL files to logs dir before cleanup
+preserve_transcripts() {
+    if [ -z "${TEST_CONFIG_DIR}" ] || [ -z "${CA_REPO_ROOT}" ]; then
+        return
+    fi
+    local log_dir="${CA_REPO_ROOT}/tests/logs"
+    mkdir -p "${log_dir}"
+    local ts
+    ts="$(date +%Y%m%d-%H%M%S)"
+    local count=0
+    while IFS= read -r -d '' f; do
+        cp "${f}" "${log_dir}/${TEST_NAME:-unknown}-${ts}-transcript-$(basename "${f}")"
+        count=$((count + 1))
+    done < <(find "${TEST_CONFIG_DIR}/.claude/projects" -name '*.jsonl' -print0 2>/dev/null)
+    if [ "${count}" -gt 0 ]; then
+        echo "[cleanup] preserved ${count} transcript(s) to ${log_dir}/"
+    fi
+}
+
 # cleanup — Kill tmux session and remove temp directory
 cleanup() {
     # Dump debug info before cleanup
@@ -177,6 +196,9 @@ cleanup() {
     ${TMUX_CMD} kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
     ${TMUX_CMD} kill-server 2>/dev/null || true
     sleep 2
+
+    # Preserve transcript files before removing temp dir
+    preserve_transcripts
 
     # Remove temp dir
     if [ -n "${TEST_DIR}" ] && [ -d "${TEST_DIR}" ]; then
@@ -202,7 +224,7 @@ start_claude() {
     # BROWSER=none prevents any browser from opening (e.g., auth, MCP)
     ${TMUX_CMD} new-session -d -s "${TMUX_SESSION}" \
         -x 220 -y 50 \
-        "cd '${project_dir}' && BROWSER=none CLAUDE_CONFIG_DIR='${TEST_CONFIG_DIR}/.claude' claude --model sonnet --dangerously-skip-permissions --setting-sources user"
+        "cd '${project_dir}' && BROWSER=none CLAUDE_CONFIG_DIR='${TEST_CONFIG_DIR}/.claude' claude --model sonnet --dangerously-skip-permissions --setting-sources user 2>'${TEST_DIR}/cc-stderr.log'; echo \$? > '${TEST_DIR}/cc-exit.log'"
 
     echo "[claude] started tmux session: ${TMUX_SESSION}"
 
@@ -245,6 +267,40 @@ inject_command() {
 
 # --- Interaction Helpers ---
 
+# check_session_idle — Query idle API for the E2E test session's busy/idle state
+#
+# Outputs one of: "busy", "idle", "unknown"
+# Requires globals: TMUX_CMD, TMUX_SESSION
+check_session_idle() {
+    local pane_id socket_path tmux_target idle_json idle_val
+    pane_id="$(${TMUX_CMD} display-message -t "${TMUX_SESSION}" -p '#{pane_id}' 2>/dev/null || true)"
+    socket_path="$(${TMUX_CMD} display-message -t "${TMUX_SESSION}" -p '#{socket_path}' 2>/dev/null || true)"
+    if [ -z "${pane_id}" ] || [ -z "${socket_path}" ]; then
+        echo "unknown"
+        return
+    fi
+    tmux_target="${pane_id}@${socket_path}"
+    local encoded_target
+    encoded_target="$(printf "%s" "${tmux_target}" | python3 -c "import sys,urllib.parse; print(urllib.parse.quote(sys.stdin.read()))" 2>/dev/null || true)"
+    if [ -z "${encoded_target}" ]; then
+        echo "unknown"
+        return
+    fi
+    idle_json="$(curl -s "http://127.0.0.1:12500/session/idle?target=${encoded_target}" 2>/dev/null || true)"
+    if [ -z "${idle_json}" ]; then
+        echo "unknown"
+        return
+    fi
+    idle_val="$(echo "${idle_json}" | jq -r '[.sessions | to_entries[].value.idle | tostring] | first // empty' 2>/dev/null || true)"
+    if [ "${idle_val}" = "true" ]; then
+        echo "idle"
+    elif [ "${idle_val}" = "false" ]; then
+        echo "busy"
+    else
+        echo "unknown"
+    fi
+}
+
 # wait_for_event — Wait for a new event matching pattern in EVENT_LOG
 #
 # Args:
@@ -253,26 +309,104 @@ inject_command() {
 #
 # Sets LAST_EVENT to the matching line.
 # Returns 0 on match, 1 on timeout.
+#
+# On timeout, queries the idle API to diagnose busy vs idle:
+#   - idle: pattern was not emitted (functional issue), fails immediately
+#   - busy: LLM still processing, retries up to 3 additional rounds
+#   - unknown: API unavailable, falls back to original timeout behavior
 wait_for_event() {
     local pattern="$1"
     local timeout="${2:-45}"
+    local caller_line="${3:-${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]:-unknown}}"
     local start_lines="${EVENT_LINE_COUNT:-0}"
-    local start=$SECONDS
-    while (( SECONDS - start < timeout )); do
-        local current_lines
-        current_lines=$(wc -l < "${EVENT_LOG}" 2>/dev/null || echo 0)
-        if [ "${current_lines}" -gt "${start_lines}" ]; then
-            local match
-            match=$(tail -n +"$((start_lines + 1))" "${EVENT_LOG}" | grep -m1 "${pattern}" || true)
-            if [ -n "${match}" ]; then
-                LAST_EVENT="${match}"
-                EVENT_LINE_COUNT="${current_lines}"
-                return 0
+    local last_pane=""
+    local max_retries=3
+    local retry=0
+    local idle_diagnosis=""
+
+    while true; do
+        local start=$SECONDS
+        while (( SECONDS - start < timeout )); do
+            idle_diagnosis="$(check_session_idle)"
+            local current_lines
+            current_lines=$(wc -l < "${EVENT_LOG}" 2>/dev/null || echo 0)
+            if [ "${current_lines}" -gt "${start_lines}" ]; then
+                local match
+                match=$(tail -n +"$((start_lines + 1))" "${EVENT_LOG}" | grep -m1 "${pattern}" || true)
+                if [ -n "${match}" ]; then
+                    LAST_EVENT="${match}"
+                    EVENT_LINE_COUNT="${current_lines}"
+                    return 0
+                fi
             fi
+            local snap
+            snap="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p -S -100 2>/dev/null || true)"
+            if [ -n "${snap}" ]; then last_pane="${snap}"; fi
+            sleep 1
+        done
+
+        if [ "${idle_diagnosis}" = "busy" ] && (( retry < max_retries )); then
+            retry=$((retry + 1))
+            echo "BUSY: LLM still processing, extending wait (round ${retry}/${max_retries}, +${timeout}s)..."
+            continue
         fi
-        sleep 1
+        break
     done
-    echo "TIMEOUT: wait_for_event pattern='${pattern}' exceeded ${timeout}s"
+
+    local timeout_prefix="TIMEOUT"
+    if [ -n "${caller_line}" ]; then timeout_prefix="TIMEOUT [${caller_line}]"; fi
+
+    if ! ${TMUX_CMD} has-session -t "${TMUX_SESSION}" 2>/dev/null; then
+        echo "CC_SESSION_TERMINATED [${caller_line}]: wait_for_event pattern='${pattern}' exceeded ${timeout}s — claude process exited"
+    elif [ "${idle_diagnosis}" = "busy" ]; then
+        echo "WARNING: LLM still busy after ${max_retries} retry rounds (total wait: ~$(( timeout * (max_retries + 1) ))s)"
+        echo "${timeout_prefix}: wait_for_event pattern='${pattern}' exceeded ${timeout}s x$((max_retries + 1)) — LLM timeout (busy, ${max_retries} retries exhausted)"
+    elif [ "${idle_diagnosis}" = "idle" ]; then
+        echo "${timeout_prefix}: wait_for_event pattern='${pattern}' exceeded ${timeout}s — pattern not detected (idle)"
+    else
+        echo "${timeout_prefix}: wait_for_event pattern='${pattern}' exceeded ${timeout}s"
+    fi
+
+    echo "=== DEBUG DUMP [timeout] ==="
+    echo "--- pane content (at timeout) ---"
+    local now_pane
+    now_pane="$(${TMUX_CMD} capture-pane -t "${TMUX_SESSION}" -p -S -100 2>/dev/null || true)"
+    if [ -n "${now_pane}" ]; then
+        printf '%s\n' "${now_pane}"
+    elif [ -n "${last_pane}" ]; then
+        echo "(session gone at timeout — last snapshot taken during the wait:)"
+        printf '%s\n' "${last_pane}"
+    else
+        echo "(no pane content — session terminated and no snapshot was captured)"
+    fi
+    echo "--- session alive? ---"
+    if ${TMUX_CMD} has-session -t "${TMUX_SESSION}" 2>/dev/null; then
+        echo "yes (stuck/slow — session still running)"
+    else
+        echo "no (session terminated during wait)"
+    fi
+    echo "--- idle API diagnosis ---"
+    echo "status: ${idle_diagnosis:-not checked}"
+    if (( retry > 0 )); then
+        echo "retried: ${retry}/${max_retries} rounds (total wait: ~$(( timeout * (retry + 1) ))s)"
+    fi
+    echo "--- event log (last 30 lines) ---"
+    if [ -n "${EVENT_LOG}" ] && [ -f "${EVENT_LOG}" ]; then
+        tail -30 "${EVENT_LOG}" 2>/dev/null || echo "(empty)"
+    else
+        echo "(no event log)"
+    fi
+    echo "--- cc exit info ---"
+    if [ -n "${TEST_DIR}" ] && [ -f "${TEST_DIR}/cc-exit.log" ]; then
+        echo "exit code: $(cat "${TEST_DIR}/cc-exit.log" 2>/dev/null)"
+        if [ -f "${TEST_DIR}/cc-stderr.log" ]; then
+            echo "stderr (last 20 lines):"
+            tail -20 "${TEST_DIR}/cc-stderr.log" 2>/dev/null || echo "(empty)"
+        fi
+    else
+        echo "(no cc-exit.log — claude may still be running)"
+    fi
+    echo "=== END DEBUG DUMP ==="
     return 1
 }
 
@@ -285,7 +419,7 @@ wait_for_event() {
 # Returns 0 if AskUserQuestion received, 1 if timeout.
 wait_for_ask() {
     local timeout="${1:-45}"
-    if wait_for_event '"tool_name":"AskUserQuestion"' "${timeout}"; then
+    if wait_for_event '"tool_name":"AskUserQuestion"' "${timeout}" "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}"; then
         LAST_ASK_HEADER=$(echo "${LAST_EVENT}" | grep -oP '"header"\s*:\s*"[^"]*"' | head -1 | sed 's/.*"header"\s*:\s*"\([^"]*\)".*/\1/')
         local ask_question ask_options
         ask_question=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions[0].question // empty' 2>/dev/null)
@@ -342,6 +476,53 @@ wait_for_ask_expect() {
     return 1
 }
 
+# drive_grill_to_gate — consume ONLY pre-gate grill clarification ([P/D.Clarify])
+# and Research questions until a target confirmation-gate header appears. Any other
+# unexpected header (or a later gate out of order) is treated as a FAILURE, so header
+# drift / misordering surfaces instead of being silently answered.
+# Sets GRILL_CLARIFY_SEEN=1 if at least one Clarify-stage question was consumed.
+#
+# Args:
+#   $1 — target gate header pattern (grep -E regex, e.g. "Reqs|需求")
+#   $2 — timeout per ask in seconds (default: 120)
+#   $3 — max questions to consume before giving up (default: 15)
+# Returns 0 when the target header is reached, 1 on timeout / unexpected header / give-up.
+drive_grill_to_gate() {
+    local target="$1"
+    local timeout="${2:-120}"
+    local maxq="${3:-15}"
+    GRILL_CLARIFY_SEEN=0
+    local i=0
+    while [ "${i}" -lt "${maxq}" ]; do
+        wait_for_ask "${timeout}" || return 1
+        if echo "${LAST_ASK_HEADER}" | grep -qE "${target}"; then
+            return 0
+        fi
+        if echo "${LAST_ASK_HEADER}" | grep -qE "Clarify"; then
+            local nq
+            nq=$(echo "${LAST_EVENT}" | jq -r '.payload.tool_input.questions | length' 2>/dev/null || echo 1)
+            if [ "${nq}" != "1" ]; then
+                echo "[gate] Clarify event has ${nq} questions — violates one-at-a-time (multi-question dump)"
+                return 1
+            fi
+            GRILL_CLARIFY_SEEN=1
+            echo "[gate] consumed Clarify question (1 q): ${LAST_ASK_HEADER}"
+            sleep 1
+            select_option 1
+        elif echo "${LAST_ASK_HEADER}" | grep -qE "Research|研究|调研"; then
+            echo "[gate] skipping Research: ${LAST_ASK_HEADER}"
+            sleep 1
+            select_option_by_text "Skip|跳过"
+        else
+            echo "[gate] UNEXPECTED pre-gate header '${LAST_ASK_HEADER}' (expected ${target}, Clarify, or Research) — failing"
+            return 1
+        fi
+        i=$((i + 1))
+    done
+    echo "[gate] gave up after ${maxq} questions, last header: ${LAST_ASK_HEADER}"
+    return 1
+}
+
 # wait_for_step_confirmations — Handle step-by-step plan confirmation (Confirmation 2b)
 #
 # Loops waiting for "Step N" AskUserQuestion headers, auto-selecting "Correct" for each.
@@ -384,7 +565,7 @@ wait_for_step_confirmations() {
 # Returns 0 if Stop detected, 1 if timeout.
 wait_for_stop() {
     local timeout="${1:-60}"
-    wait_for_event '"event":"Stop"' "${timeout}"
+    wait_for_event '"event":"Stop"' "${timeout}" "${BASH_SOURCE[1]##*/}:${BASH_LINENO[0]}"
 }
 
 # select_option — Navigate AskUserQuestion picker by index and confirm
@@ -627,7 +808,7 @@ pass() {
     echo "  PASS  ${name}"
 }
 
-# fail — Record a FAIL result
+# fail — Record a FAIL result and abort the phase script (fail-fast)
 #
 # Args:
 #   $1 — test name
@@ -635,6 +816,10 @@ fail() {
     local name="$1"
     echo "FAIL|${name}" >> "${RESULTS_FILE}"
     echo "  FAIL  ${name}"
+    echo ""
+    echo "  [fail-fast] Aborting phase on first failure."
+    summarize_results || true
+    exit 1
 }
 
 # --- Debugging ---

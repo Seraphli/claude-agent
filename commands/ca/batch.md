@@ -34,7 +34,7 @@ Present all eligible workflows:
 ### 2. Confirm batch execution
 
 Use `AskUserQuestion` with:
-- header: "Batch"
+- header: "[W.Batch]"
 - question: "Execute these N workflows in order?"
 - options:
   - "Execute all" — "Run all listed workflows sequentially"
@@ -66,7 +66,7 @@ Execute `Skill(ca:verify)`. `batch_mode: true` → skip manual criteria, skip us
 
 **If verify succeeds** (verify_completed: true):
 1. **If worktree mode**: Execute auto-commit already handled by execute step 7b. No additional commit needed. Remove `batch_mode` from STATUS.md. Record success.
-2. **If non-worktree mode**: Stage changed files and commit (generate message from PLAN.md/SUMMARY.md). Remove `batch_mode`. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`. Record success.
+2. **If non-worktree mode**: Stage changed files and commit (generate message from `rounds/<latest round>/PLAN.md` + `rounds/<latest>/SUMMARY.md`). Remove `batch_mode`. Remove checkpoint tag: `git tag -d ca-batch-checkpoint-<workflow_id>`. After committing successfully, flip every round's TASKS.csv `git` field to `done`: for each TASKS.csv in `rounds/`, first collect its task ids via `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js get --file <TASKS.csv> --json` (read each row's `id`), then run a single `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js update --file <TASKS.csv> --id <id1,id2,...> --field git --value done`. Do NOT flip on failure or rollback. Assert: after the flip, every TASKS.csv `git` value in the committed workflow's `rounds/` equals `done`. Record success.
 
 **If verify fails**:
 1. **If worktree mode**: no checkout needed — main repo is already on base branch. Reset STATUS.md flags. Remove `batch_mode`. Record failure. Worktree and branch retain their state for later fix.

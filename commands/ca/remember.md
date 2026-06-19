@@ -24,7 +24,7 @@ The user's message contains the information to save. If empty, ask what to remem
 ### 2. Ask target level
 
 Use `AskUserQuestion` with:
-- header: "Level"
+- header: "[W.Level]"
 - question: "Save to global or project context?"
 - options:
   - "Project" — "Save to .claude/rules/ca:context.md (this project only)"

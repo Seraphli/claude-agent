@@ -18,6 +18,7 @@ echo "--- Test 1: /ca:new multi-repo worktrees ---"
 
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
+trap 'cleanup' EXIT
 
 # Enable branches in workspace config
 cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
@@ -72,7 +73,7 @@ inject_command "/ca:new test multi-repo requirement"
 
 # Wait for todo link/add question
 wait_for_ask 120
-assert_ask_header "Link Todo|Add Todo|Todo" "new: todo question appears"
+assert_ask_header "Todo" "new: todo question appears"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
@@ -170,7 +171,7 @@ inject_command "/ca:quick quick multi-repo test"
 
 # Wait for todo link/add question
 wait_for_ask 120
-assert_ask_header "Link Todo|Add Todo|Todo" "quick: todo question appears"
+assert_ask_header "Todo" "quick: todo question appears"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
@@ -204,9 +205,141 @@ fi
 
 cleanup
 
-# --- Test 3: /ca:new non-git umbrella root → 5c multi-repo ---
+# --- Test 3: multi-repo discuss consolidates CONTEXT.md at orchestration location (TC7) ---
 echo ""
-echo "--- Test 3: /ca:new non-git umbrella root ---"
+echo "--- Test 3: multi-repo discuss CONTEXT.md location (TC7) ---"
+
+setup_test_env
+RESULTS_FILE="${PERSISTENT_RESULTS}"
+
+# Enable worktrees for multi-repo context
+cat > "${TEST_DIR}/project/.ca/config.md" << 'WSCONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+WSCONFIG
+
+cat > "${TEST_CONFIG_DIR}/.claude/ca/config.md" << 'CONFIG'
+interaction_language: English
+comment_language: English
+code_language: English
+use_worktrees: true
+auto_proceed_to_plan: false
+auto_proceed_to_verify: false
+CONFIG
+
+# Create two mock git repos
+REPO1="${TEST_DIR}/repo1"
+REPO2="${TEST_DIR}/repo2"
+mkdir -p "${REPO1}" "${REPO2}"
+git -C "${REPO1}" init -q
+git -C "${REPO1}" config user.email "test@example.com"
+git -C "${REPO1}" config user.name "Test"
+touch "${REPO1}/README.md"
+git -C "${REPO1}" add -A && git -C "${REPO1}" commit -q -m "init"
+git -C "${REPO2}" init -q
+git -C "${REPO2}" config user.email "test@example.com"
+git -C "${REPO2}" config user.name "Test"
+touch "${REPO2}/README.md"
+git -C "${REPO2}" add -A && git -C "${REPO2}" commit -q -m "init"
+
+# Create project.yaml in orchestration project
+cat > "${TEST_DIR}/project/.ca/project.yaml" << YAML
+project_name: test-multi-repo-discuss
+description: Test multi-repo discuss term consolidation
+dirs:
+  - label: repo1
+    path: ${REPO1}
+  - label: repo2
+    path: ${REPO2}
+YAML
+
+start_claude
+
+# Start new workflow then run discuss
+inject_command "/ca:new add a greet term to both repos"
+wait_for_ask 120
+assert_ask_header "Todo" "tc7: todo question appears"
+sleep 1
+select_option_by_text "No.*skip|skip"
+
+# Handle worktree selection if it appears
+wait_for_ask 120
+if echo "${LAST_ASK_HEADER}" | grep -qE "Worktrees"; then
+    sleep 1
+    select_option_smart 1
+    wait_for_stop 60
+else
+    wait_for_stop 60
+fi
+
+# Run discuss — introduce a domain term so grill resolves it (writes CONTEXT.md inline).
+# Grill-era discuss flow: research → grill clarifications ([D.Clarify]) → [D.Reqs] → [D.SPEC] → Stop.
+# Skip research explicitly (multi-repo research can do slow web searches that blow the wait),
+# then drive through grill + Requirements + SPEC so the discuss completes and resolves the term.
+inject_command "/ca:discuss the greet function should use a Salutation prefix — define Salutation as a canonical domain term in the project glossary"
+for i in $(seq 1 12); do
+    wait_for_ask 120
+    if echo "${LAST_ASK_HEADER}" | grep -qE "Research|研究|调研"; then
+        sleep 1
+        select_option_by_text "Skip|跳过"
+        continue
+    fi
+    if echo "${LAST_ASK_HEADER}" | grep -qE "Reqs"; then
+        sleep 1
+        select_option_by_text "Accurate|Correct"
+        break
+    fi
+    # grill clarification or preliminary scope question — accept the recommended/default
+    sleep 1
+    select_option_smart 1
+done
+# Expect: SPEC confirmation after requirements
+wait_for_ask 120
+if echo "${LAST_ASK_HEADER}" | grep -qE "SPEC"; then
+    sleep 1
+    select_option_by_text "Accurate"
+fi
+wait_for_stop 120
+pane_log "tc7-discuss-done"
+
+# TC7: assert exactly one CONTEXT.md at orchestration location
+ORCH_CONTEXT="${TEST_DIR}/project/.ca/docs/CONTEXT.md"
+if [ -f "${ORCH_CONTEXT}" ]; then
+    pass "tc7: CONTEXT.md at orchestration location"
+    if grep -q 'Salutation' "${ORCH_CONTEXT}"; then
+      pass "tc7: CONTEXT.md contains Salutation term"
+    else
+      fail "tc7: CONTEXT.md exists but does not contain Salutation term"
+    fi
+else
+    fail "tc7: CONTEXT.md at orchestration location"
+fi
+
+# TC7: assert NO per-repo CONTEXT.md files
+REPO1_CONTEXT="${REPO1}/.ca/docs/CONTEXT.md"
+REPO2_CONTEXT="${REPO2}/.ca/docs/CONTEXT.md"
+if [ ! -f "${REPO1_CONTEXT}" ] && [ ! -f "${REPO2_CONTEXT}" ]; then
+    pass "tc7: no per-repo CONTEXT.md files"
+else
+    echo "[assert] FAIL: per-repo CONTEXT.md found (repo1: $([ -f "${REPO1_CONTEXT}" ] && echo yes || echo no), repo2: $([ -f "${REPO2_CONTEXT}" ] && echo yes || echo no))"
+    fail "tc7: no per-repo CONTEXT.md files"
+fi
+
+# TC7: assert NO CONTEXT-MAP.md
+if [ ! -f "${TEST_DIR}/project/.ca/docs/CONTEXT-MAP.md" ]; then
+    pass "tc7: no CONTEXT-MAP.md"
+else
+    fail "tc7: no CONTEXT-MAP.md"
+fi
+cleanup
+
+# --- Test 4: /ca:new non-git umbrella root → 5c multi-repo ---
+echo ""
+echo "--- Test 4: /ca:new non-git umbrella root ---"
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
 
@@ -253,7 +386,7 @@ start_claude
 inject_command "/ca:new umbrella new requirement"
 
 wait_for_ask 120
-assert_ask_header "Link Todo|Add Todo|Todo" "new non-git: todo question"
+assert_ask_header "Todo" "new non-git: todo question"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
@@ -284,9 +417,9 @@ else
 fi
 cleanup
 
-# --- Test 4: /ca:quick non-git umbrella root → 5c multi-repo ---
+# --- Test 5: /ca:quick non-git umbrella root → 5c multi-repo ---
 echo ""
-echo "--- Test 4: /ca:quick non-git umbrella root ---"
+echo "--- Test 5: /ca:quick non-git umbrella root ---"
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
 
@@ -330,7 +463,7 @@ start_claude
 inject_command "/ca:quick umbrella quick requirement"
 
 wait_for_ask 120
-assert_ask_header "Link Todo|Add Todo|Todo" "quick non-git: todo question"
+assert_ask_header "Todo" "quick non-git: todo question"
 sleep 1
 select_option_by_text "No.*skip|skip"
 
@@ -361,9 +494,9 @@ else
 fi
 cleanup
 
-# --- Test 5: /ca:instant non-git umbrella root → 5c multi-repo ---
+# --- Test 6: /ca:instant non-git umbrella root → 5c multi-repo ---
 echo ""
-echo "--- Test 5: /ca:instant non-git umbrella root ---"
+echo "--- Test 6: /ca:instant non-git umbrella root ---"
 setup_test_env
 RESULTS_FILE="${PERSISTENT_RESULTS}"
 
@@ -407,7 +540,7 @@ start_claude
 inject_command "/ca:instant umbrella instant requirement"
 
 wait_for_ask 120
-assert_ask_header "Link Todo|Add Todo|Todo" "instant non-git: todo question"
+assert_ask_header "Todo" "instant non-git: todo question"
 sleep 1
 select_option_by_text "No.*skip|skip"
 

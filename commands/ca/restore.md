@@ -45,7 +45,7 @@ Present a numbered list to the user, most recent first (highest number first):
 If there are more than 20 archived workflows, show the most recent 20 and tell the user there are N more. Offer a "Show all" option.
 
 Use `AskUserQuestion`:
-- header: "Restore"
+- header: "[W.Restore]"
 - question: "Select the archived workflow to restore:"
 - options: Top 4 most recent archives as options (label: "#N <workflow_id>", description: brief summary truncated to 50 chars)
 
@@ -61,7 +61,7 @@ Mark "Scan archived workflows" as `completed`. Mark "Restore workflow files" as 
    - Inform the user of the ID change.
 3. Move the entire archive directory to `.ca/workflows/<workflow_id>/` using `mv`.
 4. Update STATUS.md in the restored workflow:
-   - Determine `fix_round`: scan for existing `rounds/` subdirectories. If `rounds/` exists, find the highest N. Set `fix_round` to N+1. If no `rounds/` directory, set `fix_round` to 1.
+   - Determine `fix_round`: scan `rounds/` for the highest N (round 0 always exists for a completed workflow); set `fix_round` = N+1. (N=0 → fix_round=1 for a workflow that completed exactly one round.)
    - Set `plan_completed: false`
    - Set `plan_confirmed: false`
    - Set `execute_completed: false`
@@ -78,7 +78,7 @@ Read `use_worktrees` from the config JSON already loaded.
 
 1. Check uncommitted changes: `git status --porcelain`. If not clean:
    - If current branch starts with `ca/`: auto-commit `git add -A && git commit -m "wip: save uncommitted changes"`.
-   - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+   - Otherwise: `AskUserQuestion`: header "[W.Git]", question "There are uncommitted changes. How to proceed?", options:
      - "Commit" — "Commit changes to current branch before proceeding"
      - "Skip worktree" — "Don't create a worktree for this workflow"
    - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.

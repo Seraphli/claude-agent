@@ -32,7 +32,7 @@ If workflows are listed, check each workflow's STATUS.md. Find all workflows wit
 If there are unfinished workflows:
 - **Warn the user**: List all unfinished workflows with their IDs and current steps.
 - Use `AskUserQuestion` with:
-  - header: "Workflow"
+  - header: "[W.Workflow]"
   - question: "There are unfinished workflows. What would you like to do?"
   - options:
     - "Keep and start new" — "Keep existing workflows, create a new one alongside them"
@@ -83,7 +83,7 @@ Before reading `.ca/todos.md`, if the file exists and contains a line matching `
 1. Read `.ca/todos.md` and find all uncompleted todo items (all items in `.ca/todos.md` are active — archived items live in `.ca/todos-archive.md`).
 2. Analyze the user's description and see if it matches any existing todo item.
 3. If a match is found, **MANDATORY**: use `AskUserQuestion` with:
-   - header: "Link Todo"
+   - header: "[W.Todo]"
    - question: "I found a matching todo: <todo text>. Link this requirement to it?"
    - options:
      - "Yes, link" — "Link to this todo"
@@ -91,7 +91,7 @@ Before reading `.ca/todos.md`, if the file exists and contains a line matching `
    - If **Yes, link**: Save the todo text for linking in step 4.
    - If **No, skip**: Continue without linking.
 4. If no match is found, **MANDATORY**: use `AskUserQuestion` with:
-   - header: "Add Todo"
+   - header: "[W.Todo]"
    - question: "This requirement doesn't match any existing todo. Add it as a new todo item?"
    - options:
      - "Yes, add" — "Add to todo list"
@@ -152,13 +152,13 @@ Read `use_worktrees` from the config JSON already loaded.
    - If `use_worktrees` is `true`:
      - Check current branch: `git branch --show-current`.
      - If current branch starts with `ca/` (workflow branch in a worktree): auto-commit: `git add -A && git commit -m "wip: save uncommitted changes"`.
-     - Otherwise: `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+     - Otherwise: `AskUserQuestion`: header "[W.Git]", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes to current branch before proceeding"
        - "Skip worktree" — "Don't create a worktree for this workflow"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
      - If **Skip worktree**: Skip worktree creation, do not add worktree fields to STATUS.md. Continue to step 7.
    - If `use_worktrees` is `false`:
-     - `AskUserQuestion`: header "Git", question "There are uncommitted changes. How to proceed?", options:
+     - `AskUserQuestion`: header "[W.Git]", question "There are uncommitted changes. How to proceed?", options:
        - "Commit" — "Commit changes before starting workflow"
        - "Ignore" — "Continue without handling uncommitted changes"
      - If **Commit**: `git add -A && git commit -m "wip: save uncommitted changes"`.
@@ -187,7 +187,7 @@ If the config output contains `## Project` with `project_dirs`:
 2. For each dir, check if it is a git repository: `git -C <dir_path> rev-parse --is-inside-work-tree 2>/dev/null`. Separate into git repos and non-git dirs.
 3. If any dirs are NOT git repos, **list them to the user**: "`<label> (<path>)` is not a git repository; worktree will not be created for it." for each non-git dir.
 4. If there are git repos in project dirs, use `AskUserQuestion` with:
-   - header: "Worktrees"
+   - header: "[W.Worktrees]"
    - question: "project.yaml lists these git repos. Create workflow worktrees in which ones?"
    - multiSelect: true
    - options: one per git repo dir (label: `<dir_label> (<dir_path>)`, description: "Create worktree with ca/<workflow-id> branch here")

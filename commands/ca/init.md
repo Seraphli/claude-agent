@@ -25,7 +25,7 @@ Create the `.ca/` directory if it does not exist (`mkdir -p .ca`).
 Check whether `.ca/project.yaml` exists.
 
 If it exists, read it, show the user its current `project_name` and directory list, then use `AskUserQuestion`:
-- **CRITICAL**: header MUST be exactly `"Overwrite"`.
+- **CRITICAL**: header MUST be exactly `"[I.Overwrite]"`.
 - question: "`.ca/project.yaml` already exists. Overwrite it?"
 - options:
   - "Overwrite" — "Replace the existing project.yaml with a new one"
@@ -42,10 +42,10 @@ If it exists, read it, show the user its current `project_name` and directory li
 2. Ask for an optional **one-line description**. Allow them to skip.
 3. Collect **directories** in a loop. For each directory:
    a. Ask for the directory **label** (a simple slug — letters, digits, hyphens, no colons — e.g. `code`, `paper`) and its **path** (absolute). Wait for their reply.
-   b. `AskUserQuestion`: header MUST be exactly `"AddDir"`, question "Add another directory?", options "Add another" / "Done".
+   b. `AskUserQuestion`: header MUST be exactly `"[I.AddDir]"`, question "Add another directory?", options "Add another" / "Done".
    c. If **Add another**: repeat from (a). If **Done**: exit the loop.
    Require at least one directory — if the user chose "Done" with zero directories, ask for one before continuing.
-4. Collect optional **rules**. `AskUserQuestion`: header MUST be exactly `"Rules"`, question "Add project-wide rule files?", options "Add rules" / "Skip". If **Add rules**: ask the user for the **paths to rule files** (one absolute path per line). Each entry is a path to a file (e.g. a `CLAUDE.md`) whose contents `/ca:execute` will load as additional context for executor agents — NOT inline rule text. If **Skip**: no rules.
+4. Collect optional **rules**. `AskUserQuestion`: header MUST be exactly `"[I.Rules]"`, question "Add project-wide rule files?", options "Add rules" / "Skip". If **Add rules**: ask the user for the **paths to rule files** (one absolute path per line). Each entry is a path to a file (e.g. a `CLAUDE.md`) whose contents `/ca:execute` will load as additional context for executor agents — NOT inline rule text. If **Skip**: no rules.
 
 ### 4. Present preview and confirm
 
@@ -64,7 +64,7 @@ rules:                          # omit this section entirely if no rules; each i
 ```
 
 `AskUserQuestion`:
-- **CRITICAL**: header MUST be exactly `"Confirm"`.
+- **CRITICAL**: header MUST be exactly `"[I.Confirm]"`.
 - question: "Write this project.yaml?"
 - options:
   - "Write" — "Write the file as shown"

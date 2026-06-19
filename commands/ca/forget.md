@@ -18,7 +18,7 @@ No prerequisites — context files are checked on demand.
 ### 1. Ask target level
 
 Use `AskUserQuestion` with:
-- header: "Level"
+- header: "[W.Level]"
 - question: "Remove from global or project context?"
 - options:
   - "Project" — "Remove from .claude/rules/ca:context.md"

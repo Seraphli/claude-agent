@@ -52,7 +52,7 @@ pane_log "startup"
 
 inject_command "/ca:quick add a greet(name) function to utils.js that returns 'Hello, name!'"
 wait_for_ask 120
-assert_ask_header "添加|Add Todo" "quick: todo prompt (中文)"
+assert_ask_header "添加|Todo" "quick: todo prompt (中文)"
 sleep 1
 select_option_by_text "跳过|No.*skip"
 wait_for_stop
@@ -71,26 +71,21 @@ fi
 
 inject_command "/ca:plan"
 
-# Research is optional — model may skip directly to Requirements
-wait_for_ask 120
-if echo "${LAST_ASK_HEADER}" | grep -qE "研究|调研|Research"; then
-    pass "plan: Research prompt (中文)"
-    sleep 1
-    select_option_by_text "跳过|Skip"
-    wait_for_ask
-fi
-assert_ask_header "需求|Requirements" "plan: Requirements prompt (中文)"
+# Research optional; quick-plan grill may ask [P.Clarify] clarification before the gate.
+# Consume any pre-gate Research/Clarify questions until the Requirements gate.
+drive_grill_to_gate "Reqs" 120
+assert_ask_header "Reqs" "plan: Requirements prompt (中文)"
 sleep 1
 select_option_by_text "正确|Correct"
 
-wait_for_ask_expect "粗略方案|Rough Plan" "" 90
-assert_ask_header "粗略方案|Rough Plan" "plan: Rough Plan prompt (中文)"
+wait_for_ask_expect "Rough" "" 90
+assert_ask_header "Rough" "plan: Rough Plan prompt (中文)"
 sleep 1
 select_option_by_text "可行|Feasible"
 
 # Expect: Step-by-step plan confirmation (Confirmation 2b)
-wait_for_step_confirmations "结果|Results" "plan" 90
-assert_ask_header "结果|Results" "plan: Results prompt (中文)"
+wait_for_step_confirmations "Results" "plan" 90
+assert_ask_header "Results" "plan: Results prompt (中文)"
 sleep 1
 select_option_by_text "是|Yes"
 
@@ -114,11 +109,11 @@ assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 # ---------------------------------------------------------------------------
 
 inject_command "/ca:verify"
-wait_for_ask 120
-assert_ask_header "结果|Results" "verify: Results prompt (中文)"
+wait_for_ask 180
+assert_ask_header "Results" "verify: Results prompt (中文)"
 sleep 1
 select_option_by_text "接受|Accept"
-wait_for_stop 120
+wait_for_stop 180
 pane_log "verify-done"
 
 assert_status_field "verify_completed" "true" "verify: verify_completed=true"
@@ -139,7 +134,7 @@ assert_ask_header "确认|Confirm" "finish: Confirm prompt (中文)"
 sleep 1
 select_option_by_text "确认|Confirm|是|Yes"
 
-wait_for_stop 120
+wait_for_stop 180
 pane_log "finish-done"
 
 # Assert workflow archived

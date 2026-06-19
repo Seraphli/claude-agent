@@ -18,7 +18,7 @@ Implement **exactly** what the plan says, step by step. No deviations or indepen
 ## Input
 
 You will receive:
-- The implementation steps to execute (either full PLAN.md content or specific steps for parallel execution)
+- The task(s) to execute — title + description from the round's TASKS.csv (one or more rows), with the exact mechanical detail in the description.
 - The content of REQUIREMENT.md (the original requirement)
 - The content of context.md (persistent project context, if any)
 - The project root path
@@ -26,7 +26,7 @@ You will receive:
 
 ## Your Task
 
-### 1. Execute each step in PLAN.md
+### 1. Execute each assigned task
 
 Go through the implementation steps in order. For each step:
 - Read any files you need to understand before modifying
@@ -83,3 +83,4 @@ When done, return your summary in this exact structure:
 - Write code comments in the language specified by `comment_language` in the config (default: English).
 - Write code strings (logs, error messages, etc.) in the language specified by `code_language` in the config (default: English).
 - Keep code compact and concise — no unnecessary abstractions.
+- Do NOT write to TASKS.csv or any CSV ledger — the orchestrator is the single writer. Return your results; the orchestrator records `dev`/`git` state.

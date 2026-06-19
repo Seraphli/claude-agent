@@ -8,9 +8,8 @@ source "${CA_REPO_ROOT}/tests/e2e_common.sh"
 
 get_workflow_dir() {
     local project_dir="${TEST_DIR}/project"
-    local active_file="${project_dir}/.ca/active.md"
-    [ ! -f "${active_file}" ] && { echo ""; return; }
-    local wid; wid="$(cat "${active_file}")"
+    local wid; wid="$(ls "${project_dir}/.ca/workflows/" 2>/dev/null | head -1)"
+    [ -z "${wid}" ] && { echo ""; return; }
     echo "${project_dir}/.ca/workflows/${wid}"
 }
 
@@ -46,11 +45,19 @@ pane_log "startup"
 # --- /ca:instant ---
 inject_command "/ca:instant add a greet(name) function to utils.js that returns 'Hello, name!' All success criteria must be [auto], no [manual] items."
 wait_for_ask 120
-assert_ask_header "Add Todo" "instant: Add Todo prompt"
+assert_ask_header "Todo" "instant: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop 120
 pane_log "instant-done"
+
+# TC18: assert NO active.md after /ca:instant
+active_file="${TEST_PROJECT}/.ca/active.md"
+if [ ! -f "${active_file}" ]; then
+    pass "instant: no active.md after /ca:instant (TC18)"
+else
+    fail "instant: no active.md after /ca:instant (TC18)"
+fi
 
 WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
@@ -82,8 +89,8 @@ if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
     wait_for_ask
 fi
 
-# Single confirmation — header MUST be "Plan"
-assert_ask_header "Plan" "plan: single confirmation (header=Plan)"
+# Single confirmation — header MUST be "[P.Plan]"
+assert_ask_header "\[P\.Plan\]" "plan: single confirmation (header=[P.Plan])"
 sleep 1
 select_option_by_text "Confirm"
 wait_for_stop 120
@@ -94,14 +101,14 @@ PLAN_END_EVENT_COUNT=$(wc -l < "${EVENT_LOG}" 2>/dev/null || echo "0")
 PLAN_EVENTS=$(sed -n "$((PLAN_START_EVENT_COUNT+1)),${PLAN_END_EVENT_COUNT}p" "${EVENT_LOG}")
 PLAN_ASK_HEADERS=$(echo "${PLAN_EVENTS}" | grep '"tool_name":"AskUserQuestion"' | jq -r '.payload.tool_input.questions[0].header // empty' 2>/dev/null || true)
 
-for forbidden_header in "Requirements" "SPEC" "Rough Plan" "Results"; do
+for forbidden_header in "[P.Reqs]" "[P.SPEC]" "[P.Rough]" "[P.Results]" "[P.Clarify]"; do
     if echo "${PLAN_ASK_HEADERS}" | grep -qF "${forbidden_header}"; then
         fail "plan: no '${forbidden_header}' header in instant plan"
     else
         pass "plan: no '${forbidden_header}' header in instant plan"
     fi
 done
-if echo "${PLAN_ASK_HEADERS}" | grep -qE "^Step "; then
+if echo "${PLAN_ASK_HEADERS}" | grep -qE "\[P\.Step"; then
     fail "plan: no 'Step N' headers in instant plan"
 else
     pass "plan: no 'Step N' headers in instant plan"
@@ -109,18 +116,26 @@ fi
 
 WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/PLAN.md" "plan: PLAN.md created"
-    assert_file_exists "${WORKFLOW_DIR}/CRITERIA.md" "plan: CRITERIA.md created"
-    assert_file_contains "${WORKFLOW_DIR}/CRITERIA.md" "\\[auto\\]" "plan: CRITERIA.md has [auto] tag"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/PLAN.md" "plan: rounds/0/PLAN.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/TASKS.csv" "plan: rounds/0/TASKS.csv created"
+    assert_file_exists "${WORKFLOW_DIR}/VERIFY.csv" "plan: root VERIFY.csv created"
+    assert_file_contains "${WORKFLOW_DIR}/VERIFY.csv" "test|self_check" "plan: VERIFY.csv has criterion type"
+    if [ -f "${WORKFLOW_DIR}/CRITERIA.md" ]; then
+        fail "plan: no CRITERIA.md for instant workflow (replaced by VERIFY.csv)"
+    else
+        pass "plan: no CRITERIA.md for instant workflow (replaced by VERIFY.csv)"
+    fi
     if [ -f "${WORKFLOW_DIR}/SPEC.md" ]; then
         fail "plan: no SPEC.md for instant workflow"
     else
         pass "plan: no SPEC.md for instant workflow"
     fi
 else
-    fail "plan: PLAN.md created"
-    fail "plan: CRITERIA.md created"
-    fail "plan: CRITERIA.md has [auto] tag"
+    fail "plan: rounds/0/PLAN.md created"
+    fail "plan: rounds/0/TASKS.csv created"
+    fail "plan: root VERIFY.csv created"
+    fail "plan: VERIFY.csv has criterion type"
+    fail "plan: no CRITERIA.md for instant workflow (replaced by VERIFY.csv)"
     fail "plan: no SPEC.md for instant workflow"
 fi
 assert_status_field "plan_completed" "true" "plan: plan_completed=true"
@@ -132,9 +147,9 @@ pane_log "execute-done"
 
 WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
-    assert_file_exists "${WORKFLOW_DIR}/SUMMARY.md" "execute: SUMMARY.md created"
+    assert_file_exists "${WORKFLOW_DIR}/rounds/0/SUMMARY.md" "execute: rounds/0/SUMMARY.md created"
 else
-    fail "execute: SUMMARY.md created"
+    fail "execute: rounds/0/SUMMARY.md created"
 fi
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
 
@@ -166,7 +181,7 @@ wait_for_ask 120
 assert_ask_header "Commit" "finish: Commit prompt"
 sleep 1
 select_option_by_text "Confirm"
-wait_for_stop 120
+wait_for_stop 180
 pane_log "finish-done"
 
 # Verify worktree removed
@@ -198,16 +213,20 @@ fi
 # Create a new instant workflow with pre-set executed state and a must-fail criterion
 inject_command "/ca:instant fix a deliberate test failure"
 wait_for_ask 120
-assert_ask_header "Add Todo" "fixloop: Add Todo prompt"
+assert_ask_header "Todo" "fixloop: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop 120
 pane_log "fixloop-instant-done"
 
-WORKFLOW_DIR="$(get_workflow_dir)"
+# Resolve the FIXLOOP workflow explicitly (newest by mtime, not alphabetical)
+FIXLOOP_WF="$(ls -t "${TEST_PROJECT}/.ca/workflows/" | head -1)"
+WORKFLOW_DIR="${TEST_PROJECT}/.ca/workflows/${FIXLOOP_WF}"
+echo "[fixloop] resolved workflow: ${FIXLOOP_WF} → ${WORKFLOW_DIR}"
 
-# Write a PLAN.md, SUMMARY.md, and a failing CRITERIA.md directly
-cat > "${WORKFLOW_DIR}/PLAN.md" << 'PLANEOF'
+# Write rounds/0/PLAN.md, rounds/0/SUMMARY.md, and seed VERIFY.csv (no CRITERIA.md)
+mkdir -p "${WORKFLOW_DIR}/rounds/0"
+cat > "${WORKFLOW_DIR}/rounds/0/PLAN.md" << 'PLANEOF'
 # Implementation Plan
 ## Requirement Summary
 Fix a deliberate test failure
@@ -222,7 +241,7 @@ No changes needed.
 This will fail verification.
 PLANEOF
 
-cat > "${WORKFLOW_DIR}/SUMMARY.md" << 'SUMEOF'
+cat > "${WORKFLOW_DIR}/rounds/0/SUMMARY.md" << 'SUMEOF'
 # Execution Summary
 ## Changes Made
 - No changes
@@ -230,30 +249,32 @@ cat > "${WORKFLOW_DIR}/SUMMARY.md" << 'SUMEOF'
 1. No-op
 SUMEOF
 
-cat > "${WORKFLOW_DIR}/CRITERIA.md" << 'CRITEOF'
-# Success Criteria
+# Seed root VERIFY.csv with one failing test/auto criterion
+FIXLOOP_CSV="${TEST_CONFIG_DIR}/.claude/ca/scripts/ca-csv.js"
+node "${FIXLOOP_CSV}" init-verify --file "${WORKFLOW_DIR}/VERIFY.csv"
+node "${FIXLOOP_CSV}" add-criterion \
+    --file "${WORKFLOW_DIR}/VERIFY.csv" \
+    --type test \
+    --method auto \
+    --criterion "File nonexistent_file_that_must_exist.txt exists in project root"
 
-**[auto]**
-
-- File `${TEST_PROJECT}/nonexistent_file_that_must_exist.txt` exists
-CRITEOF
-
-# Set execute_completed=true, plan_completed=true, plan_confirmed=true
-node "${TEST_CONFIG_DIR}/.claude/ca/scripts/ca-status.js" update --project-root "${TEST_PROJECT}" execute_completed=true plan_completed=true plan_confirmed=true current_step=execute
+# Set execute_completed=true, plan_completed=true, plan_confirmed=true (explicit --workflow-id!)
+node "${TEST_CONFIG_DIR}/.claude/ca/scripts/ca-status.js" update \
+    --project-root "${TEST_PROJECT}" --workflow-id "${FIXLOOP_WF}" \
+    execute_completed=true plan_completed=true plan_confirmed=true current_step=execute
 
 # auto_fix defaults to false, so verify fail enters manual fix round → /ca:plan single confirmation
 
 # Run verify — should fail and enter manual fix round
 inject_command "/ca:verify"
-wait_for_stop 120
+wait_for_stop 180
 pane_log "fixloop-verify-done"
 
-# Assert: fix_round incremented, plan_completed reset
-WORKFLOW_DIR="$(get_workflow_dir)"
+# Assert: fix_round incremented, plan_completed reset (use FIXLOOP_WF consistently)
 assert_status_field "plan_completed" "false" "fixloop: plan_completed reset after verify fail"
-assert_file_exists "${WORKFLOW_DIR}/rounds/1/ISSUES.md" "fixloop: ISSUES.md created"
+assert_file_exists "${WORKFLOW_DIR}/rounds/0/ISSUES.md" "fixloop: rounds/0/ISSUES.md created"
 
-# Run plan — should use single confirmation (header "Plan"), not triple confirmation
+# Run plan — should use single confirmation (header "[P.Plan]"), not triple confirmation
 # Note: verify may leave uncompleted tasks, so plan Step 0 may show "Tasks" cleanup prompt first
 inject_command "/ca:plan"
 wait_for_ask 120
@@ -269,11 +290,15 @@ if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
     select_option_by_text "Skip"
     wait_for_ask 120
 fi
-assert_ask_header "Plan" "fixloop-plan: single confirmation (header=Plan)"
+assert_ask_header "\[P\.Plan\]" "fixloop-plan: single confirmation (header=[P.Plan])"
 sleep 1
 select_option_by_text "Confirm"
 wait_for_stop 120
 pane_log "fixloop-plan-done"
+
+# Archive fixloop workflow so Sub-scenario B starts with no active workflows
+mv "${WORKFLOW_DIR}" "${TEST_PROJECT}/.ca/history/"
+pass "fixloop: archived ${FIXLOOP_WF} to .ca/history/"
 
 ###############################################################################
 # Sub-scenario B: Non-worktree wip commit — use_worktrees:false + instant execute
@@ -293,7 +318,7 @@ if echo "${LAST_ASK_HEADER}" | grep -qE "Workflow"; then
     select_option_by_text "Keep"
     wait_for_ask
 fi
-assert_ask_header "Add Todo" "non-worktree: Add Todo prompt"
+assert_ask_header "Todo" "non-worktree: Add Todo prompt"
 sleep 1
 select_option_by_text "No.*skip"
 wait_for_stop 120
@@ -320,7 +345,7 @@ if echo "${LAST_ASK_HEADER}" | grep -qE "Research"; then
     select_option_by_text "Skip"
     wait_for_ask
 fi
-assert_ask_header "Plan" "non-worktree-plan: single confirmation"
+assert_ask_header "\[P\.Plan\]" "non-worktree-plan: single confirmation"
 sleep 1
 select_option_by_text "Confirm"
 wait_for_stop 120

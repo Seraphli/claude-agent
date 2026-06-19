@@ -21,7 +21,7 @@ Determine which workflow to operate on using this priority:
 1. **Context inference**: If the current conversation has already been working with a specific workflow (e.g., you just ran `/ca:quick` or `/ca:plan` for it earlier in this session), use that workflow ID.
 2. **Single workflow**: Run `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-status.js list --project-root <project-root>`. If exactly one workflow exists, use it automatically.
 3. **Multiple workflows**: If multiple workflows exist, present them to the user and ask which one to operate on:
-   - `AskUserQuestion`: header "Workflow", question "Which workflow do you want to finish?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
+   - `AskUserQuestion`: header "[W.Workflow]", question "Which workflow do you want to finish?", options: list each workflow (label: workflow ID, description: "<workflow_type>, step: <current_step>")
 4. **No workflows**: If no workflows exist, tell the user to run `/ca:new` or `/ca:quick` first and stop.
 
 After resolving `<active_id>`:
@@ -39,7 +39,7 @@ After resolving `<active_id>`:
    a. Call `TaskGet` for each uncompleted task.
    b. Analyze possible causes by cross-referencing with STATUS.md (e.g., session interrupted, phase skipped, abnormal exit).
    c. Present to user: list each uncompleted task with subject, status, and possible cause.
-   d. `AskUserQuestion`: header "Tasks", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
+   d. `AskUserQuestion`: header "[W.Tasks]", question "There are uncompleted tasks from the previous phase. How to proceed?", options:
       - "Clear and continue" — "Delete all old tasks and start current phase"
       - "Stop" — "Pause to investigate the previous phase's issues"
    e. If "Clear and continue": call `TaskUpdate` with `status: "deleted"` for ALL tasks.
@@ -81,7 +81,7 @@ Read `.gitignore` (create if needed). Check patterns.
 
 For patterns that should be in `.gitignore` but are missing:
 - Use `AskUserQuestion`:
-  - header: "Gitignore"
+  - header: "[F.Gitignore]"
   - question: "`.gitignore` is missing CA entries: <list>. Add them?"
   - options:
     - "Yes, add" — "Add missing entries to .gitignore"
@@ -90,7 +90,7 @@ For patterns that should be in `.gitignore` but are missing:
 
 For patterns that should NOT be in `.gitignore` but are present:
 - Use `AskUserQuestion`:
-  - header: "Gitignore"
+  - header: "[F.Gitignore]"
   - question: "`.gitignore` contains CA entries that should be removed for version control: <list>. Remove them?"
   - options:
     - "Yes, remove" — "Remove entries from .gitignore"
@@ -121,6 +121,8 @@ Valid types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
 - `feat` → minor (x.Y.0)
 - All other types (`fix`, `refactor`, `docs`, `chore`, `perf`, `test`, `style`, `ci`, `build`) → patch (x.y.Z)
 
+**Note (informational)**: When finishing the workflow that introduces the round-structure change (rounds/, VERIFY.csv, TRACKING.md, ca-csv.js, etc.), that is a breaking change → use `feat!` with a `BREAKING CHANGE:` footer, which triggers a MAJOR bump. The conventional-commit/semver logic above already derives this automatically from the commit type.
+
 Find the project's version location. Search in order:
 1. Known version files: `package.json`, `pyproject.toml`, `Cargo.toml`, `version.txt`, `VERSION`
 2. If none found, use Grep to search for version patterns in source code
@@ -137,7 +139,7 @@ Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
 #### 2a. Ensure branch changes are committed
 1. `git -C <worktree_path> status --porcelain` — check for uncommitted changes. If no changes, skip to 2b.
-2. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
+2. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "[F.Commit]", question "There are uncommitted changes on the branch. Commit them before merge?", options "Yes, commit"/"No, skip".
 3. If yes:
    - Run `git -C <worktree_path> diff --stat` and `git -C <worktree_path> status` to gather info.
    - Generate commit message: `<type>: <concise title>` with body listing each change (reference PLAN.md and SUMMARY.md).
@@ -151,7 +153,7 @@ Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
      <body>
      ```
-   **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Commit with this message?", options "Yes"/"Revise".
+   **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "[F.Confirm]", question "Commit with this message?", options "Yes"/"Revise".
    - If **Revise**: let user edit the message, re-confirm.
    - Stage specific files and commit in the worktree: `git -C <worktree_path> add <files>` and `git -C <worktree_path> commit -m "..."`.
 4. If no: proceed to step 2b.
@@ -174,7 +176,7 @@ Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
         Version bump: <old> → <new> (<bump type>)
         ```
-     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "[F.Commit]", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
         - If **Revise**: let user edit the message and/or version bump, re-confirm.
      5. After confirmation: bump the version in the project files, then stage all changes and run `git commit` with the confirmed message.
    - `merge`:
@@ -192,7 +194,7 @@ Read STATUS.md for `branch_name`, `base_branch`, and `worktree_path`.
 
         Version bump: <old> → <new> (<bump type>)
         ```
-     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
+     4. **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "[F.Commit]", question "Confirm the merge commit and version bump?", options "Confirm"/"Revise".
         - If **Revise**: let user edit, re-confirm.
      5. After confirmation: bump the version in the project files, stage version changes, commit version bump, then run `git merge <branch_name> --no-ff -m "<confirmed message>"`.
 3. If merge conflict occurs: warn user, tell them to resolve manually, and stop. Do not proceed to step 2c or later steps.
@@ -224,9 +226,9 @@ Read `project_worktrees` from STATUS.md. If present:
 **If `use_worktrees` is `false` OR `branch_name` does not exist** (non-worktree mode):
 
 Use original commit logic:
-**CRITICAL — Two-Step Confirmation Required**: The commit decision (header "Commit") and the commit message confirmation (header "Confirm") MUST be two separate AskUserQuestion calls. Do NOT combine them into a single question. Always ask "Commit" first, wait for response, then ask "Confirm".
+**CRITICAL — Two-Step Confirmation Required**: The commit decision (header "[F.Commit]") and the commit message confirmation (header "[F.Confirm]") MUST be two separate AskUserQuestion calls. Do NOT combine them into a single question. Always ask "Commit" first, wait for response, then ask "Confirm".
 
-- **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "Commit", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
+- **CRITICAL**: The header parameter MUST be exactly "Commit". `AskUserQuestion`: header "[F.Commit]", question "Would you like to commit these changes?", options "Yes, commit"/"No, skip".
 - If yes:
   1. `git diff --stat` to gather info.
   2. Generate a commit message following conventional commit format.
@@ -243,7 +245,7 @@ Use original commit logic:
 
      Version bump: <old> → <new> (<bump type>)
      ```
-  5. **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "Confirm", question "Confirm the commit and version bump?", options "Confirm"/"Revise".
+  5. **CRITICAL**: The header parameter MUST be exactly "Confirm". `AskUserQuestion`: header "[F.Confirm]", question "Confirm the commit and version bump?", options "Confirm"/"Revise".
      - If **Revise**: let user edit the message and/or version bump, re-confirm.
   6. After confirmation: bump the version in the project files, stage specific files, commit with the confirmed message.
 - If no: proceed to step 3.
@@ -273,11 +275,36 @@ If it does:
 
 Mark "Update todo" as `completed`. Mark "Archive workflow" as `in_progress`.
 
+### 3b. Git-flip TASKS.csv (non-worktree only)
+
+**Skip this step if `use_worktrees` is `true`** — worktree and instant workflows already set `git=done` on each task at execute time.
+
+For non-worktree standard/quick/write workflows only: after the commit decision in §2 has been resolved, update every round's `rounds/<r>/TASKS.csv` to reflect the final git outcome:
+
+1. Determine the git outcome from §2:
+   - If the user confirmed a commit: outcome is `done`
+   - If the user skipped the commit: outcome is `skipped`
+2. Enumerate all round directories under `.ca/workflows/<active_id>/rounds/` (round 0 plus any fix rounds).
+3. For each `rounds/<r>/TASKS.csv`:
+   a. Collect every task id in that CSV:
+      ```
+      node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js get --file .ca/workflows/<active_id>/rounds/<r>/TASKS.csv --json
+      ```
+      Read each row's `id` and join them comma-separated (e.g. `1,2,3`).
+   b. Flip them all in a single call (`--id` accepts a comma-separated list):
+      ```
+      node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-csv.js update --file .ca/workflows/<active_id>/rounds/<r>/TASKS.csv --id <id1,id2,...> --field git --value <done|skipped>
+      ```
+
+**CRITICAL**: This step MUST complete before §4 archiving moves `rounds/` to history. The archived TASKS.csv files must reflect the correct `git` state.
+
 ### 4. Archive and cleanup
 
 1. Create archive directory: `.ca/history/NNNN-slug/` where NNNN is a zero-padded sequence number and slug is derived from the requirement goal.
-2. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, PLAN.md, SUMMARY.md, BRIEF.md, CRITERIA.md, VERIFY-REPORT.md, rounds/ directory if exists, and any other files).
+2. Move all files from `.ca/workflows/<active_id>/` to the archive directory (including STATUS.md, REQUIREMENT.md, BRIEF.md, SPEC.md, VERIFY.csv, TRACKING.md, the entire `rounds/` directory — which holds round 0's PLAN.md/TASKS.csv/SUMMARY.md/VERIFY-REPORT.md/ISSUES.md and every fix round — and any other files). Moving the whole workflow directory preserves `rounds/0/` intact.
 3. Remove the `.ca/workflows/<active_id>/` directory after archiving.
+
+**Do NOT move or archive `.ca/docs/` (CONTEXT.md, adr/) — it is project-level, shared across workflows, and must persist.**
 
 Mark "Archive workflow" as `completed`.
 
