@@ -147,7 +147,7 @@ sleep 5
 pane_log "tc3-startup"
 
 # New workflow that intentionally uses "Cache" to mean persistent disk storage
-inject_command "/ca:new Add a Cache layer that writes entries to disk for persistent storage across restarts. All success criteria must be auto-verifiable."
+inject_command "/ca:new Add a Cache module — this Cache is a disk-backed persistent store (NOT an in-memory structure). It should write entries to disk and survive restarts. Note: this might conflict with an existing term definition — clarify during discuss. All success criteria must be auto-verifiable."
 wait_for_ask 120
 assert_ask_header "Todo" "tc3: Add Todo prompt"
 sleep 1

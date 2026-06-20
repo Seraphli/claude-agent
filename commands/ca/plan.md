@@ -300,18 +300,22 @@ Based on the confirmed requirements (BRIEF.md) and any research findings from st
    **CORRECT** (specific and actionable):
    > "When user runs `/ca:quick` while another workflow exists, the command scans `.ca/workflows/` to find unfinished workflows. If found, it shows an AskUserQuestion with Keep/Archive/Continue options. After creating the new workflow, no `active.md` is written. When user then runs `/ca:plan`, the command checks how many workflows exist: if exactly one, it auto-selects; if multiple, it presents an AskUserQuestion listing all workflows with their IDs, types, and current steps for user to choose."
 
-2. **Verification Design**: Each test case MUST include:
-   - **Precondition**: What state must exist before the test (files, config, prior actions)
-   - **Action**: Exact operation to perform (command to run, input to provide)
-   - **Assertion**: Specific expected result that can be verified (file content, command output, state change)
+2. **Verification Design**: Each test case (TC) is a **behavioral test** — it DESCRIBES the runnable behavior under test (the user path / inputs / observable outputs), NOT a static inspection of source files. Each TC MUST specify:
+   - **Target test**: which test the behavior lands in. **If the project already has a test suite (e.g., `tests/phases/`) and this requirement supplements tests, name the concrete test file to add/modify and how it changes.** If no suite exists yet, state which test file to create.
+   - **Behavior**: the concrete scenario — setup/preconditions, the operation or input that is driven, and the expected observable output.
+   - **Feasible & testable**: the expected output MUST be something a run can decide PASS/FAIL deterministically. NEVER write a TC whose pass/fail cannot be determined by running it.
 
-   **FORBIDDEN** (too vague):
-   > "Verify that SPEC creation produces detailed output."
+   Describe the behavior only; **do NOT write the actual test code here** — the real test code is written later by the executor during `/ca:execute`.
 
-   **CORRECT** (specific and verifiable):
-   > "Precondition: `plan.md` file exists in `commands/ca/`. Action: grep `plan.md` for 'CRITICAL.*SPEC Detail' and 'FORBIDDEN'. Assertion: Both patterns match, confirming the detail enforcement instructions are present."
+   **FORBIDDEN** (these are NOT valid test cases):
+   > (a) Using a static inspection of the implementation/source as the test — e.g. "grep `plan.md` for 'CRITICAL.*SPEC Detail'; assert match". That tests implementation text, not behavior, and is indistinguishable from a verification criterion.
+   > (b) A TC whose result cannot actually be tested — e.g. "verify the wording reads well" or any subjective judgment.
+   > (c) Writing the complete test script/code inside the SPEC.
 
-Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. Do NOT write complete bash scripts — describe actions and assertions clearly enough to be converted into E2E test phases later.
+   **CORRECT** (behavioral test description):
+   > "Target test: extend `tests/phases/phase1_quick.sh`. Behavior: run a quick workflow whose requirement adds `greet(name)` to `utils.js`; after `/ca:plan` generates `SPEC.md`, assert the generated `SPEC.md`'s Verification Design describes a runnable check of `greet` (a concrete invocation with expected output), not a `grep`-and-match line. PASS/FAIL is decided deterministically by grepping the produced `SPEC.md`."
+
+Prioritize E2E/behavior-level tests that recreate the user's real usage path. Unit/integration tests may supplement but should not replace user-experience verification. **Do NOT write complete test scripts/code in the SPEC** — describe the test's target file, setup, operation, and expected output clearly enough for the executor to implement it during `/ca:execute`.
 
 Present the draft SPEC to the user:
 
@@ -366,7 +370,7 @@ If a "Create/Read SPEC" task exists, mark it as `completed`. Mark "Draft & confi
 
 The draft plan is the COMPLETE, unconfirmed plan. Confirmation 2a presents it in condensed form, Confirmation 2b presents each step in full detail. Both are derived from this single draft — they are NOT separate design phases. The rough plan is a CONDENSED VERSION of the detailed plan, NOT a draft or sketch to be expanded.
 
-**CRITICAL — SPEC-Driven Planning**: The plan MUST be driven by SPEC.md. Reference the Desired Result / User Experience section to understand what the end state should look like. Consider the test cases from Verification Design when designing implementation steps — the implementation should be structured so that each test case in the SPEC can verify the corresponding functionality.
+**CRITICAL — SPEC-Driven Planning**: The plan MUST be driven by SPEC.md. Reference the Desired Result / User Experience section to understand what the end state should look like. **For EACH test case in the Verification Design, the implementation steps MUST include a concrete step that writes or modifies the corresponding test file (the actual runnable test code) — the SPEC only describes the test behavior; the executor writes the real test during `/ca:execute`.** The implementation should be structured so that each SPEC test case is realized as an actual test and can verify the corresponding functionality.
 
 Prepare a plan covering:
 - **Approach**: What method/strategy will be used
@@ -524,6 +528,8 @@ Only after all confirmations pass (triple confirmation for standard/quick/write,
 **Write sequence (CRITICAL ordering): PLAN.md → §4a VERIFY.csv → §4b TASKS.csv.** VERIFY.csv must exist before TASKS.csv so that stable criterion ids are available for `verify_refs` validation.
 
 ### 4a. Write/Update VERIFY.csv
+
+**Criteria in VERIFY.csv are checkable verifications, decoupled from the TC descriptions.** A TC describes a behavioral test (its real code is written during execute); the corresponding criterion verifies the OUTCOME — that the behavior holds and/or that the TC's test was implemented and passes. Do NOT copy a TC's text verbatim as a criterion row.
 
 The verification ledger is a single cross-round file at the workflow root: `.ca/workflows/<active_id>/VERIFY.csv`. It REPLACES CRITERIA.md. Schema in `${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/references/csv-schemas.md`.
 

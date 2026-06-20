@@ -126,6 +126,10 @@ if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/SPEC.md" "plan: SPEC.md created"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Desired Result / User Experience" "plan: SPEC has Desired Result section"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Verification Design" "plan: SPEC has Verification Design section"
+    # TC1: the generated SPEC's Verification Design must be a behavioral test
+    # (a concrete invocation of the function under test), not a grep-source static check.
+    awk '/^## Verification Design/{f=1;next} /^## /{f=0} f' "${WORKFLOW_DIR}/SPEC.md" > "${TEST_DIR}/spec_vd.txt"
+    assert_file_contains "${TEST_DIR}/spec_vd.txt" "greet\\(" "plan: SPEC VD is a behavioral test (invokes greet)"
     assert_file_exists "${WORKFLOW_DIR}/VERIFY.csv" "plan: root VERIFY.csv created"
     assert_file_contains "${WORKFLOW_DIR}/VERIFY.csv" "self_check|test" "plan: TC11 VERIFY.csv has self_check/test type"
     # Assert CRITERIA.md was NOT created (superseded by VERIFY.csv)
@@ -147,6 +151,7 @@ else
     fail "plan: SPEC.md created"
     fail "plan: SPEC has Desired Result section"
     fail "plan: SPEC has Verification Design section"
+    fail "plan: SPEC VD is a behavioral test (invokes greet)"
     fail "plan: root VERIFY.csv created"
     fail "plan: TC11 VERIFY.csv has self_check/test type"
     fail "plan: CRITERIA.md absent (replaced by VERIFY.csv)"

@@ -138,11 +138,15 @@ if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/SPEC.md" "discuss: SPEC.md exists"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Desired Result / User Experience" "discuss: SPEC has Desired Result section"
     assert_file_contains "${WORKFLOW_DIR}/SPEC.md" "## Verification Design" "discuss: SPEC has Verification Design section"
+    # TC2: the discuss-produced SPEC's Verification Design must be a behavioral test (invokes farewell)
+    awk '/^## Verification Design/{f=1;next} /^## /{f=0} f' "${WORKFLOW_DIR}/SPEC.md" > "${TEST_DIR}/spec_vd.txt"
+    assert_file_contains "${TEST_DIR}/spec_vd.txt" "farewell\\(" "discuss: SPEC VD is a behavioral test (invokes farewell)"
 else
     fail "discuss: REQUIREMENT.md exists"
     fail "discuss: SPEC.md exists"
     fail "discuss: SPEC has Desired Result section"
     fail "discuss: SPEC has Verification Design section"
+    fail "discuss: SPEC VD is a behavioral test (invokes farewell)"
 fi
 
 # TC1: CONTEXT.md created under .ca/docs/ and contains _Avoid_ entry
