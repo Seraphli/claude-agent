@@ -61,6 +61,14 @@ pane_log "startup"
 # Step 1: /ca:quick — create workflow, expect "Add Todo" prompt
 # ---------------------------------------------------------------------------
 
+# Create a project-level map so /ca:quick step 2c can copy it
+mkdir -p "${TEST_PROJECT}/.ca"
+cat > "${TEST_PROJECT}/.ca/map.md" << 'MAPEOF'
+# Codebase Map
+
+Project: test-project
+MAPEOF
+
 inject_command "/ca:quick add a greeting helper to utils.js for welcoming a user. All success criteria must be [auto], no [manual] items."
 wait_for_ask 120
 assert_ask_header "Todo" "quick: Add Todo prompt"
@@ -75,6 +83,8 @@ WORKFLOW_DIR="$(get_workflow_dir)"
 if [ -n "${WORKFLOW_DIR}" ]; then
     assert_file_exists "${WORKFLOW_DIR}/BRIEF.md" "quick: BRIEF.md created"
     assert_file_exists "${WORKFLOW_DIR}/STATUS.md" "quick: STATUS.md created"
+    assert_file_exists "${WORKFLOW_DIR}/map.md" "quick: workflow-local map.md copied from project map"
+    grep -q "Project: test-project" "${WORKFLOW_DIR}/map.md" || fail "quick: workflow-local map.md contains expected content"
 else
     fail "quick: BRIEF.md created"
     fail "quick: STATUS.md created"
@@ -177,7 +187,7 @@ else
 fi
 
 assert_status_field "execute_completed" "true" "execute: execute_completed=true"
-assert_file_exists "${TEST_DIR}/project/.ca/map.md" "execute: map.md exists after execute"
+assert_file_exists "${WORKFLOW_DIR}/map.md" "execute: workflow-local map.md exists after execute"
 
 # ---------------------------------------------------------------------------
 # Step 4: /ca:verify — run verifier agent, produce VERIFY-REPORT.md

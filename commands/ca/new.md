@@ -5,7 +5,7 @@ description: Creates a new requirement workflow with brief and git worktree. Use
 
 # /ca:new — Start a New Requirement
 
-**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md). Do NOT read, analyze, or modify source code.
+**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, and copies map.md if exists). Do NOT read, analyze, or modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
@@ -68,6 +68,10 @@ Generate a workflow ID from the user's description:
 - If no description yet (user will provide later), use `workflow-<N>` where N is next available number
 
 Create the workflow directory: `.ca/workflows/<id>/`
+
+### 2c. Copy project-level map
+
+If `.ca/map.md` exists, copy it to `.ca/workflows/<id>/map.md`. This gives the workflow its own map snapshot, isolated from other workflows.
 
 ### 3. Collect initial requirement description and link to todo
 
@@ -207,7 +211,7 @@ Mark "Create git worktree" as `completed`.
 
 ### 6. Confirm completion
 
-**CRITICAL**: This command ONLY creates the workflow structure and collects the requirement brief. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
+**CRITICAL**: This command ONLY creates the workflow structure, collects the requirement brief, and copies map.md if it exists. Do NOT read source code files, analyze the codebase, or perform any research. Research is performed automatically during `/ca:discuss` or `/ca:plan`. Simply record the user's description as-is and create the workflow files.
 
 Also set `status_note: Workflow created. Ready for discussion.` in this workflow's STATUS.md (append the line after the last existing line).
 

@@ -46,6 +46,7 @@ For each of the following categories, report whether the file's content is prese
 - `.ca/workflows/<active_id>/rounds/0/SUMMARY.md`
 - `.ca/workflows/<active_id>/VERIFY.csv`
 - `.ca/workflows/<active_id>/TRACKING.md`
+- `.ca/workflows/<active_id>/map.md`
 
 **Other persistent data:**
 - `.ca/todos.md`

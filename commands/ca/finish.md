@@ -258,6 +258,15 @@ After the commit/merge step completes (regardless of branch/non-branch mode), up
 - Set `status_note` to a summary of what was committed, e.g.: "Workflow finished. Committed as: <type>: <description>. Version bumped to <version>."
 - If user skipped the commit: set `status_note` to "Workflow finished. No commit made. Archived to history."
 
+### 2e. Regenerate project-level map
+
+If the user committed/merged in step 2 (not skipped), regenerate `.ca/map.md` to reflect the current post-merge repo state:
+
+1. Scan the project root directory using Glob/Read tools (skip `.git/`, `node_modules/`, `.ca/`, and other common ignored directories).
+2. Write `.ca/map.md` directly with the standard map format (Project Overview, Directory Structure, Key Files). **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
+
+If the user skipped the commit, skip this step — the project-level map does not need updating since no code was merged.
+
 ### 3. Update todo
 
 **CRITICAL — You MUST actually read the file**: Use the Read tool to read `.ca/workflows/<active_id>/BRIEF.md` NOW. Do NOT skip this step or assume you already know the contents. Parse the file content and check if it contains a `linked_todo: <todo text>` line. There may be multiple `linked_todo:` lines — process ALL of them.

@@ -4,7 +4,7 @@ description: Creates a streamlined workflow skipping the discuss phase. Use when
 ---
 # /ca:quick — Quick Workflow
 
-**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md). Do NOT read, analyze, or modify source code.
+**CRITICAL — Code Modification Policy**: This command ONLY creates workflow files (BRIEF.md, STATUS.md, and copies map.md if exists). Do NOT read, analyze, or modify source code.
 
 Read config by running: `node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/ca/scripts/ca-config.js --project-root <project-root>`.
 
@@ -67,6 +67,10 @@ Generate a workflow ID from the user's description:
 - If no description yet (user will provide later), use `workflow-<N>` where N is next available number
 
 Create the workflow directory: `.ca/workflows/<id>/`
+
+### 2c. Copy project-level map
+
+If `.ca/map.md` exists, copy it to `.ca/workflows/<id>/map.md`. This gives the workflow its own map snapshot, isolated from other workflows.
 
 ### 3. Collect initial requirement description and link to todo
 
@@ -206,7 +210,7 @@ Mark "Create git worktree" as completed.
 
 ### 6. Confirm completion
 
-**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md) and records the user's requirement description. You MUST NOT:
+**CRITICAL**: This command ONLY creates workflow structure files (BRIEF.md, STATUS.md, and copies map.md if exists) and records the user's requirement description. You MUST NOT:
 - Read source code files or project files (other than todos.md and workflow management files)
 - Analyze, summarize, or research the codebase
 - Generate any content beyond what the user provided

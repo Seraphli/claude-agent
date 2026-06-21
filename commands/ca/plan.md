@@ -75,7 +75,7 @@ Mark the first task as `in_progress` ("Read context & research" or "Auto-fix: ge
 
 Read these files:
 - `.ca/workflows/<active_id>/REQUIREMENT.md` (or `.ca/workflows/<active_id>/BRIEF.md` if `workflow_type: quick` or `workflow_type: instant`)
-- `.ca/map.md` (if exists — use as codebase reference for understanding project structure)
+- `.ca/workflows/<active_id>/map.md` (if exists, fall back to `.ca/map.md` — use as codebase reference for understanding project structure)
 - `.ca/docs/CONTEXT.md` (if exists — project terminology glossary)
 - `.ca/workflows/<active_id>/SPEC.md` (read only when `workflow_type` is NOT `instant`. Instant workflows do not use SPEC.)
 - `.ca/workflows/<active_id>/VERIFY.csv` (if exists — root verification ledger, for fix append / verify_refs reference)
@@ -128,7 +128,7 @@ If `fix_round` > 0 (fix round N):
      - "Run all" — "Research all issues"
      - "Skip research" — "Go straight to planning"
 5. **If Run all**: For each issue, launch a ca-researcher agent. Pass the resolved `ca-researcher_model` from the config JSON to each agent. Each agent receives:
-   - The issue description, project root path, map content
+   - The issue description, project root path, map content (from `.ca/workflows/<active_id>/map.md`, fall back to `.ca/map.md`)
    - Prompt: "Investigate the root cause of this issue: <issue>. PRIORITY: First search for and analyze any available logs (test output, error logs, VERIFY-REPORT.md, /tmp/*.log, command output files). Understand actual runtime behavior from logs before reading code. Only fall back to pure code analysis if no logs exist. Then read relevant source code, trace the problem. Report findings with file/line references and log evidence."
    - Multiple independent issues → parallel researchers (up to `max_concurrency`).
 6. **If Skip research**: Skip to step 1c.
@@ -145,7 +145,7 @@ If `workflow_type: quick` or `workflow_type: instant`:
 
 #### 1b-i. Assess requirement and approach
 
-Read BRIEF.md and `.ca/map.md` (if exists). Assess:
+Read BRIEF.md and `.ca/workflows/<active_id>/map.md` (if exists, fall back to `.ca/map.md`). Assess:
 
 1. **Requirement clarity**: Is it clear enough to determine research directions?
 2. **Approach confidence**: Do you already have a rough idea of how to implement this?
@@ -187,7 +187,7 @@ Use `AskUserQuestion`:
 
 #### 1b-iii. Launch and present
 
-Read `ca-researcher_model` from the config JSON already loaded. Launch agents only for confirmed directions, each with BRIEF.md content, project root, map, and direction-specific prompt. Pass the resolved model to each agent. Launch in parallel (up to `max_concurrency`). Present findings to user.
+Read `ca-researcher_model` from the config JSON already loaded. Launch agents only for confirmed directions, each with BRIEF.md content, project root, map (from `.ca/workflows/<active_id>/map.md`, fall back to `.ca/map.md`), and direction-specific prompt. Pass the resolved model to each agent. Launch in parallel (up to `max_concurrency`). Present findings to user.
 
 **CRITICAL — Log-First Analysis**: When investigating issues or understanding behavior, ALWAYS prioritize analyzing available logs before reading code. Search for: test output files, error logs, VERIFY-REPORT.md, /tmp/*.log, command output files. Logs provide ground truth of actual runtime behavior. Only fall back to pure code analysis if no logs exist. Do NOT skip log analysis and jump to code-only conclusions.
 

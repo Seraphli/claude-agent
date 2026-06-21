@@ -61,7 +61,7 @@ Read `ca-researcher_model` from the config JSON already loaded. This is the alre
 
 #### 1b. Assess requirement and decide approach
 
-Read BRIEF.md and `.ca/map.md` (if exists). Assess two things:
+Read BRIEF.md and `.ca/workflows/<active_id>/map.md` (if exists, fall back to `.ca/map.md`). Assess two things:
 
 1. **Requirement clarity**: Is the requirement description clear enough to determine what to research? Or is it too vague to even know where to start?
 2. **Approach confidence**: Based on your current knowledge, do you already have a rough idea of how to implement this?
@@ -120,7 +120,7 @@ For each confirmed research direction, `TaskCreate`: subject "Research: <directi
 Launch ca-researcher agents **only for the directions confirmed by the user**. Use resolved model from step 1a. Pass each agent:
 - The full content of BRIEF.md
 - The project root path
-- The content of `.ca/map.md` (if exists)
+- The content of `.ca/workflows/<active_id>/map.md` (if exists, fall back to `.ca/map.md`)
 - The specific research prompt for each direction
 
 Launch in parallel (up to `max_concurrency`). Mark the corresponding "Research: <direction name>" task as `in_progress` when launching each agent.
@@ -131,7 +131,7 @@ As each researcher agent returns, mark the corresponding "Research: <direction n
 
 ### 2. Start the discussion
 
-Read BRIEF.md as the starting point. Also read `.ca/map.md` (if exists) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want. Also read `.ca/docs/CONTEXT.md` (if exists) — the project terminology glossary. Use it to recognize already-defined terms and to detect conflicts during grilling.
+Read BRIEF.md as the starting point. Also read `.ca/workflows/<active_id>/map.md` (if exists, fall back to `.ca/map.md`) for project context. Incorporate any task description provided with this command. If no brief or description exists, ask what they want. Also read `.ca/docs/CONTEXT.md` (if exists) — the project terminology glossary. Use it to recognize already-defined terms and to detect conflicts during grilling.
 
 ### 3. Grill Interview (relentless, decision-tree)
 

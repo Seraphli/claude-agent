@@ -72,10 +72,10 @@ Also read the config output. If it contains `## Project`:
 
 ### 1b. Ensure codebase map exists
 
-**CRITICAL — Do NOT skip this step.** Check if `.ca/map.md` exists:
+**CRITICAL — Do NOT skip this step.** Check if `.ca/workflows/<active_id>/map.md` exists:
 
-1. Run: `ls <project-root>/.ca/map.md 2>/dev/null` to check existence.
-2. If the file does NOT exist AND the project is not empty (has source files): scan the project structure yourself using Glob/Read tools and write `.ca/map.md` directly. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.** Write a basic map with directory structure and key files.
+1. Run: `ls <project-root>/.ca/workflows/<active_id>/map.md 2>/dev/null` to check existence.
+2. If the file does NOT exist AND the project is not empty (has source files): scan the code directory (`worktree_path` from STATUS.md if present, else `<project-root>`) using Glob/Read tools and write `.ca/workflows/<active_id>/map.md` directly. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.** Write a basic map with directory structure and key files.
 3. If the project is empty (no source files): skip (map will be created in step 7).
 
 Mark "Prepare execution" as `completed`.
@@ -148,8 +148,9 @@ Also set `status_note` to a context-aware summary of what was executed, e.g.: "E
 
 ### 7. Update codebase map
 
-If `.ca/map.md` exists: update it directly using Read/Write tools to reflect changes and update the date.
-If missing (empty project): create it directly using Glob/Read/Write tools. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
+Scan the code directory (`worktree_path` from STATUS.md if present, else `<project-root>`) for project structure.
+If `.ca/workflows/<active_id>/map.md` exists: update it directly using Read/Write tools to reflect changes and update the date.
+If missing (empty project): create it directly as `.ca/workflows/<active_id>/map.md` using Glob/Read/Write tools. **Do NOT use `Skill(ca:map)` — Skill calls will terminate the current session.**
 
 ### 7b. Auto-commit after execution
 
